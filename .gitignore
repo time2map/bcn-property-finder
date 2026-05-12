@@ -8,13 +8,20 @@
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/coverage/
 frontend/.env
 frontend/.env.local
+
+# Playwright MCP artifacts
+.playwright-mcp/
 
 # Backend
 backend/__pycache__/
 backend/.venv/
 backend/.env
+
+# Claude Code local settings (personal, not for team)
+.claude/settings.local.json
 
 # Misc
 *.log

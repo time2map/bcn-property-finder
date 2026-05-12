@@ -1,17 +1,43 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# Claude. md – BCN Property finder
 
 ## Project
 
-An interactive map tool for finding residential properties in Barcelona. Users start with the entire city and progressively narrow their area of interest by applying filters (commute isochrones, proximity to amenities, noise levels, green spaces, etc.). The resulting zone is exported to property portals like Idealista.
+- `docs/PROJECT_BRIEF.md` — product goals, MVP scope, filter logic
+- `docs/ARCHITECTURE.md` — repository structure, key modules, external services
 
-**Stack:** React + MapLibre (frontend), Python backend if needed, database TBD. No authentication.
+## Stack
 
-## MVP Scope
+- **Frontend:** React + Vite + TypeScript, MapLibre GL JS, OpenRouteService API
+- **Backend:** Python + FastAPI (post-MVP, empty for now)
+- **Map tiles:** OpenFreeMap
 
-1. Interactive map of Barcelona
-2. User picks a workplace on the map → an isochrone is computed (walk or public transport, configurable duration) → area outside the isochrone is eliminated
-3. "View on Idealista" button that opens Idealista filtered to the resulting zone
+## Commands
 
-Future filters (post-MVP): supermarket proximity, bar/noise avoidance, green area proximity.
+TBD 
+
+## Language
+
+All UI text (labels, buttons, placeholders, tooltips) must be in **English**.
+
+## Workflow
+
+For each new feature:
+
+1. Read `docs/PROJECT_BRIEF.md` for context.
+2. Create `docs/features/NNN-feature-name.md` with a description of the task.
+3. Discuss the plan in plan mode.
+4. Write tests first, then code.
+5. Run `npm test` after every change.
+
+## Definition of Done
+
+A feature is not complete until all of the following pass:
+1. Unit tests cover all new business logic (≥80% coverage).
+2. At least one integration test covers the happy path.
+3. `npm test` — all tests green, including existing ones.
+4. `npm run lint` — no errors.
+5. `npm run typecheck` — no errors.
+6. Manually verified the scenario via `npm run dev` (for UI features).
+
+If any step fails — do NOT report "done".
+Show the failure output and propose a fix plan.

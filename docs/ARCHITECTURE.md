@@ -28,6 +28,10 @@ src/
     └── idealista.ts     # GeoJSON.Polygon → Google Encoded Polyline → Idealista URL
 ```
 
+## UI
+
+**Mantine** (`@mantine/core` + `@mantine/hooks`) — components (Button, Slider, SegmentedControl, Drawer) and CSS variables for theming. Mobile-first: filter panel is a bottom `Drawer` on mobile, floating card on desktop (`≥ 768px`).
+
 ## External services
 
 | Service | Purpose | Notes |

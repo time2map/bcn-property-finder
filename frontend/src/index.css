@@ -1,0 +1,34 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Desktop: floating panel top-left */
+.panel-desktop {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+/* Mobile: settings button bottom-left */
+.filter-toggle {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
