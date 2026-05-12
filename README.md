@@ -4,6 +4,8 @@ An interactive map that helps find property in Barcelona by filtering the city t
 
 **Live demo:** https://time2map.github.io/bcn-property-finder/
 
+![BCN Property Finder — walking 60 min from Plaça de Catalunya](docs/screenshot.png)
+
 ## How it works
 
 1. Click anywhere on the map to set your workplace

@@ -1,6 +1,7 @@
 import { Divider, Paper, SegmentedControl, Slider, Stack, Text } from '@mantine/core'
 import { useStore } from '../../store'
 import type { TransportMode } from '../../store'
+import { ExportButton } from '../ExportButton/ExportButton'
 
 const MODES: { value: TransportMode; label: string }[] = [
   { value: 'foot', label: 'Walking' },
@@ -17,7 +18,11 @@ const TIME_MARKS = [
   { value: 120, label: '2h' },
 ]
 
-export function FilterPanel() {
+interface FilterPanelProps {
+  isLoading?: boolean
+}
+
+export function FilterPanel({ isLoading = false }: FilterPanelProps) {
   const { mode, minutes, setMode, setMinutes } = useStore()
 
   return (
@@ -54,6 +59,7 @@ export function FilterPanel() {
         <Text size="xs" c="dimmed">
           The highlighted zone shows areas within commute reach — good candidates for buying or renting.
         </Text>
+        <ExportButton isLoading={isLoading} />
       </Stack>
     </Paper>
   )

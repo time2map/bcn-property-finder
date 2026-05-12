@@ -13,7 +13,7 @@ export function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  useIsochrone((err) => {
+  const { isLoading } = useIsochrone((err) => {
     setErrorMsg(err.message)
     setTimeout(() => setErrorMsg(null), 4000)
   })
@@ -40,12 +40,12 @@ export function App() {
             size="auto"
             title="Filters"
           >
-            <FilterPanel />
+            <FilterPanel isLoading={isLoading} />
           </Drawer>
         </>
       ) : (
         <div className="panel-desktop">
-          <FilterPanel />
+          <FilterPanel isLoading={isLoading} />
         </div>
       )}
 

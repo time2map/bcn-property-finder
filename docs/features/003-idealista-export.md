@@ -24,7 +24,7 @@ Confirmed format from a real Idealista URL — `((gdr{Fo|gL...))` decodes to val
 
 - Disabled (greyed out) when `store.resultPolygon` is null
 - On click: calls `idealista.ts`, opens result in new tab
-- Label: "Ver en Idealista ↗"
+- Label: "Open in Idealista ↗"
 - Position: bottom-right, floating over the map
 
 ## Done when

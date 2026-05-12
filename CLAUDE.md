@@ -44,4 +44,9 @@ Show the failure output and propose a fix plan.
 
 ## Changes request
 
-When I ask to change feature implementation – check and change corresponding features description in `features` folder if needed
+– When I ask to change feature implementation – check and change corresponding features description in `features` folder if needed
+
+## Git
+
+– Never commit & push until you will be explicitly asked for it. 
+– Don't ask for adding files to git – always add (if not in gitignore).
