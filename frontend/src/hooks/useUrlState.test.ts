@@ -5,7 +5,7 @@ import { useStore } from '../store'
 
 describe('useUrlState', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, mode: 'foot-walking', minutes: 30, resultPolygon: null })
+    useStore.setState({ workplace: null, mode: 'foot', minutes: 60, resultPolygon: null })
     vi.spyOn(window.history, 'replaceState')
   })
 
@@ -14,18 +14,20 @@ describe('useUrlState', () => {
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
       '',
-      expect.stringContaining('mode=foot-walking'),
+      expect.stringContaining('mode=foot'),
     )
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
       '',
-      expect.stringContaining('minutes=30'),
+      expect.stringContaining('minutes=60'),
     )
   })
 
   it('omits lng/lat when workplace is null', () => {
     renderHook(() => useUrlState())
-    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(-1)?.[2] as string
+    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(
+      -1,
+    )?.[2] as string
     expect(url).not.toContain('lng=')
     expect(url).not.toContain('lat=')
   })
@@ -33,22 +35,28 @@ describe('useUrlState', () => {
   it('writes workplace coords when set', () => {
     useStore.setState({ workplace: [2.1734, 41.3851] })
     renderHook(() => useUrlState())
-    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(-1)?.[2] as string
+    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(
+      -1,
+    )?.[2] as string
     expect(url).toContain('lng=2.17340')
     expect(url).toContain('lat=41.38510')
   })
 
-  it('writes cycling-regular mode to URL', () => {
-    useStore.setState({ mode: 'cycling-regular' })
+  it('writes foot mode to URL', () => {
+    useStore.setState({ mode: 'foot' })
     renderHook(() => useUrlState())
-    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(-1)?.[2] as string
-    expect(url).toContain('mode=cycling-regular')
+    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(
+      -1,
+    )?.[2] as string
+    expect(url).toContain('mode=foot')
   })
 
   it('writes non-default minutes to URL', () => {
-    useStore.setState({ minutes: 20 })
+    useStore.setState({ minutes: 90 })
     renderHook(() => useUrlState())
-    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(-1)?.[2] as string
-    expect(url).toContain('minutes=20')
+    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(
+      -1,
+    )?.[2] as string
+    expect(url).toContain('minutes=90')
   })
 })

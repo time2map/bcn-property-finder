@@ -24,6 +24,36 @@ html, body, #root {
   z-index: 10;
 }
 
+/* Workplace marker */
+.work-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.work-marker__label {
+  background: #F06965;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.work-marker__dot {
+  width: 10px;
+  height: 10px;
+  background: #F06965;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 /* Mobile: settings button bottom-left */
 .filter-toggle {
   position: absolute;
@@ -32,3 +62,4 @@ html, body, #root {
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+

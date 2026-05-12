@@ -4,7 +4,7 @@
 
 - `docs/PROJECT_BRIEF.md` — product goals, MVP scope, filter logic
 - `docs/ARCHITECTURE.md` — repository structure, key modules, external services
-
+- `docs/DESIGN.md` — design rules
 ## Stack
 
 - **Frontend:** React + Vite + TypeScript, MapLibre GL JS, OpenRouteService API
@@ -41,3 +41,7 @@ A feature is not complete until all of the following pass:
 
 If any step fails — do NOT report "done".
 Show the failure output and propose a fix plan.
+
+## Changes request
+
+When I ask to change feature implementation – check and change corresponding features description in `features` folder if needed

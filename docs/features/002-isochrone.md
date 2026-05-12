@@ -30,8 +30,8 @@ Inverted polygon: a large world bbox with the isochrone as a hole (`coordinates[
 
 ### `FilterPanel` component
 Positioned top-left, floating over the map:
-- Transport mode: segmented control `foot | transit | bike`
-- Time: slider 15 / 20 / 30 / 45 min
+- Transport mode: segmented control `foot | cycling | driving`
+- Time: slider 15 / 30 / 45 / 60 / 90 / 120 min (max 2 hours)
 - Updates store on change → triggers new isochrone fetch
 
 ## ORS profiles mapping
@@ -39,8 +39,8 @@ Positioned top-left, floating over the map:
 | UI label | ORS profile |
 |---|---|
 | foot | `foot-walking` |
-| transit | `foot-walking` (ORS public-transit is not on free tier — use foot as proxy for now, revisit) |
-| bike | `cycling-regular` |
+| cycling | `cycling-regular` |
+| driving | `driving-car` |
 
 ## Error handling
 
@@ -60,8 +60,10 @@ On first load (no URL params), the store is initialised with:
 | Field | Default value |
 |---|---|
 | `workplace` | `{ lng: 2.1687, lat: 41.3874 }` — Plaça de Catalunya |
-| `mode` | `transit` |
-| `minutes` | `30` |
+| `mode` | `foot` |
+| `minutes` | `60` |
+
+Valid minutes range: 15–120, multiples of 5.
 
 The marker is placed and the isochrone fetched immediately — the user sees a working map without clicking anything.
 

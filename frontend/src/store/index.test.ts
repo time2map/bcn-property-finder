@@ -8,10 +8,16 @@ function setSearch(search: string) {
   })
 }
 
+const DEFAULT_WORKPLACE: [number, number] = [2.1687, 41.3874]
+
 describe('readUrlParams', () => {
   it('returns defaults when URL is empty', () => {
     setSearch('')
-    expect(readUrlParams()).toEqual({ workplace: null, mode: 'foot-walking', minutes: 30 })
+    expect(readUrlParams()).toEqual({
+      workplace: DEFAULT_WORKPLACE,
+      mode: 'foot',
+      minutes: 60,
+    })
   })
 
   it('reads workplace from lng/lat', () => {
@@ -19,49 +25,79 @@ describe('readUrlParams', () => {
     expect(readUrlParams().workplace).toEqual([2.1734, 41.3851])
   })
 
-  it('reads valid mode', () => {
-    setSearch('?mode=cycling-regular')
-    expect(readUrlParams().mode).toBe('cycling-regular')
+  it('reads valid mode: foot', () => {
+    setSearch('?mode=foot')
+    expect(readUrlParams().mode).toBe('foot')
   })
 
-  it('reads valid minutes', () => {
-    setSearch('?minutes=20')
-    expect(readUrlParams().minutes).toBe(20)
+  it('reads valid mode: cycling', () => {
+    setSearch('?mode=cycling')
+    expect(readUrlParams().mode).toBe('cycling')
   })
 
-  it('falls back to default for unknown mode', () => {
+  it('reads valid mode: driving', () => {
+    setSearch('?mode=driving')
+    expect(readUrlParams().mode).toBe('driving')
+  })
+
+  it('reads valid minutes within range', () => {
+    setSearch('?minutes=60')
+    expect(readUrlParams().minutes).toBe(60)
+  })
+
+  it('reads boundary max minutes (120)', () => {
+    setSearch('?minutes=120')
+    expect(readUrlParams().minutes).toBe(120)
+  })
+
+  it('falls back to default for minutes above 120', () => {
+    setSearch('?minutes=150')
+    expect(readUrlParams().minutes).toBe(60)
+  })
+
+  it('falls back to default for minutes below 15', () => {
+    setSearch('?minutes=10')
+    expect(readUrlParams().minutes).toBe(60)
+  })
+
+  it('falls back to default for non-multiple-of-5 minutes', () => {
+    setSearch('?minutes=17')
+    expect(readUrlParams().minutes).toBe(60)
+  })
+
+  it('falls back to foot for unknown mode', () => {
     setSearch('?mode=teleportation')
-    expect(readUrlParams().mode).toBe('foot-walking')
+    expect(readUrlParams().mode).toBe('foot')
   })
 
   it('falls back to default for out-of-range minutes', () => {
     setSearch('?minutes=99')
-    expect(readUrlParams().minutes).toBe(30)
+    expect(readUrlParams().minutes).toBe(60)
   })
 
-  it('ignores NaN coordinates', () => {
+  it('ignores NaN coordinates and uses default workplace', () => {
     setSearch('?lng=abc&lat=def')
-    expect(readUrlParams().workplace).toBeNull()
+    expect(readUrlParams().workplace).toEqual(DEFAULT_WORKPLACE)
   })
 
   it('ignores lone lat without lng', () => {
     setSearch('?lat=41.38')
-    expect(readUrlParams().workplace).toBeNull()
+    expect(readUrlParams().workplace).toEqual(DEFAULT_WORKPLACE)
   })
 
   it('reads all params together', () => {
-    setSearch('?lng=2.17&lat=41.38&mode=driving-car&minutes=45')
+    setSearch('?lng=2.17&lat=41.38&mode=foot&minutes=60')
     expect(readUrlParams()).toEqual({
       workplace: [2.17, 41.38],
-      mode: 'driving-car',
-      minutes: 45,
+      mode: 'foot',
+      minutes: 60,
     })
   })
 })
 
 describe('store setters', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, mode: 'foot-walking', minutes: 30, resultPolygon: null })
+    useStore.setState({ workplace: null, mode: 'foot', minutes: 60, resultPolygon: null })
   })
 
   it('setWorkplace updates workplace', () => {
@@ -76,8 +112,8 @@ describe('store setters', () => {
   })
 
   it('setMode updates mode', () => {
-    useStore.getState().setMode('driving-car')
-    expect(useStore.getState().mode).toBe('driving-car')
+    useStore.getState().setMode('cycling')
+    expect(useStore.getState().mode).toBe('cycling')
   })
 
   it('setMinutes updates minutes', () => {

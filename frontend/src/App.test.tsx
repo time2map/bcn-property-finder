@@ -9,10 +9,23 @@ vi.mock('@mantine/core', async () => {
   const actual = await vi.importActual<typeof import('@mantine/core')>('@mantine/core')
   return {
     ...actual,
-    Drawer: ({ opened, children, title, onClose }: { opened: boolean; children: React.ReactNode; title: string; onClose: () => void }) =>
-      opened
-        ? <div role="dialog" aria-label={title}><button onClick={onClose}>close</button>{children}</div>
-        : null,
+    Drawer: ({
+      opened,
+      children,
+      title,
+      onClose,
+    }: {
+      opened: boolean
+      children: React.ReactNode
+      title: string
+      onClose: () => void
+    }) =>
+      opened ? (
+        <div role="dialog" aria-label={title}>
+          <button onClick={onClose}>close</button>
+          {children}
+        </div>
+      ) : null,
   }
 })
 
@@ -32,6 +45,10 @@ vi.mock('maplibre-gl', () => ({
   },
 }))
 
+vi.mock('./hooks/useIsochrone', () => ({
+  useIsochrone: vi.fn().mockReturnValue({ isLoading: false }),
+}))
+
 function renderApp() {
   return render(
     <MantineProvider>
@@ -42,7 +59,12 @@ function renderApp() {
 
 describe('App (integration)', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, mode: 'foot-walking', minutes: 30, resultPolygon: null })
+    useStore.setState({
+      workplace: [2.1687, 41.3874],
+      mode: 'foot',
+      minutes: 60,
+      resultPolygon: null,
+    })
     vi.spyOn(window.history, 'replaceState')
   })
 
@@ -52,24 +74,20 @@ describe('App (integration)', () => {
 
   it('renders the map container', () => {
     const { container } = renderApp()
-    expect(container.querySelector('.maplibregl-map, [style*="width: 100%"]')).toBeTruthy()
+    expect(container.querySelector('[style*="width: 100%"]')).toBeTruthy()
   })
 
-  it('renders the transport filter panel on desktop', () => {
+  it('renders the filter panel with title and labels', () => {
     renderApp()
-    expect(screen.getByText('Transport')).toBeInTheDocument()
+    expect(screen.getByText('Commute from work')).toBeInTheDocument()
+    expect(screen.getByText('How you get there')).toBeInTheDocument()
   })
 
   it('shows all three transport modes', () => {
     renderApp()
-    expect(screen.getByText(/Walking/)).toBeInTheDocument()
-    expect(screen.getByText(/Cycling/)).toBeInTheDocument()
-    expect(screen.getByText(/Driving/)).toBeInTheDocument()
-  })
-
-  it('shows workplace hint when no workplace set', () => {
-    renderApp()
-    expect(screen.getByText('Click on the map to set your workplace')).toBeInTheDocument()
+    expect(screen.getByText('Walking')).toBeInTheDocument()
+    expect(screen.getByText('Cycling')).toBeInTheDocument()
+    expect(screen.getByText('Driving')).toBeInTheDocument()
   })
 
   it('syncs default state to URL on mount', () => {
@@ -77,14 +95,19 @@ describe('App (integration)', () => {
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
       '',
-      expect.stringContaining('mode=foot-walking'),
+      expect.stringContaining('mode=foot'),
     )
   })
 })
 
 describe('App (integration) - mobile', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, mode: 'foot-walking', minutes: 30, resultPolygon: null })
+    useStore.setState({
+      workplace: [2.1687, 41.3874],
+      mode: 'foot',
+      minutes: 60,
+      resultPolygon: null,
+    })
     vi.spyOn(window.history, 'replaceState')
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
