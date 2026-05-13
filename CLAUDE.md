@@ -13,7 +13,11 @@
 
 ## Commands
 
-TBD 
+cd frontend && npm test          # run tests
+cd frontend && npm run lint      # eslint
+cd frontend && npm run typecheck # tsc
+cd frontend && npm run dev       # dev server (port 5173)
+
 
 ## Language
 
@@ -28,6 +32,14 @@ For each new feature:
 3. Discuss the plan in plan mode.
 4. Write tests first, then code.
 5. Run `npm test` after every change.
+
+## Playwright MCP
+
+Run Playwright tests only when:
+- A new feature is fully implemented, OR
+- A substantial change was made to an existing feature
+
+Test only the affected component(s) — do NOT run a full system-wide Playwright pass for small changes.
 
 ## Definition of Done
 
