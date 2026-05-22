@@ -1,4 +1,12 @@
 import type { MultiPolygon } from 'geojson'
+import type { TransportMode } from '../store'
+
+const OTP_MODES: Record<TransportMode, string> = {
+  public_transport: 'WALK,TRANSIT',
+  foot: 'WALK',
+  cycling: 'BIKE',
+  driving: 'CAR',
+}
 
 export function getNextMondayMadridISO(): string {
   const now = new Date()
@@ -45,6 +53,7 @@ export function getNextMondayMadridISO(): string {
 
 export async function fetchOtpIsochrone(
   lngLat: [number, number],
+  mode: TransportMode,
   minutes: number,
 ): Promise<MultiPolygon> {
   const baseUrl = (import.meta.env.VITE_OTP_URL as string | undefined) ?? 'http://localhost:8080'
@@ -53,7 +62,7 @@ export async function fetchOtpIsochrone(
     location: `${lat},${lng}`,
     time: getNextMondayMadridISO(),
     cutoff: `PT${minutes}M`,
-    modes: 'WALK,TRANSIT',
+    modes: OTP_MODES[mode],
   })
   const res = await fetch(`${baseUrl}/otp/traveltime/isochrone?${params}`)
   if (!res.ok) throw new Error(`OTP ${res.status}`)

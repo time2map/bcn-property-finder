@@ -4,18 +4,18 @@ import type { TransportMode } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 
 const MODES: { value: TransportMode; label: string }[] = [
+  { value: 'public_transport', label: 'Public transport' },
   { value: 'foot', label: 'Walking' },
   { value: 'cycling', label: 'Cycling' },
   { value: 'driving', label: 'Driving' },
-  { value: 'public_transport', label: 'Public transport' },
 ]
 
 const MODE_DESCRIPTIONS: Record<TransportMode, string> = {
-  foot: 'Walking at average pace (~5 km/h). Via OpenRouteService.',
-  cycling: 'Regular cycling (~15 km/h). Via OpenRouteService.',
-  driving: 'Car, typical road speeds. Via OpenRouteService.',
   public_transport:
     'Walk to nearest stop + optimal route (transfers allowed if they save time). Scheduled timetables, typical Mon 09:00.',
+  foot: 'Walking at average pace (~5 km/h). Via OpenTripPlanner.',
+  cycling: 'Regular cycling (~15 km/h). Via OpenTripPlanner.',
+  driving: 'Car, typical road speeds. Via OpenTripPlanner.',
 }
 
 const TIME_MARKS = [
@@ -44,6 +44,7 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           <SegmentedControl
             fullWidth
             size="xs"
+            orientation="vertical"
             value={mode}
             onChange={(v) => setMode(v as TransportMode)}
             data={MODES}
