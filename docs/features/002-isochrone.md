@@ -2,55 +2,52 @@
 
 ## Goal
 
-User clicks on the map → pin placed, isochrone polygon fetched from ORS, area outside it dimmed.
+User clicks on the map → pin placed, isochrone polygon fetched from OTP2, area outside it dimmed.
 
 ## Scope
 
 ### Interaction
-- Click anywhere on the map → sets `store.workplace`, fires ORS request
+- Click anywhere on the map → sets `store.workplace`, fires OTP2 request
 - Click again → moves the marker
-- Loading state while ORS responds (pin shows spinner or pulse)
+- Loading state while OTP2 responds
 
-### `services/ors.ts`
-Calls `POST https://api.openrouteservice.org/v2/isochrones/{profile}` with:
-```json
-{ "locations": [[lng, lat]], "range": [minutes * 60] }
-```
-Returns the first `Feature.geometry` as `GeoJSON.Polygon`. API key read from `import.meta.env.VITE_ORS_API_KEY`.
+### `services/otp.ts`
+
+Calls `GET ${VITE_OTP_URL}/otp/traveltime/isochrone` with:
+
+| Parameter | Value |
+|---|---|
+| `location` | `"lat,lng"` |
+| `time` | ISO-8601, next Monday 09:00 `Europe/Madrid` |
+| `cutoff` | `PT${minutes}M` |
+| `modes` | `WALK,TRANSIT` |
+
+Returns `MultiPolygon` extracted from `features[0].geometry`.
 
 ### `hooks/useIsochrone.ts`
-Watches `workplace`, `mode`, `minutes` in the store. On change: calls `ors.ts`, writes result to `store.resultPolygon`. Debounce 300ms.
+Watches `workplace` and `minutes` in the store. On change: calls `otp.ts`, writes result to `store.resultPolygon`. Debounce 300ms.
 
 ### `IsochroneLayer` component
 Two MapLibre layers on a single GeoJSON source (`resultPolygon`):
 1. **Fill** — semi-transparent green inside the reachable zone
 2. **Mask** — inverted polygon covering the rest of Barcelona, `rgba(0,0,0,0.45)`
 
-Inverted polygon: a large world bbox with the isochrone as a hole (`coordinates[0]` = outer ring of world, `coordinates[1]` = isochrone ring).
+Inverted polygon: a large world bbox with the isochrone rings as holes. For `MultiPolygon`, each outer ring (`poly[0]`) becomes one hole.
 
 ### `FilterPanel` component
 Positioned top-left, floating over the map:
-- Transport mode: segmented control `foot | cycling | driving`
 - Time: slider 15 / 30 / 45 / 60 / 90 / 120 min (max 2 hours)
 - Updates store on change → triggers new isochrone fetch
 
-## ORS profiles mapping
-
-| UI label | ORS profile |
-|---|---|
-| foot | `foot-walking` |
-| cycling | `cycling-regular` |
-| driving | `driving-car` |
-
 ## Error handling
 
-If ORS returns an error or network fails: keep previous polygon, show a brief toast.
+If OTP2 returns an error or network fails: keep previous polygon, show a brief toast.
 
 ## Environment
 
 `.env.local`:
 ```
-VITE_ORS_API_KEY=your_key_here
+VITE_OTP_URL=http://localhost:8080
 ```
 
 ## Default state
@@ -59,8 +56,7 @@ On first load (no URL params), the store is initialised with:
 
 | Field | Default value |
 |---|---|
-| `workplace` | `{ lng: 2.1687, lat: 41.3874 }` — Plaça de Catalunya |
-| `mode` | `foot` |
+| `workplace` | `[2.1687, 41.3874]` — Plaça de Catalunya |
 | `minutes` | `60` |
 
 Valid minutes range: 15–120, multiples of 5.
@@ -69,8 +65,8 @@ The marker is placed and the isochrone fetched immediately — the user sees a w
 
 ## Done when
 
-Clicking the map places a marker, the reachable zone lights up, the rest dims. Changing mode/time refetches. State survives page refresh via URL params. On first load the default workplace (Plaça de Catalunya), mode (transit), and time (30 min) are pre-applied.
+Clicking the map places a marker, the reachable zone lights up, the rest dims. Changing travel time refetches. State survives page refresh via URL params (`lng`, `lat`, `minutes`). On first load the default workplace (Plaça de Catalunya) and time (60 min) are pre-applied.
 
 ---
 
-See [004-public-transport-isochrone.md](004-public-transport-isochrone.md) for the Transit mode extension.
+See [004-public-transport-isochrone.md](004-public-transport-isochrone.md) for OTP2 backend details.

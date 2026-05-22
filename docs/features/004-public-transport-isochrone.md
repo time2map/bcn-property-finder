@@ -2,32 +2,36 @@
 
 ## Goal
 
-Add a **Public transport** mode to the isochrone feature. The user gets a single isochrone polygon showing everywhere reachable by public transport — OTP2 finds the optimal route including walking to stops and any transfers it deems necessary.
+Single isochrone mode: everywhere reachable by public transport within N minutes. OTP2 finds the optimal route including walking to stops and any transfers it deems necessary.
 
-## Context
+## Architecture
 
-Feature 002 covers foot / cycling / driving via OpenRouteService. ORS does not support public transport. This feature adds a self-hosted **OpenTripPlanner 2** instance as a second backend, used only for the public transport mode. ORS remains unchanged for all other modes.
+The app uses a single backend — a self-hosted **OpenTripPlanner 2** instance — for all isochrone requests. ORS (OpenRouteService) is not used.
 
 Prerequisite: [004a-otp2-local-setup.md](004a-otp2-local-setup.md) — OTP2 must be running locally at `http://localhost:8080`.
 
+## Why OTP2 only supports transit isochrones
+
+OTP2's TravelTime Sandbox endpoint (`/otp/traveltime/isochrone`) always runs Raptor (the transit routing algorithm) regardless of the `modes` parameter. This is because `TravelTimeResource.java` calls `allowEmptyAccessEgressPaths(true)`, meaning transit is always active. There is no way to get a walk-only or car-only isochrone from this endpoint.
+
+The OTP2 GraphQL API (`/otp/routers/default/index/graphql`) supports point-to-point routing but has no isochrone query, making it impractical for this use case.
+
 ## Transfer behaviour
 
-OTP2's TravelTime Sandbox does not support `maxTransfers` as a per-request parameter, and OTP2 2.5.0 has no hard transfer limit in `router-config.json` either. Transfers are discouraged via `transferPenalty: 300` (5-minute cost per transfer) — OTP will still make a transfer if it saves meaningful time, which is the correct behaviour for a usability tool.
-
-Two-container approach was considered and rejected: too much RAM (~2GB), not viable on a cheap VPS.
+Transfers are discouraged via `transferPenalty: 300` in `router-config.json` (5-minute cost per transfer). OTP will still transfer if it saves meaningful time.
 
 ## API: OTP2 TravelTime Sandbox
 
 Endpoint: `GET ${VITE_OTP_URL}/otp/traveltime/isochrone`
 
-Transit isochrones in OTP2 live in the **SandboxAPITravelTime** feature (enabled via `otp-config.json`). The legacy `/otp/routers/default/isochrone` endpoint does not support transit mode.
+Transit isochrones live in the **SandboxAPITravelTime** feature (enabled via `otp-config.json`).
 
 | Parameter | Value |
 |---|---|
 | `location` | `"lat,lng"` |
-| `time` | ISO-8601, default next Monday 09:00 `Europe/Madrid` |
+| `time` | ISO-8601, next Monday 09:00 `Europe/Madrid` |
 | `cutoff` | `PT${minutes}M` |
-| `modes` | `WALK,TRANSIT` |
+| `modes` | `WALK,TRANSIT` (hardcoded) |
 
 Returns: GeoJSON `FeatureCollection` with one `MultiPolygon` feature.
 
@@ -37,50 +41,28 @@ Base URL from env var `VITE_OTP_URL` (default: `http://localhost:8080`).
 
 OTP2 uses **GTFS scheduled data** (TMB + FGC + Rodalies timetables). Typical weekday schedule, not real-time.
 
-## Scope
-
-### Transport modes
-
-Add `public_transport` to `TransportMode` union in the store. UI label: **"Public transport"**.
-
-Segmented control becomes: `foot | cycling | driving | public_transport`.
-
-### `services/otp.ts` (new file)
+## `services/otp.ts`
 
 ```ts
-fetchOtpIsochrone(lngLat: [number, number], minutes: number): Promise<Polygon>
+fetchOtpIsochrone(lngLat: [number, number], minutes: number): Promise<MultiPolygon>
 ```
 
-- Calls `GET ${VITE_OTP_URL}/otp/traveltime/isochrone`
-- `time` defaults to next Monday 09:00 `Europe/Madrid` (ISO-8601 with offset)
-- `cutoff` = `PT${minutes}M`
-- `modes=WALK,TRANSIT`
+- `getNextMondayMadridISO()` — computes next Monday 09:00 Europe/Madrid as ISO-8601 with UTC offset via `Intl.DateTimeFormat` `longOffset`
 - Extracts `features[0].geometry` from the `FeatureCollection` response
-- Response geometry is `MultiPolygon` — pass through as-is (MapLibre handles it)
 
-### `services/ors.ts`
+## `hooks/useIsochrone.ts`
 
-No changes.
+Always calls `fetchOtpIsochrone(workplace, minutes)`. No mode routing.
 
-### `hooks/useIsochrone.ts`
+## Store
 
-Route by mode:
-- `public_transport` → `fetchOtpIsochrone`
-- everything else → `fetchIsochrone` (ORS)
+```ts
+workplace: [number, number] | null
+minutes: number
+resultPolygon: Polygon | MultiPolygon | null
+```
 
-Store type for `resultPolygon` needs to accept both `Polygon` and `MultiPolygon`.
-
-### `FilterPanel` component
-
-- Add `public_transport` option to the segmented control
-- Display a short description below the segmented control for the active mode:
-
-| Mode | Description |
-|---|---|
-| Foot | Walking at average pace (~5 km/h). Via OpenRouteService. |
-| Cycling | Regular cycling (~15 km/h). Via OpenRouteService. |
-| Driving | Car, typical road speeds. Via OpenRouteService. |
-| Public transport | Walk to nearest stop + optimal route (transfers allowed if they save time). Scheduled timetables, typical Mon 09:00. |
+No `mode` field — transport mode is not configurable.
 
 ## Environment variables
 
@@ -90,19 +72,18 @@ VITE_OTP_URL=http://localhost:8080
 
 ## Error handling
 
-Same as 002: keep previous polygon on error, show a brief toast.
+Keep previous polygon on error, call optional `onError` callback.
 
-## Out of scope (v1)
+## Out of scope
 
 - Departure time picker in UI (hardcoded to Mon 09:00)
 - VPS deployment (see future 004b)
 - Real-time departures
+- Non-transit modes (walk-only, cycling, driving)
 
 ## Done when
 
-1. Selecting "Public transport" fetches and displays an OTP2-based isochrone.
-2. Mode description hint is visible for the active mode.
-3. Foot / cycling / driving still work via ORS.
-4. Unit tests cover `otp.ts` (mocked fetch) and mode-routing in `useIsochrone.ts`.
-5. `npm test`, `npm run lint`, `npm run typecheck` — all pass.
-6. Manually verified on dev server with OTP2 running locally.
+1. Clicking the map fetches and displays an OTP2-based transit isochrone.
+2. Changing the travel time slider refetches.
+3. `npm test`, `npm run lint`, `npm run typecheck` — all pass.
+4. Manually verified on dev server with OTP2 running locally.
