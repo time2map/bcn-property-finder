@@ -7,7 +7,16 @@ const MODES: { value: TransportMode; label: string }[] = [
   { value: 'foot', label: 'Walking' },
   { value: 'cycling', label: 'Cycling' },
   { value: 'driving', label: 'Driving' },
+  { value: 'public_transport', label: 'Public transport' },
 ]
+
+const MODE_DESCRIPTIONS: Record<TransportMode, string> = {
+  foot: 'Walking at average pace (~5 km/h). Via OpenRouteService.',
+  cycling: 'Regular cycling (~15 km/h). Via OpenRouteService.',
+  driving: 'Car, typical road speeds. Via OpenRouteService.',
+  public_transport:
+    'Walk to nearest stop + optimal route (transfers allowed if they save time). Scheduled timetables, typical Mon 09:00.',
+}
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -39,6 +48,7 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
             onChange={(v) => setMode(v as TransportMode)}
             data={MODES}
           />
+          <Text size="xs" c="dimmed" mt={6}>{MODE_DESCRIPTIONS[mode]}</Text>
         </div>
 
         <div style={{ paddingBottom: 20 }}>

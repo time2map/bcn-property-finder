@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fetchIsochrone, getOrsProfile } from './ors'
-import type { TransportMode } from '../store'
+import type { OrsMode } from '../store'
 
 describe('getOrsProfile', () => {
-  it.each<[TransportMode, string]>([
+  it.each<[OrsMode, string]>([
     ['foot', 'foot-walking'],
     ['cycling', 'cycling-regular'],
     ['driving', 'driving-car'],

@@ -1,19 +1,19 @@
 import type { Polygon } from 'geojson'
-import type { TransportMode } from '../store'
+import type { OrsMode } from '../store'
 
-const ORS_PROFILES: Record<TransportMode, string> = {
+const ORS_PROFILES: Record<OrsMode, string> = {
   foot: 'foot-walking',
   cycling: 'cycling-regular',
   driving: 'driving-car',
 }
 
-export function getOrsProfile(mode: TransportMode): string {
+export function getOrsProfile(mode: OrsMode): string {
   return ORS_PROFILES[mode]
 }
 
 export async function fetchIsochrone(
   lngLat: [number, number],
-  mode: TransportMode,
+  mode: OrsMode,
   minutes: number,
 ): Promise<Polygon> {
   const profile = getOrsProfile(mode)

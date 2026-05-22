@@ -10,6 +10,14 @@ const POLYGON = {
   coordinates: [[[2.1, 41.3], [2.2, 41.3], [2.2, 41.4], [2.1, 41.3]]],
 }
 
+const MULTIPOLYGON = {
+  type: 'MultiPolygon' as const,
+  coordinates: [
+    [[[2.1, 41.3], [2.2, 41.3], [2.2, 41.4], [2.1, 41.3]]],
+    [[[2.3, 41.5], [2.4, 41.5], [2.4, 41.6], [2.3, 41.5]]],
+  ],
+}
+
 type MockMap = ReturnType<typeof makeMockMap>
 
 function makeMockMap(overrides?: Record<string, unknown>) {
@@ -132,5 +140,25 @@ describe('IsochroneLayer', () => {
     // First ring is the world bbox, second is the isochrone hole
     expect(maskFeature!.geometry.coordinates).toHaveLength(2)
     expect(maskFeature!.geometry.coordinates[1]).toEqual(POLYGON.coordinates[0])
+  })
+
+  it('mask uses all outer rings as holes for MultiPolygon', () => {
+    const mockSource = { setData: vi.fn() }
+    mockMap.getSource
+      .mockReturnValueOnce(null)
+      .mockReturnValue(mockSource)
+
+    useStore.setState({ resultPolygon: MULTIPOLYGON })
+    renderWithMap()
+
+    const data = mockSource.setData.mock.calls[0][0] as {
+      features: Array<{ properties: { layer: string }; geometry: { coordinates: unknown[][] } }>
+    }
+    const maskFeature = data.features.find((f) => f.properties.layer === 'mask')
+    expect(maskFeature).toBeDefined()
+    // World ring + one hole per polygon in the MultiPolygon
+    expect(maskFeature!.geometry.coordinates).toHaveLength(3)
+    expect(maskFeature!.geometry.coordinates[1]).toEqual(MULTIPOLYGON.coordinates[0][0])
+    expect(maskFeature!.geometry.coordinates[2]).toEqual(MULTIPOLYGON.coordinates[1][0])
   })
 })

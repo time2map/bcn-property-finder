@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { Feature, FeatureCollection, Polygon } from 'geojson'
+import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useStore } from '../../store'
@@ -13,7 +13,7 @@ const WORLD_RING: [number, number][] = [
   [-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90],
 ]
 
-function buildSourceData(polygon: Polygon | null): FeatureCollection {
+function buildSourceData(polygon: Polygon | MultiPolygon | null): FeatureCollection {
   if (!polygon) return { type: 'FeatureCollection', features: [] }
 
   const fill: Feature = {
@@ -21,13 +21,19 @@ function buildSourceData(polygon: Polygon | null): FeatureCollection {
     properties: { layer: 'fill' },
     geometry: polygon,
   }
+
+  // Collect outer rings to punch as holes in the world-covering mask
+  const holes =
+    polygon.type === 'MultiPolygon'
+      ? polygon.coordinates.map((poly) => poly[0])
+      : [polygon.coordinates[0]]
+
   const mask: Feature = {
     type: 'Feature',
     properties: { layer: 'mask' },
-    // Inverted polygon: world bbox with isochrone ring as a hole
     geometry: {
       type: 'Polygon',
-      coordinates: [WORLD_RING, polygon.coordinates[0]],
+      coordinates: [WORLD_RING, ...holes],
     },
   }
   return { type: 'FeatureCollection', features: [fill, mask] }

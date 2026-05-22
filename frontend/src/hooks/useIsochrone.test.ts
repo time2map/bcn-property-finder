@@ -3,10 +3,16 @@ import { renderHook, act } from '@testing-library/react'
 import { useIsochrone } from './useIsochrone'
 import { useStore } from '../store'
 import * as ors from '../services/ors'
+import * as otp from '../services/otp'
 
 vi.mock('../services/ors')
+vi.mock('../services/otp')
 
 const POLYGON = { type: 'Polygon' as const, coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }
+const MULTIPOLYGON = {
+  type: 'MultiPolygon' as const,
+  coordinates: [[[[0, 0], [1, 0], [1, 1], [0, 0]]]],
+}
 
 /**
  * Fire the 300ms debounce timer and await the async callback.
@@ -32,6 +38,7 @@ describe('useIsochrone', () => {
       resultPolygon: null,
     })
     vi.mocked(ors.fetchIsochrone).mockResolvedValue(POLYGON)
+    vi.mocked(otp.fetchOtpIsochrone).mockResolvedValue(MULTIPOLYGON)
   })
 
   afterEach(() => {
@@ -99,5 +106,38 @@ describe('useIsochrone', () => {
     const { result } = renderHook(() => useIsochrone())
     await advanceDebounce()
     expect(result.current.isLoading).toBe(false)
+  })
+
+  describe('public_transport mode', () => {
+    beforeEach(() => {
+      useStore.setState({ mode: 'public_transport' })
+    })
+
+    it('routes public_transport to fetchOtpIsochrone, not fetchIsochrone', async () => {
+      renderHook(() => useIsochrone())
+      await advanceDebounce()
+      expect(otp.fetchOtpIsochrone).toHaveBeenCalledTimes(1)
+      expect(ors.fetchIsochrone).not.toHaveBeenCalled()
+    })
+
+    it('calls fetchOtpIsochrone with correct arguments', async () => {
+      renderHook(() => useIsochrone())
+      await advanceDebounce()
+      expect(otp.fetchOtpIsochrone).toHaveBeenCalledWith([2.17, 41.38], 60)
+    })
+
+    it('writes MultiPolygon result to store', async () => {
+      renderHook(() => useIsochrone())
+      await advanceDebounce()
+      expect(useStore.getState().resultPolygon).toEqual(MULTIPOLYGON)
+    })
+
+    it('calls onError when OTP fetch fails', async () => {
+      vi.mocked(otp.fetchOtpIsochrone).mockRejectedValue(new Error('OTP 503'))
+      const onError = vi.fn()
+      renderHook(() => useIsochrone(onError))
+      await advanceDebounce()
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'OTP 503' }))
+    })
   })
 })

@@ -1,20 +1,21 @@
 import { create } from 'zustand'
-import type { Polygon } from 'geojson'
+import type { MultiPolygon, Polygon } from 'geojson'
 
-export type TransportMode = 'foot' | 'cycling' | 'driving'
+export type OrsMode = 'foot' | 'cycling' | 'driving'
+export type TransportMode = OrsMode | 'public_transport'
 
 export interface AppState {
   workplace: [number, number] | null
   mode: TransportMode
   minutes: number
-  resultPolygon: Polygon | null
+  resultPolygon: Polygon | MultiPolygon | null
   setWorkplace: (wp: [number, number] | null) => void
   setMode: (mode: TransportMode) => void
   setMinutes: (minutes: number) => void
-  setResultPolygon: (polygon: Polygon | null) => void
+  setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
 }
 
-const VALID_MODES: TransportMode[] = ['foot', 'cycling', 'driving']
+const VALID_MODES: TransportMode[] = ['foot', 'cycling', 'driving', 'public_transport']
 
 function isValidMinutes(n: number): boolean {
   return Number.isInteger(n) && n >= 15 && n <= 120 && n % 5 === 0

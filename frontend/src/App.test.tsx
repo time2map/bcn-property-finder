@@ -83,11 +83,12 @@ describe('App (integration)', () => {
     expect(screen.getByText('How you get there')).toBeInTheDocument()
   })
 
-  it('shows all three transport modes', () => {
+  it('shows all transport modes', () => {
     renderApp()
     expect(screen.getByText('Walking')).toBeInTheDocument()
     expect(screen.getByText('Cycling')).toBeInTheDocument()
     expect(screen.getByText('Driving')).toBeInTheDocument()
+    expect(screen.getByText('Public transport')).toBeInTheDocument()
   })
 
   it('syncs default state to URL on mount', () => {
