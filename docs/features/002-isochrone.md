@@ -70,3 +70,7 @@ The marker is placed and the isochrone fetched immediately — the user sees a w
 ## Done when
 
 Clicking the map places a marker, the reachable zone lights up, the rest dims. Changing mode/time refetches. State survives page refresh via URL params. On first load the default workplace (Plaça de Catalunya), mode (transit), and time (30 min) are pre-applied.
+
+---
+
+See [004-public-transport-isochrone.md](004-public-transport-isochrone.md) for the Transit mode extension.

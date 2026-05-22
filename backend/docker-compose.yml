@@ -1,0 +1,10 @@
+services:
+  otp:
+    image: docker.io/opentripplanner/opentripplanner:2.5.0_2024-01-02T09-25
+    volumes:
+      - ./otp/data:/var/opentripplanner
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx2g"
+    command: ["--load", "--serve"]

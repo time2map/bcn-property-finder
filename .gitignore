@@ -20,6 +20,12 @@ backend/__pycache__/
 backend/.venv/
 backend/.env
 
+# OTP2 data (GTFS, OSM, built graph — large binary files)
+backend/otp/data/*.zip
+backend/otp/data/*.pbf
+backend/otp/data/*.obj
+backend/otp/data/*.csv
+
 # Claude Code local settings (personal, not for team)
 .claude/settings.local.json
 
