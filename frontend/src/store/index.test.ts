@@ -15,7 +15,6 @@ describe('readUrlParams', () => {
     setSearch('')
     expect(readUrlParams()).toEqual({
       workplace: DEFAULT_WORKPLACE,
-      mode: 'foot',
       minutes: 60,
     })
   })
@@ -23,21 +22,6 @@ describe('readUrlParams', () => {
   it('reads workplace from lng/lat', () => {
     setSearch('?lng=2.1734&lat=41.3851')
     expect(readUrlParams().workplace).toEqual([2.1734, 41.3851])
-  })
-
-  it('reads valid mode: foot', () => {
-    setSearch('?mode=foot')
-    expect(readUrlParams().mode).toBe('foot')
-  })
-
-  it('reads valid mode: cycling', () => {
-    setSearch('?mode=cycling')
-    expect(readUrlParams().mode).toBe('cycling')
-  })
-
-  it('reads valid mode: driving', () => {
-    setSearch('?mode=driving')
-    expect(readUrlParams().mode).toBe('driving')
   })
 
   it('reads valid minutes within range', () => {
@@ -65,11 +49,6 @@ describe('readUrlParams', () => {
     expect(readUrlParams().minutes).toBe(60)
   })
 
-  it('falls back to foot for unknown mode', () => {
-    setSearch('?mode=teleportation')
-    expect(readUrlParams().mode).toBe('foot')
-  })
-
   it('falls back to default for out-of-range minutes', () => {
     setSearch('?minutes=99')
     expect(readUrlParams().minutes).toBe(60)
@@ -85,11 +64,10 @@ describe('readUrlParams', () => {
     expect(readUrlParams().workplace).toEqual(DEFAULT_WORKPLACE)
   })
 
-  it('reads all params together', () => {
-    setSearch('?lng=2.17&lat=41.38&mode=foot&minutes=60')
+  it('reads workplace and minutes together', () => {
+    setSearch('?lng=2.17&lat=41.38&minutes=60')
     expect(readUrlParams()).toEqual({
       workplace: [2.17, 41.38],
-      mode: 'foot',
       minutes: 60,
     })
   })
@@ -97,7 +75,7 @@ describe('readUrlParams', () => {
 
 describe('store setters', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, mode: 'foot', minutes: 60, resultPolygon: null })
+    useStore.setState({ workplace: null, minutes: 60, resultPolygon: null })
   })
 
   it('setWorkplace updates workplace', () => {
@@ -109,11 +87,6 @@ describe('store setters', () => {
     useStore.getState().setWorkplace([2.17, 41.38])
     useStore.getState().setWorkplace(null)
     expect(useStore.getState().workplace).toBeNull()
-  })
-
-  it('setMode updates mode', () => {
-    useStore.getState().setMode('cycling')
-    expect(useStore.getState().mode).toBe('cycling')
   })
 
   it('setMinutes updates minutes', () => {

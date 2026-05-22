@@ -1,22 +1,6 @@
-import { Divider, Paper, SegmentedControl, Slider, Stack, Text } from '@mantine/core'
+import { Divider, Paper, Slider, Stack, Text } from '@mantine/core'
 import { useStore } from '../../store'
-import type { TransportMode } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
-
-const MODES: { value: TransportMode; label: string }[] = [
-  { value: 'public_transport', label: 'Public transport' },
-  { value: 'foot', label: 'Walking' },
-  { value: 'cycling', label: 'Cycling' },
-  { value: 'driving', label: 'Driving' },
-]
-
-const MODE_DESCRIPTIONS: Record<TransportMode, string> = {
-  public_transport:
-    'Walk to nearest stop + optimal route (transfers allowed if they save time). Scheduled timetables, typical Mon 09:00.',
-  foot: 'Walking at average pace (~5 km/h). Via OpenRouteService.',
-  cycling: 'Regular cycling (~15 km/h). Via OpenRouteService.',
-  driving: 'Car, typical road speeds. Via OpenRouteService.',
-}
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -32,28 +16,15 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ isLoading = false }: FilterPanelProps) {
-  const { mode, minutes, setMode, setMinutes } = useStore()
+  const { minutes, setMinutes } = useStore()
 
   return (
     <Paper shadow="md" p="md" radius="md" w={260}>
       <Stack gap="md">
         <Text fw={500} size="sm">Commute from work</Text>
 
-        <div>
-          <Text size="xs" c="dimmed" mb={6}>How you get there</Text>
-          <SegmentedControl
-            fullWidth
-            size="xs"
-            orientation="vertical"
-            value={mode}
-            onChange={(v) => setMode(v as TransportMode)}
-            data={MODES}
-          />
-          <Text size="xs" c="dimmed" mt={6}>{MODE_DESCRIPTIONS[mode]}</Text>
-        </div>
-
         <div style={{ paddingBottom: 20 }}>
-          <Text size="xs" c="dimmed" mb={6}>Travel time: {minutes} min</Text>
+          <Text size="xs" c="dimmed" mb={6}>Travel time by public transport: {minutes} min</Text>
           <Slider
             min={15}
             max={120}

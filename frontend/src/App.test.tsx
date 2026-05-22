@@ -61,7 +61,6 @@ describe('App (integration)', () => {
   beforeEach(() => {
     useStore.setState({
       workplace: [2.1687, 41.3874],
-      mode: 'foot',
       minutes: 60,
       resultPolygon: null,
     })
@@ -77,18 +76,14 @@ describe('App (integration)', () => {
     expect(container.querySelector('[style*="width: 100%"]')).toBeTruthy()
   })
 
-  it('renders the filter panel with title and labels', () => {
+  it('renders the filter panel with title', () => {
     renderApp()
     expect(screen.getByText('Commute from work')).toBeInTheDocument()
-    expect(screen.getByText('How you get there')).toBeInTheDocument()
   })
 
-  it('shows all transport modes', () => {
+  it('renders the travel time slider label', () => {
     renderApp()
-    expect(screen.getByText('Walking')).toBeInTheDocument()
-    expect(screen.getByText('Cycling')).toBeInTheDocument()
-    expect(screen.getByText('Driving')).toBeInTheDocument()
-    expect(screen.getByText('Public transport')).toBeInTheDocument()
+    expect(screen.getByText(/Travel time by public transport/)).toBeInTheDocument()
   })
 
   it('syncs default state to URL on mount', () => {
@@ -96,7 +91,7 @@ describe('App (integration)', () => {
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
       '',
-      expect.stringContaining('mode=foot'),
+      expect.stringContaining('minutes=60'),
     )
   })
 })
@@ -105,7 +100,6 @@ describe('App (integration) - mobile', () => {
   beforeEach(() => {
     useStore.setState({
       workplace: [2.1687, 41.3874],
-      mode: 'foot',
       minutes: 60,
       resultPolygon: null,
     })

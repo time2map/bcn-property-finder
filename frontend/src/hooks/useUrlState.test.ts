@@ -5,17 +5,12 @@ import { useStore } from '../store'
 
 describe('useUrlState', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, mode: 'foot', minutes: 60, resultPolygon: null })
+    useStore.setState({ workplace: null, minutes: 60, resultPolygon: null })
     vi.spyOn(window.history, 'replaceState')
   })
 
   it('writes default params to URL on mount', () => {
     renderHook(() => useUrlState())
-    expect(window.history.replaceState).toHaveBeenCalledWith(
-      null,
-      '',
-      expect.stringContaining('mode=foot'),
-    )
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
       '',
@@ -40,15 +35,6 @@ describe('useUrlState', () => {
     )?.[2] as string
     expect(url).toContain('lng=2.17340')
     expect(url).toContain('lat=41.38510')
-  })
-
-  it('writes foot mode to URL', () => {
-    useStore.setState({ mode: 'foot' })
-    renderHook(() => useUrlState())
-    const url = (window.history.replaceState as ReturnType<typeof vi.spyOn>).mock.calls.at(
-      -1,
-    )?.[2] as string
-    expect(url).toContain('mode=foot')
   })
 
   it('writes non-default minutes to URL', () => {
