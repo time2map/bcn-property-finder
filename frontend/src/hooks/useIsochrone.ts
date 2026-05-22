@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../store'
+import type { OrsMode } from '../store'
+import { fetchIsochrone } from '../services/ors'
 import { fetchOtpIsochrone } from '../services/otp'
 
 export function useIsochrone(onError?: (err: Error) => void) {
@@ -13,7 +15,10 @@ export function useIsochrone(onError?: (err: Error) => void) {
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(async () => {
       try {
-        const polygon = await fetchOtpIsochrone(workplace, mode, minutes)
+        const polygon =
+          mode === 'public_transport'
+            ? await fetchOtpIsochrone(workplace, minutes)
+            : await fetchIsochrone(workplace, mode as OrsMode, minutes)
         setResultPolygon(polygon)
       } catch (err) {
         onError?.(err instanceof Error ? err : new Error(String(err)))

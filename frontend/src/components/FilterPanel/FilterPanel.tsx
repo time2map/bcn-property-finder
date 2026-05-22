@@ -13,9 +13,9 @@ const MODES: { value: TransportMode; label: string }[] = [
 const MODE_DESCRIPTIONS: Record<TransportMode, string> = {
   public_transport:
     'Walk to nearest stop + optimal route (transfers allowed if they save time). Scheduled timetables, typical Mon 09:00.',
-  foot: 'Walking at average pace (~5 km/h). Via OpenTripPlanner.',
-  cycling: 'Regular cycling (~15 km/h). Via OpenTripPlanner.',
-  driving: 'Car, typical road speeds. Via OpenTripPlanner.',
+  foot: 'Walking at average pace (~5 km/h). Via OpenRouteService.',
+  cycling: 'Regular cycling (~15 km/h). Via OpenRouteService.',
+  driving: 'Car, typical road speeds. Via OpenRouteService.',
 }
 
 const TIME_MARKS = [
