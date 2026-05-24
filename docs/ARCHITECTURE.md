@@ -19,13 +19,20 @@ src/
 │   ├── Map/             # MapLibre canvas, click-to-place workplace marker
 │   ├── IsochroneLayer/  # GeoJSON fill + outer mask layer
 │   ├── FilterPanel/     # transport mode toggle + travel time slider
-│   └── ExportButton/    # builds Idealista URL and opens it
+│   ├── ExportButton/    # builds Idealista URL and opens it
+│   └── PropertyPins/    # apartment pins: map markers, comparison table, photo lightbox
 ├── hooks/
-│   ├── useIsochrone.ts  # calls ORS API, returns GeoJSON polygon
-│   └── useUrlState.ts   # syncs Zustand store ↔ URL search params
-├── store/               # Zustand: workplace, mode, minutes, resultPolygon
+│   ├── useIsochrone.ts     # fetches isochrone polygon from OTP2 TravelTime API
+│   ├── usePinAnalytics.ts  # calculates walk/cycle/drive/transit times for each pin
+│   └── useUrlState.ts      # syncs Zustand store ↔ URL search params
+├── store/
+│   ├── index.ts         # Zustand: workplace, mode, minutes, resultPolygon
+│   └── pinsStore.ts     # Zustand: apartment pins, localStorage persistence
+├── types/
+│   └── pins.ts          # PropertyPin, PinAnalytics types
 └── services/
-    ├── otp.ts           # OTP2 Isochrones API client
+    ├── otp.ts           # OTP2 client: isochrone + point-to-point routing (all modes)
+    ├── analytics.ts     # travelIndex score computation
     └── idealista.ts     # GeoJSON.Polygon → Google Encoded Polyline → Idealista URL
 ```
 
@@ -37,7 +44,7 @@ src/
 
 | Service | Purpose | Notes |
 |---|---|---|
-| OpenTripPlanner 2 | Isochrone computation (all modes) | Self-hosted via Docker, port 8080 |
+| OpenTripPlanner 2 | Isochrone + all routing modes (walk, bike, car, transit) | Self-hosted via Docker, port 8080 |
 | OpenFreeMap | Vector map tiles | No API key needed |
 | Idealista | Property search target | URL only: `/areas/venta-viviendas/mapa-google?shape=((polyline))` |
 
