@@ -16,12 +16,16 @@ html, body, #root {
   height: 100%;
 }
 
-/* Desktop: floating panel top-left */
+/* Desktop: floating column top-left */
 .panel-desktop {
   position: absolute;
   top: 16px;
   left: 16px;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 32px);
 }
 
 /* Workplace marker */
@@ -61,5 +65,269 @@ html, body, #root {
   left: 16px;
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Compare panel (bottom) ─────────────────────────────── */
+.compare-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.compare-panel__toggle {
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #e9ecef;
+  user-select: none;
+  gap: 8px;
+}
+
+.compare-panel__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.compare-panel__chevron {
+  font-size: 11px;
+  color: #868e96;
+}
+
+.compare-panel__body {
+  flex: 1;
+  overflow: auto;
+}
+
+/* ─── Compare table ──────────────────────────────────────── */
+.compare-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* Sticky header row */
+.compare-table__col-header {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  color: #495057;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 2px solid #dee2e6;
+  text-align: left;
+  z-index: 2;
+}
+
+/* Sticky rank column (first col) */
+.compare-table__col-rank {
+  position: sticky;
+  left: 0;
+  background: #f8f9fa;
+  color: #495057;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-right: 2px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+/* Corner cell: both sticky top + left */
+thead .compare-table__col-rank {
+  border-bottom: 2px solid #dee2e6;
+  z-index: 3;
+}
+
+/* Data rows */
+.compare-table__row {
+  cursor: pointer;
+}
+
+.compare-table__row:hover td,
+.compare-table__row:hover .compare-table__col-rank {
+  background: #f8f9fa;
+}
+
+.compare-table__row--selected td,
+.compare-table__row--selected .compare-table__col-rank {
+  background: #e7f5ff;
+}
+
+.compare-table__row--selected:hover td,
+.compare-table__row--selected:hover .compare-table__col-rank {
+  background: #d0ebff;
+}
+
+.compare-table__rank-cell {
+  font-weight: 700;
+  font-size: 13px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.compare-table__delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  opacity: 0.45;
+}
+
+.compare-table__delete-btn:hover {
+  opacity: 1;
+}
+
+.compare-table__cell {
+  padding: 5px 10px;
+  border-bottom: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.compare-table__cell--derived {
+  color: #868e96;
+}
+
+.compare-table__photos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 2px 0;
+}
+
+.compare-table__thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.compare-table__thumb:hover {
+  opacity: 0.85;
+}
+
+.compare-table__add-photo {
+  width: 30px;
+  height: 30px;
+  border: 1px dashed #ced4da;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #868e96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.compare-table__add-photo:hover {
+  border-color: #228be6;
+  color: #228be6;
+}
+
+.compare-table__input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 12px;
+  outline: none;
+  color: #212529;
+  font-family: inherit;
+}
+
+.compare-table__input:focus {
+  background: #f0f4ff;
+  border-radius: 3px;
+  outline: none;
+}
+
+.compare-table__textarea {
+  resize: none;
+  height: 40px;
+  line-height: 1.4;
+}
+
+.compare-table__link {
+  font-size: 11px;
+  color: #228be6;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.compare-table__link:hover {
+  text-decoration: underline;
+}
+
+/* ─── Photo lightbox ─────────────────────────────────────── */
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 40px;
+  line-height: 1;
+  padding: 12px 18px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-nav--prev { left: 16px; }
+.lightbox-nav--next { right: 16px; }
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 

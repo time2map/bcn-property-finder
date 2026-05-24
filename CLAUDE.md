@@ -7,16 +7,28 @@
 - `docs/DESIGN.md` — design rules
 ## Stack
 
-- **Frontend:** React + Vite + TypeScript, MapLibre GL JS, OpenRouteService API
-- **Backend:** Python + FastAPI (post-MVP, empty for now)
+- **Frontend:** React + Vite + TypeScript, MapLibre GL JS
+- **Backend:** OpenTripPlanner 2 (OTP2) via Docker — isochrone/routing engine
 - **Map tiles:** OpenFreeMap
 
 ## Commands
 
+### Frontend
 cd frontend && npm test          # run tests
 cd frontend && npm run lint      # eslint
 cd frontend && npm run typecheck # tsc
 cd frontend && npm run dev       # dev server (port 5173)
+
+### Backend (OTP2)
+cd backend && docker compose up -d   # start OTP2 on http://localhost:8080
+cd backend && docker compose down    # stop OTP2
+cd backend && docker compose logs -f # stream OTP logs
+
+### Full stack (dev)
+#### Terminal 1:
+cd backend && docker compose up
+#### Terminal 2:
+cd frontend && npm run dev
 
 
 ## Language
@@ -28,10 +40,17 @@ All UI text (labels, buttons, placeholders, tooltips) must be in **English**.
 For each new feature:
 
 1. Read `docs/PROJECT_BRIEF.md` for context.
-2. Create `docs/features/NNN-feature-name.md` with a description of the task.
+2. Create `docs/features/TODO-NNN-feature-name.md` with a description of the task.
 3. Discuss the plan in plan mode.
 4. Write tests first, then code.
 5. Run `npm test` after every change.
+
+## Feature file naming
+
+- **Not yet implemented:** prefix with `TODO-` — e.g. `TODO-005-property-pins.md`
+- **Implemented:** remove the prefix — e.g. `005-property-pins.md`
+
+When a feature is marked done (Definition of Done satisfied), rename the file by dropping the `TODO-` prefix.
 
 ## Playwright MCP
 
@@ -62,3 +81,7 @@ Show the failure output and propose a fix plan.
 
 – Never commit & push until you will be explicitly asked for it. 
 – Don't ask for adding files to git – always add (if not in gitignore).
+
+## ENV
+
+If you specify any default variables that may explicitly affect the result of calculations in the application, put them in the environment variables and in the corresponding ENV file.

@@ -3,12 +3,16 @@ import { useMediaQuery } from '@mantine/hooks'
 import { Drawer, ActionIcon, Notification } from '@mantine/core'
 import { Map } from './components/Map/Map'
 import { FilterPanel } from './components/FilterPanel/FilterPanel'
+import { PinCompareTable } from './components/PropertyPins/PinCompareTable'
+import { AddPinButton } from './components/PropertyPins/AddPinButton'
 import { useUrlState } from './hooks/useUrlState'
 import { useIsochrone } from './hooks/useIsochrone'
+import { usePinAnalytics } from './hooks/usePinAnalytics'
 import './index.css'
 
 export function App() {
   useUrlState()
+  usePinAnalytics()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -48,6 +52,9 @@ export function App() {
           <FilterPanel isLoading={isLoading} />
         </div>
       )}
+
+      <PinCompareTable />
+      <AddPinButton />
 
       {errorMsg && (
         <Notification

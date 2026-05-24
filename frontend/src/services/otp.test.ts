@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchOtpIsochrone, getNextMondayMadridISO } from './otp'
+import { fetchOtpIsochrone, fetchOtpDuration, getNextMondayMadridISO } from './otp'
 
 const MULTIPOLYGON = {
   type: 'MultiPolygon' as const,
@@ -79,5 +79,101 @@ describe('fetchOtpIsochrone', () => {
   it('throws on non-ok response', async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: false, status: 503 } as Response)
     await expect(fetchOtpIsochrone([2.17, 41.38], 30)).rejects.toThrow('OTP 503')
+  })
+})
+
+describe('fetchOtpDuration', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn())
+  })
+
+  it('calls the OTP plan endpoint with WALK mode for foot', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ plan: { itineraries: [{ duration: 1800 }] } }),
+    } as Response)
+
+    await fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'foot')
+
+    const url = vi.mocked(fetch).mock.calls[0][0] as string
+    expect(url).toContain('/otp/routers/default/plan')
+    expect(url).toContain('fromPlace=41.38%2C2.17')
+    expect(url).toContain('toPlace=41.4%2C2.19')
+    expect(url).toContain('mode=WALK')
+  })
+
+  it('uses BICYCLE mode for cycling', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ plan: { itineraries: [{ duration: 600 }] } }),
+    } as Response)
+
+    await fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'cycling')
+
+    const url = vi.mocked(fetch).mock.calls[0][0] as string
+    expect(url).toContain('mode=BICYCLE')
+  })
+
+  it('uses CAR mode for driving', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ plan: { itineraries: [{ duration: 300 }] } }),
+    } as Response)
+
+    await fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'driving')
+
+    const url = vi.mocked(fetch).mock.calls[0][0] as string
+    expect(url).toContain('mode=CAR')
+  })
+
+  it('uses explicit transit submodes for transit and requests 3 itineraries', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        plan: { itineraries: [{ duration: 2460 }, { duration: 1140 }, { duration: 1140 }] },
+      }),
+    } as Response)
+
+    await fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'transit')
+
+    const url = vi.mocked(fetch).mock.calls[0][0] as string
+    expect(url).toContain('SUBWAY')
+    expect(url).toContain('BUS')
+    expect(url).toContain('numItineraries=3')
+  })
+
+  it('returns the minimum duration across itineraries for transit', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        plan: { itineraries: [{ duration: 2460 }, { duration: 1140 }, { duration: 1140 }] },
+      }),
+    } as Response)
+
+    const result = await fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'transit')
+    expect(result).toBe(1140)
+  })
+
+  it('returns duration in seconds', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ plan: { itineraries: [{ duration: 1800 }] } }),
+    } as Response)
+
+    const result = await fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'foot')
+    expect(result).toBe(1800)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 503 } as Response)
+    await expect(fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'foot')).rejects.toThrow('OTP 503')
+  })
+
+  it('throws when no itineraries returned', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ plan: { itineraries: [] } }),
+    } as Response)
+    await expect(fetchOtpDuration([2.17, 41.38], [2.19, 41.40], 'foot')).rejects.toThrow('no itineraries')
   })
 })

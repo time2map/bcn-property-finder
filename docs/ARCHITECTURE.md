@@ -5,7 +5,8 @@
 ```
 bcn-property-finder/
 ├── frontend/        # React SPA
-├── backend/         # Python FastAPI (post-MVP, empty for now)
+├── backend/         # OTP2 via Docker Compose (isochrone/routing engine)
+│   └── otp/data/    # GTFS + OSM graph files for OTP
 ├── data/            # Static datasets (Barcelona open data)
 └── docs/
 ```
@@ -24,7 +25,7 @@ src/
 │   └── useUrlState.ts   # syncs Zustand store ↔ URL search params
 ├── store/               # Zustand: workplace, mode, minutes, resultPolygon
 └── services/
-    ├── ors.ts           # OpenRouteService Isochrones API client
+    ├── otp.ts           # OTP2 Isochrones API client
     └── idealista.ts     # GeoJSON.Polygon → Google Encoded Polyline → Idealista URL
 ```
 
@@ -36,10 +37,12 @@ src/
 
 | Service | Purpose | Notes |
 |---|---|---|
-| OpenRouteService | Isochrone computation | 500 req/day free, foot + transit |
+| OpenTripPlanner 2 | Isochrone computation (all modes) | Self-hosted via Docker, port 8080 |
 | OpenFreeMap | Vector map tiles | No API key needed |
 | Idealista | Property search target | URL only: `/areas/venta-viviendas/mapa-google?shape=((polyline))` |
 
-## Backend (post-MVP)
+## Backend
 
-FastAPI + PostGIS, added when Barcelona open datasets need server-side processing (noise, amenity proximity). Will expose a `/filters` endpoint consumed by the frontend.
+**OpenTripPlanner 2** runs locally via Docker Compose (`backend/docker-compose.yml`). It serves the OTP REST API on `http://localhost:8080` and handles isochrone requests for all transport modes (walk, bike, car, public transit).
+
+Graph data (GTFS + OSM) lives in `backend/otp/data/` and is loaded at container startup.
