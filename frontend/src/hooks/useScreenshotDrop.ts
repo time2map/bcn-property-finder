@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { parseScreenshot } from '../services/vision/visionService'
 import { geocodeAddress } from '../services/geocoding'
 import { compressImage, fileToBase64 } from '../services/imageUtils'
+import { calcAnalytics } from './usePinAnalytics'
 
 const BCN_CENTER: [number, number] = [2.1734, 41.3851]
 
@@ -14,7 +15,7 @@ export interface DropState {
 }
 
 export function useScreenshotDrop(onError: (msg: string) => void) {
-  const { addPin, updatePin } = usePinsStore()
+  const { addPin, updatePin, updatePinAnalytics } = usePinsStore()
   const { workplace } = useStore()
   const [state, setState] = useState<DropState>({
     isDragging: false,
@@ -66,25 +67,38 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
 
       const parsed = await parseScreenshot(base64, file.type)
 
-      // Pre-fill parsed fields
+      // Pre-fill parsed fields; address goes into comment for reference
       const patch: Record<string, unknown> = {}
       if (parsed.price !== undefined) patch.price = parsed.price
       if (parsed.area !== undefined) patch.area = parsed.area
       if (parsed.url) patch.url = parsed.url
+      if (parsed.address) patch.comment = parsed.address
       patch.photos = [compressedDataUrl]
       updatePin(pinId, patch)
 
-      // Geocode address
+      // Geocode address; fall back to initial coords on failure
+      let finalCoords: [number, number] = fallbackCoords
       let geocodeFailed = false
+
       if (parsed.address) {
         const coords = await geocodeAddress(parsed.address)
         if (coords) {
+          finalCoords = coords
           updatePin(pinId, { coordinates: coords })
         } else {
           geocodeFailed = true
         }
       } else {
         geocodeFailed = true
+      }
+
+      // Always recalculate analytics with the final coords (geocoded or fallback).
+      // usePinAnalytics already fires for the initial fallback coords, but we
+      // overwrite with the correct location once geocoding is done.
+      if (workplace) {
+        calcAnalytics(finalCoords, workplace).then((analytics) => {
+          updatePinAnalytics(pinId, analytics)
+        })
       }
 
       if (parsed.addressIsApproximate || geocodeFailed) {
@@ -96,7 +110,7 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
       isProcessingRef.current = false
       setState((s) => ({ ...s, isProcessing: false }))
     }
-  }, [addPin, updatePin, workplace, onError])
+  }, [addPin, updatePin, updatePinAnalytics, workplace, onError])
 
   return { state, handleDragOver, handleDragLeave, handleDrop, dismissBanner }
 }

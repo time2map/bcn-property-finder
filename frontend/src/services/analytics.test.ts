@@ -35,20 +35,21 @@ describe('computeTravelIndex', () => {
   })
 
   it('computes correct index with typical values', () => {
-    // walk=10→norm=0.833, pt=15→norm=0.75, cycle=12→norm=0.8, car=8→norm=0.867
-    // totalWeight=10, weightedSum=0.833*4+0.75*3+0.8*2+0.867*1 = 3.333+2.25+1.6+0.867 = 8.05
-    // index = round(8.05/10*100) = 81
+    // norm(t) = (1 - t/60)^0.7
+    // walk=10→0.880, pt=15→0.818, cycle=12→0.856, car=8→0.905
+    // weightedSum=0.880*4+0.818*3+0.856*2+0.905*1 = 3.521+2.453+1.711+0.905 = 8.590
+    // index = round(8.590/10*100) = 86
     const result = computeTravelIndex(
       analytics({ walkingMinutes: 10, publicTransportMinutes: 15, cyclingMinutes: 12, drivingMinutes: 8 }),
     )
-    expect(result).toBe(81)
+    expect(result).toBe(86)
   })
 
   it('excludes undefined modes from weights', () => {
-    // Only walk available: walk=30→norm=0.5, weight=4, total=4
-    // index = round(0.5*4/4*100) = 50
+    // Only walk available: walk=30→norm=(0.5)^0.7=0.616, weight=4, total=4
+    // index = round(0.616*4/4*100) = 62
     const result = computeTravelIndex(analytics({ walkingMinutes: 30 }))
-    expect(result).toBe(50)
+    expect(result).toBe(62)
   })
 
   it('applies correct weight priority (walking > pt > cycling > car)', () => {
@@ -72,9 +73,10 @@ describe('computeTravelIndex', () => {
     const result = computeTravelIndex(
       analytics({ walkingMinutes: 20, cyclingMinutes: 15, drivingMinutes: 10 }),
     )
-    // norm: walk=0.667, cycle=0.75, car=0.833; weights: 4,2,1; total=7
-    // weighted = 0.667*4+0.75*2+0.833*1 = 2.667+1.5+0.833 = 5.0
-    // index = round(5.0/7*100) = round(71.4) = 71
-    expect(result).toBe(71)
+    // norm(t) = (1 - t/60)^0.7
+    // walk=20→0.753, cycle=15→0.818, car=10→0.880; weights: 4,2,1; total=7
+    // weighted = 0.753*4+0.818*2+0.880*1 = 3.011+1.635+0.880 = 5.527
+    // index = round(5.527/7*100) = round(78.96) = 79
+    expect(result).toBe(79)
   })
 })

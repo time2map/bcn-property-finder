@@ -10,7 +10,12 @@ Return ONLY a JSON object with these fields:
 - "addressIsApproximate": boolean (true if only neighborhood/district shown, not exact street)
 - "url": string (full listing URL if visible anywhere in the screenshot, e.g. in the browser address bar or page — must start with https://) or omit if not visible
 
-Example: {"price":320000,"area":75,"address":"Carrer d'Aragó, Eixample, Barcelona","addressIsApproximate":true,"url":"https://www.idealista.com/inmueble/12345678/"}
+Address extraction rules:
+1. The page title often contains the exact street, e.g. "Flat for sale in Calle del Consell de Cent" → street is "Calle del Consell de Cent". Always check the title first.
+2. The subtitle below the title usually shows the neighborhood/district (e.g. "La Dreta de l'Eixample, Barcelona"). Combine street + neighborhood when both are visible.
+3. Set "addressIsApproximate": false when an exact street name is found; true when only a neighborhood/district is available.
+
+Example: {"price":1325000,"area":139,"address":"Calle del Consell de Cent, La Dreta de l'Eixample, Barcelona","addressIsApproximate":false,"url":"https://www.idealista.com/inmueble/110630744/"}
 
 Return only the JSON object, no explanation.`
 

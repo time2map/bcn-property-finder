@@ -16,7 +16,7 @@ export function computeTravelIndex(analytics: PinAnalytics): number | undefined 
 
   const totalWeight = available.reduce((acc, m) => acc + m.weight, 0)
   const weightedSum = available.reduce((acc, m) => {
-    const norm = Math.max(0, 1 - m.minutes! / CAP_MINUTES)
+    const norm = Math.max(0, 1 - m.minutes! / CAP_MINUTES) ** 0.7
     return acc + norm * m.weight
   }, 0)
 
