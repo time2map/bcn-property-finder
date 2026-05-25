@@ -78,11 +78,11 @@ describe('IsochroneLayer', () => {
     expect(mockMap.addLayer).not.toHaveBeenCalled()
   })
 
-  it('registers load listener when style is not loaded yet', () => {
+  it('always calls setup directly (map from context is post-load)', () => {
     mockMap.isStyleLoaded.mockReturnValue(false)
     renderWithMap()
-    expect(mockMap.once).toHaveBeenCalledWith('load', expect.any(Function))
-    expect(mockMap.addSource).not.toHaveBeenCalled()
+    // map from MapContext is always post-load — setup is called directly regardless of isStyleLoaded
+    expect(mockMap.addSource).toHaveBeenCalledWith('isochrone', expect.any(Object))
   })
 
   it('does nothing when map is null', () => {

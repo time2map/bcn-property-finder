@@ -75,11 +75,8 @@ export function IsochroneLayer() {
       })
     }
 
-    if (map.isStyleLoaded()) {
-      setup()
-    } else {
-      map.once('load', setup)
-    }
+    // map from MapContext is set only after 'load' — always safe to call directly
+    setup()
 
     return () => {
       try {

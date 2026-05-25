@@ -16,9 +16,13 @@
     "@anthropic-ai/sdk": "^0.98.0",
     "@mantine/core": "^9.2.0",
     "@mantine/hooks": "^9.2.0",
+    "@mapbox/vector-tile": "^2.0.4",
+    "@turf/boolean-point-in-polygon": "^7.3.5",
     "@turf/buffer": "^7.3.5",
     "@types/geojson": "^7946.0.16",
     "maplibre-gl": "^5.24.0",
+    "pbf": "^4.0.2",
+    "pmtiles": "^4.4.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "zustand": "^5.0.13"

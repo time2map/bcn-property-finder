@@ -1,6 +1,7 @@
-import { Divider, Paper, Slider, Stack, Text } from '@mantine/core'
+import { Divider, Paper, Slider, Stack, Switch, Text } from '@mantine/core'
 import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
+import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -16,7 +17,7 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ isLoading = false }: FilterPanelProps) {
-  const { minutes, setMinutes } = useStore()
+  const { minutes, setMinutes, noiseLayerVisible, setNoiseLayerVisible } = useStore()
 
   return (
     <Paper shadow="md" p="md" radius="md" w={260}>
@@ -41,6 +42,18 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
         <Text size="xs" c="dimmed">
           The highlighted zone shows areas within commute reach — good candidates for buying or renting.
         </Text>
+
+        <Divider />
+        <Text fw={500} size="sm">Layers</Text>
+        <Switch
+          label="Noise map (Lden)"
+          size="sm"
+          checked={noiseLayerVisible}
+          onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
+        />
+        <NoiseLegend />
+
+        <Divider />
         <ExportButton isLoading={isLoading} />
       </Stack>
     </Paper>

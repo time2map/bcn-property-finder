@@ -4,14 +4,19 @@ import { usePinsStore } from '../../store/pinsStore'
 import type { PropertyPin } from '../../types/pins'
 import { PhotoLightbox } from './PhotoLightbox'
 import { compressImage } from '../../services/imageUtils'
+import { computeCompositeScore } from '../../services/analytics'
 
 const MAX_PANEL_H = 320
 const MAX_PHOTOS = 5
 
+function compositeScore(pin: PropertyPin): number | undefined {
+  return pin.analytics ? computeCompositeScore(pin.analytics) : undefined
+}
+
 function sortPins(pins: PropertyPin[]): PropertyPin[] {
   return [...pins].sort((a, b) => {
-    const ia = a.analytics?.travelIndex
-    const ib = b.analytics?.travelIndex
+    const ia = compositeScore(a)
+    const ib = compositeScore(b)
     if (ia === undefined && ib === undefined) return 0
     if (ia === undefined) return 1
     if (ib === undefined) return -1
@@ -90,6 +95,7 @@ export function PinCompareTable() {
                   <th className="compare-table__col-header">🚌</th>
                   <th className="compare-table__col-header">🚲</th>
                   <th className="compare-table__col-header">🚗</th>
+                  <th className="compare-table__col-header">Noise, dB</th>
                   <th className="compare-table__col-header">Score</th>
                   <th className="compare-table__col-header">URL</th>
                   <th className="compare-table__col-header">Comment</th>
@@ -212,15 +218,22 @@ export function PinCompareTable() {
                       {fmt(pin.analytics?.drivingMinutes)}
                     </td>
 
-                    {/* Score */}
+                    {/* Noise, dB */}
                     <td className="compare-table__cell">
-                      {pin.analytics?.travelIndex !== undefined ? (
+                      {pin.analytics?.noiseLden !== undefined
+                        ? `${pin.analytics.noiseLden} dB`
+                        : '—'}
+                    </td>
+
+                    {/* Score (composite: travel + noise) */}
+                    <td className="compare-table__cell">
+                      {compositeScore(pin) !== undefined ? (
                         <Badge
                           size="xs"
-                          color={indexColor(pin.analytics.travelIndex)}
+                          color={indexColor(compositeScore(pin))}
                           variant="light"
                         >
-                          {pin.analytics.travelIndex}
+                          {compositeScore(pin)}
                         </Badge>
                       ) : '—'}
                     </td>

@@ -33,3 +33,5 @@ backend/otp/data/*.csv
 *.log
 .tmp/
 temp/
+/data/
+data/noise/*.geojson

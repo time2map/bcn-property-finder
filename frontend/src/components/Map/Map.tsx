@@ -7,6 +7,7 @@ import { MapContext } from './MapContext'
 import { IsochroneLayer } from '../IsochroneLayer/IsochroneLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
+import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
 
 const BCN_CENTER: [number, number] = [2.1734, 41.3851]
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
@@ -94,6 +95,7 @@ export function Map() {
   return (
     <MapContext.Provider value={mapInstance}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <NoiseLayer />
       <IsochroneLayer />
       <PinAccuracyLayer />
       <PinLayer />

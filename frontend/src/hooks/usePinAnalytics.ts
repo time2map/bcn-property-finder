@@ -3,24 +3,31 @@ import { useStore } from '../store'
 import { usePinsStore } from '../store/pinsStore'
 import { fetchOtpDuration } from '../services/otp'
 import { computeTravelIndex } from '../services/analytics'
+import { getNoiseLden } from '../services/noise/noiseData'
+import { noiseScore } from '../services/noise/noiseScore'
 import type { PinAnalytics } from '../types/pins'
 
 async function calcAnalytics(
   pinCoords: [number, number],
   workplace: [number, number],
 ): Promise<PinAnalytics> {
-  const [walkRes, cycleRes, carRes, ptRes] = await Promise.allSettled([
+  const [walkRes, cycleRes, carRes, ptRes, ldenRes] = await Promise.allSettled([
     fetchOtpDuration(pinCoords, workplace, 'foot'),
     fetchOtpDuration(pinCoords, workplace, 'cycling'),
     fetchOtpDuration(pinCoords, workplace, 'driving'),
     fetchOtpDuration(pinCoords, workplace, 'transit'),
+    getNoiseLden(pinCoords[0], pinCoords[1]),
   ])
+
+  const noiseLden = ldenRes.status === 'fulfilled' ? ldenRes.value : undefined
 
   const analytics: PinAnalytics = {
     walkingMinutes: walkRes.status === 'fulfilled' ? walkRes.value / 60 : undefined,
     cyclingMinutes: cycleRes.status === 'fulfilled' ? cycleRes.value / 60 : undefined,
     drivingMinutes: carRes.status === 'fulfilled' ? carRes.value / 60 : undefined,
     publicTransportMinutes: ptRes.status === 'fulfilled' ? ptRes.value / 60 : undefined,
+    noiseLden,
+    noiseScore: noiseLden !== undefined ? noiseScore(noiseLden) : undefined,
     calculatedAt: new Date().toISOString(),
   }
   analytics.travelIndex = computeTravelIndex(analytics)

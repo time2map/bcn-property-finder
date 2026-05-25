@@ -4,6 +4,8 @@ export interface PinAnalytics {
   cyclingMinutes?: number
   drivingMinutes?: number
   travelIndex?: number
+  noiseLden?: number
+  noiseScore?: number
   calculatedAt: string
 }
 

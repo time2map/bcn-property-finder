@@ -5,9 +5,11 @@ export interface AppState {
   workplace: [number, number] | null
   minutes: number
   resultPolygon: Polygon | MultiPolygon | null
+  noiseLayerVisible: boolean
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
+  setNoiseLayerVisible: (visible: boolean) => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -42,6 +44,16 @@ export function readUrlParams(): Pick<AppState, 'workplace' | 'minutes'> {
   }
 }
 
+const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
+
+function loadNoiseLayerVisible(): boolean {
+  try {
+    return localStorage.getItem(NOISE_LAYER_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export const useStore = create<AppState>((set) => {
   const { workplace, minutes } = readUrlParams()
   return {
@@ -49,8 +61,13 @@ export const useStore = create<AppState>((set) => {
     minutes,
     // Restored synchronously from localStorage — no flash of empty state on reload
     resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
+    noiseLayerVisible: loadNoiseLayerVisible(),
     setWorkplace: (workplace) => set({ workplace }),
     setMinutes: (minutes) => set({ minutes }),
     setResultPolygon: (resultPolygon) => set({ resultPolygon }),
+    setNoiseLayerVisible: (visible) => {
+      try { localStorage.setItem(NOISE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
+      set({ noiseLayerVisible: visible })
+    },
   }
 })
