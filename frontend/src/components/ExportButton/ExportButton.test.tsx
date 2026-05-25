@@ -56,7 +56,7 @@ describe('ExportButton', () => {
   it('shows correct label', () => {
     useStore.setState({ resultPolygon: POLYGON })
     renderButton()
-    expect(screen.getByRole('button', { name: /open in idealista/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /search by area on idealista/i })).toBeInTheDocument()
   })
 
   it('opens Idealista URL in new tab when clicked', () => {

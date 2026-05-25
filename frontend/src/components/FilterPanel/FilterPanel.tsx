@@ -90,6 +90,8 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           />
         </div>
 
+        <ExportButton isLoading={isLoading} />
+
         <Divider />
         <Switch
           label="Noise"
@@ -98,9 +100,6 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
         />
         <NoiseLegend />
-
-        <Divider />
-        <ExportButton isLoading={isLoading} />
       </Stack>
     </Paper>
   )

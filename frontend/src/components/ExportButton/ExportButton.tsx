@@ -23,7 +23,7 @@ export function ExportButton({ isLoading = false }: ExportButtonProps) {
       onClick={handleClick}
       style={{ backgroundColor: !isLoading && resultPolygon ? '#F06965' : undefined }}
     >
-      Open in Idealista ↗
+      Search by area on Idealista ↗
     </Button>
   )
 }
