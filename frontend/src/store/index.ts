@@ -6,10 +6,12 @@ export interface AppState {
   minutes: number
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
+  mapAttribution: string
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
+  setMapAttribution: (attribution: string) => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -69,5 +71,7 @@ export const useStore = create<AppState>((set) => {
       try { localStorage.setItem(NOISE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
       set({ noiseLayerVisible: visible })
     },
+    mapAttribution: '',
+    setMapAttribution: (mapAttribution) => set({ mapAttribution }),
   }
 })

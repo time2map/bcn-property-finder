@@ -57,7 +57,7 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ isLoading = false }: FilterPanelProps) {
-  const { minutes, setMinutes, noiseLayerVisible, setNoiseLayerVisible } = useStore()
+  const { minutes, setMinutes, noiseLayerVisible, setNoiseLayerVisible, mapAttribution } = useStore()
   const [isoModalOpen, setIsoModalOpen] = useState(false)
 
   return (
@@ -100,6 +100,17 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
         />
         <NoiseLegend />
+
+        {mapAttribution && (
+          <>
+            <Divider />
+            <div
+              className="panel-attribution"
+              // HTML attribution from trusted ICGC style URL
+              dangerouslySetInnerHTML={{ __html: mapAttribution }}
+            />
+          </>
+        )}
       </Stack>
     </Paper>
   )

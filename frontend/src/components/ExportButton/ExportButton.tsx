@@ -19,6 +19,7 @@ export function ExportButton({ isLoading = false }: ExportButtonProps) {
   return (
     <Button
       fullWidth
+      size="xs"
       disabled={isLoading || !resultPolygon}
       onClick={handleClick}
       style={{ backgroundColor: !isLoading && resultPolygon ? '#F06965' : undefined }}

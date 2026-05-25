@@ -18,9 +18,8 @@ export function Map() {
   const markerRef = useRef<maplibregl.Marker | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null)
-  const [attribution, setAttribution] = useState('')
 
-  const { workplace, setWorkplace } = useStore()
+  const { workplace, setWorkplace, setMapAttribution } = useStore()
   const { isAddingPin, setIsAddingPin, addPin } = usePinsStore()
 
   // Keep refs current so the stable map click handler can read latest values
@@ -57,7 +56,7 @@ export function Map() {
       const texts = Object.values(map.getStyle().sources)
         .map((s) => (s as Record<string, unknown>).attribution as string | undefined)
         .filter((t): t is string => !!t)
-      if (texts.length) setAttribution(texts.join(' | '))
+      if (texts.length) setMapAttribution(texts.join(' | '))
     })
     return () => {
       setMapInstance(null)
@@ -102,13 +101,6 @@ export function Map() {
   return (
     <MapContext.Provider value={mapInstance}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-      {attribution && (
-        <div
-          className="map-attribution"
-          // Attribution HTML comes from the trusted ICGC style URL we control
-          dangerouslySetInnerHTML={{ __html: attribution }}
-        />
-      )}
       <NoiseLayer />
       <IsochroneLayer />
       <MetroLayer />

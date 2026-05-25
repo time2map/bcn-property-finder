@@ -10,6 +10,32 @@ const OVERPASS_QUERY = `[out:json][timeout:25];
 node["station"="subway"](41.20,1.85,41.60,2.40);
 out body;`
 
+// Official BCN metro line colors, slightly desaturated for subtlety
+const LINE_COLORS: Record<string, string> = {
+  L1: '#cc1a1a',
+  L2: '#8a2a7a',
+  L3: '#2a7a50',
+  L4: '#c8a800',
+  L5: '#1a2e6a',
+  L6: '#8a5aa0',
+  L7: '#8a5aa0',
+  L8: '#d04a8a',
+  L9: '#c87020',
+  L9N: '#c87020',
+  L9S: '#c87020',
+  L10: '#1a70b0',
+  L10N: '#1a70b0',
+  L10S: '#1a70b0',
+  L11: '#7ab035',
+}
+const FALLBACK_COLOR = '#707070'
+
+function lineColor(tags?: Record<string, string>): string {
+  const raw = tags?.line ?? tags?.ref ?? ''
+  const first = raw.split(/[;,]/)[0].trim().toUpperCase()
+  return LINE_COLORS[first] ?? FALLBACK_COLOR
+}
+
 interface OverpassNode {
   type: string
   id: number
@@ -28,7 +54,10 @@ async function fetchStations(): Promise<GeoJSON.FeatureCollection> {
       .map((node) => ({
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: [node.lon, node.lat] },
-        properties: { name: node.tags?.name ?? '' },
+        properties: {
+          name: node.tags?.name ?? '',
+          color: lineColor(node.tags),
+        },
       })),
   }
 }
@@ -49,10 +78,11 @@ export function MetroLayer() {
           type: 'circle',
           source: SOURCE_ID,
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 14, 8],
-            'circle-color': '#b00000',
-            'circle-stroke-width': 2,
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 3, 15, 5],
+            'circle-color': ['get', 'color'],
+            'circle-stroke-width': 1,
             'circle-stroke-color': '#ffffff',
+            'circle-opacity': 0.85,
           },
           minzoom: 10,
         })
@@ -63,17 +93,18 @@ export function MetroLayer() {
           layout: {
             'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
-            'text-size': 11,
-            'text-offset': [0, 1.2],
+            'text-size': 10,
+            'text-offset': [0, 1.0],
             'text-anchor': 'top',
             'text-max-width': 8,
           },
           paint: {
-            'text-color': '#7a0000',
+            'text-color': ['get', 'color'],
             'text-halo-color': '#ffffff',
             'text-halo-width': 1.5,
+            'text-opacity': 0.9,
           },
-          minzoom: 12,
+          minzoom: 13,
         })
       })
       .catch(() => { /* fail silently — non-critical overlay */ })

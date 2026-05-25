@@ -332,22 +332,15 @@ thead .compare-table__col-rank {
 }
 
 
-/* Map attribution rendered as a React element — always above all overlays */
-.map-attribution {
-  position: fixed;
-  bottom: 4px;
-  left: 4px;
-  z-index: 200;
-  background: rgba(255, 255, 255, 0.82);
-  padding: 2px 6px;
-  font-size: 10px;
+/* Map attribution inside the filter panel */
+.panel-attribution {
+  font-size: 9px;
+  color: #999;
   line-height: 1.4;
-  border-radius: 2px;
-  pointer-events: auto;
-  color: #333;
 }
-.map-attribution a {
+.panel-attribution a {
   color: inherit;
+  text-decoration: underline;
 }
 
 /* Noise layer legend — inline inside FilterPanel */
