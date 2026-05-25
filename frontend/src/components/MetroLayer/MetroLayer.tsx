@@ -6,59 +6,67 @@ const LAYER_CIRCLE = 'metro-circles'
 const LAYER_LABEL = 'metro-labels'
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
-const OVERPASS_QUERY = `[out:json][timeout:25];
-node["station"="subway"](41.20,1.85,41.60,2.40);
+// Fetch BCN metro route relations + their station nodes in one call
+const OVERPASS_QUERY = `[out:json][timeout:60];
+rel["type"="route"]["route"="subway"]["network"="Metro de Barcelona"]->.lines;
+node(r.lines)["railway"="station"]->.stations;
+(.lines;.stations;);
 out body;`
 
-// Official BCN metro line colors, slightly desaturated for subtlety
+// Fallback colors by line ref when OSM colour tag is absent
 const LINE_COLORS: Record<string, string> = {
-  L1: '#cc1a1a',
-  L2: '#8a2a7a',
-  L3: '#2a7a50',
-  L4: '#c8a800',
-  L5: '#1a2e6a',
-  L6: '#8a5aa0',
-  L7: '#8a5aa0',
-  L8: '#d04a8a',
-  L9: '#c87020',
-  L9N: '#c87020',
-  L9S: '#c87020',
-  L10: '#1a70b0',
-  L10N: '#1a70b0',
-  L10S: '#1a70b0',
+  L1: '#cc1a1a', L2: '#8a2a7a', L3: '#2a7a50', L4: '#c8a800',
+  L5: '#1a2e6a', L6: '#8a5aa0', L7: '#8a5aa0', L8: '#d04a8a',
+  L9: '#c87020', L9N: '#c87020', L9S: '#c87020',
+  L10: '#1a70b0', L10N: '#1a70b0', L10S: '#1a70b0',
   L11: '#7ab035',
 }
-const FALLBACK_COLOR = '#707070'
+const FALLBACK_COLOR = '#888888'
 
-function lineColor(tags?: Record<string, string>): string {
-  const raw = tags?.line ?? tags?.ref ?? ''
-  const first = raw.split(/[;,]/)[0].trim().toUpperCase()
-  return LINE_COLORS[first] ?? FALLBACK_COLOR
+interface OverpassRelation {
+  type: 'relation'
+  id: number
+  tags?: Record<string, string>
+  members: Array<{ type: string; ref: number; role: string }>
 }
-
 interface OverpassNode {
-  type: string
+  type: 'node'
   id: number
   lat: number
   lon: number
   tags?: Record<string, string>
 }
+type OverpassElement = OverpassRelation | OverpassNode
 
 async function fetchStations(): Promise<GeoJSON.FeatureCollection> {
   const res = await fetch(OVERPASS_URL, { method: 'POST', body: OVERPASS_QUERY })
-  const data: { elements: OverpassNode[] } = await res.json()
+  const data: { elements: OverpassElement[] } = await res.json()
+
+  const relations = data.elements.filter((el): el is OverpassRelation => el.type === 'relation')
+  const nodes     = data.elements.filter((el): el is OverpassNode     => el.type === 'node')
+
+  // Build nodeId → line color from route relations
+  const nodeColors = new Map<number, string>()
+  for (const rel of relations) {
+    const lineRef = rel.tags?.ref?.toUpperCase() ?? ''
+    const color = rel.tags?.colour ?? rel.tags?.color ?? LINE_COLORS[lineRef] ?? FALLBACK_COLOR
+    for (const member of rel.members) {
+      if (member.type === 'node' && !nodeColors.has(member.ref)) {
+        nodeColors.set(member.ref, color)
+      }
+    }
+  }
+
   return {
     type: 'FeatureCollection',
-    features: data.elements
-      .filter((el) => el.type === 'node')
-      .map((node) => ({
-        type: 'Feature' as const,
-        geometry: { type: 'Point' as const, coordinates: [node.lon, node.lat] },
-        properties: {
-          name: node.tags?.name ?? '',
-          color: lineColor(node.tags),
-        },
-      })),
+    features: nodes.map((node) => ({
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: [node.lon, node.lat] },
+      properties: {
+        name: node.tags?.name ?? '',
+        color: nodeColors.get(node.id) ?? FALLBACK_COLOR,
+      },
+    })),
   }
 }
 
@@ -78,11 +86,11 @@ export function MetroLayer() {
           type: 'circle',
           source: SOURCE_ID,
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 3, 15, 5],
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 3],
             'circle-color': ['get', 'color'],
-            'circle-stroke-width': 1,
+            'circle-stroke-width': 0.5,
             'circle-stroke-color': '#ffffff',
-            'circle-opacity': 0.85,
+            'circle-opacity': 0.8,
           },
           minzoom: 10,
         })
@@ -104,7 +112,7 @@ export function MetroLayer() {
             'text-halo-width': 1.5,
             'text-opacity': 0.9,
           },
-          minzoom: 13,
+          minzoom: 14,
         })
       })
       .catch(() => { /* fail silently — non-critical overlay */ })

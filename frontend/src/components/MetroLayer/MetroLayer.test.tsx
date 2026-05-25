@@ -4,12 +4,16 @@ import { MapContext } from '../Map/MapContext'
 import { MetroLayer } from './MetroLayer'
 import type maplibregl from 'maplibre-gl'
 
-const MOCK_GEOJSON = {
-  type: 'FeatureCollection',
-  elements: [
-    { type: 'node', id: 1, lat: 41.38, lon: 2.17, tags: { name: 'Universitat' } },
-  ],
-}
+// Overpass response includes route relations AND station nodes
+const MOCK_ELEMENTS = [
+  {
+    type: 'relation',
+    id: 100,
+    tags: { ref: 'L1', colour: '#cc1a1a' },
+    members: [{ type: 'node', ref: 1, role: 'stop' }],
+  },
+  { type: 'node', id: 1, lat: 41.38, lon: 2.17, tags: { name: 'Universitat' } },
+]
 
 function makeMockMap(overrides?: Record<string, unknown>) {
   return {
@@ -37,7 +41,7 @@ describe('MetroLayer', () => {
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      json: () => Promise.resolve({ elements: MOCK_GEOJSON.elements }),
+      json: () => Promise.resolve({ elements: MOCK_ELEMENTS }),
     } as Response)
   })
 
