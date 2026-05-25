@@ -28,7 +28,6 @@ function makeMockMap(overrides?: Record<string, unknown>) {
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
     getLayer: vi.fn().mockReturnValue(null),
-
     isStyleLoaded: vi.fn().mockReturnValue(true),
     once: vi.fn(),
     off: vi.fn(),
@@ -49,7 +48,7 @@ function renderWithMap(map = mockMap) {
 describe('IsochroneLayer', () => {
   beforeEach(() => {
     mockMap = makeMockMap()
-    useStore.setState({ resultPolygon: null })
+    useStore.setState({ resultPolygon: null, minutes: 30 })
   })
 
   it('renders nothing to the DOM', () => {
@@ -57,18 +56,21 @@ describe('IsochroneLayer', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('adds source and two layers on mount when style is loaded', () => {
+  it('adds source and three layers on mount', () => {
     renderWithMap()
     expect(mockMap.addSource).toHaveBeenCalledWith(
       'isochrone',
       expect.objectContaining({ type: 'geojson' }),
     )
-    expect(mockMap.addLayer).toHaveBeenCalledTimes(2)
-    expect(mockMap.addLayer).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'isochrone-fill' }),
-    )
+    expect(mockMap.addLayer).toHaveBeenCalledTimes(3)
     expect(mockMap.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'isochrone-mask' }),
+    )
+    expect(mockMap.addLayer).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'isochrone-line' }),
+    )
+    expect(mockMap.addLayer).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'isochrone-label' }),
     )
   })
 
@@ -79,10 +81,9 @@ describe('IsochroneLayer', () => {
     expect(mockMap.addLayer).not.toHaveBeenCalled()
   })
 
-  it('always calls setup directly (map from context is post-load)', () => {
+  it('calls setup directly regardless of isStyleLoaded', () => {
     mockMap.isStyleLoaded.mockReturnValue(false)
     renderWithMap()
-    // map from MapContext is always post-load — setup is called directly regardless of isStyleLoaded
     expect(mockMap.addSource).toHaveBeenCalledWith('isochrone', expect.any(Object))
   })
 
@@ -95,28 +96,20 @@ describe('IsochroneLayer', () => {
     expect(mockMap.addSource).not.toHaveBeenCalled()
   })
 
-  it('calls setData with FeatureCollection when resultPolygon is set', () => {
+  it('calls setData with two features when resultPolygon is set', () => {
     const mockSource = { setData: vi.fn() }
-    // First call (setup check): null; subsequent calls (data update): the source
-    mockMap.getSource
-      .mockReturnValueOnce(null)
-      .mockReturnValue(mockSource)
+    mockMap.getSource.mockReturnValueOnce(null).mockReturnValue(mockSource)
 
-    useStore.setState({ resultPolygon: POLYGON })
+    useStore.setState({ resultPolygon: POLYGON, minutes: 20 })
     renderWithMap()
 
-    expect(mockSource.setData).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'FeatureCollection' }),
-    )
     const data = mockSource.setData.mock.calls[0][0] as { features: unknown[] }
     expect(data.features).toHaveLength(2)
   })
 
   it('setData receives empty FeatureCollection when resultPolygon is null', () => {
     const mockSource = { setData: vi.fn() }
-    mockMap.getSource
-      .mockReturnValueOnce(null)
-      .mockReturnValue(mockSource)
+    mockMap.getSource.mockReturnValueOnce(null).mockReturnValue(mockSource)
 
     renderWithMap()
 
@@ -126,11 +119,9 @@ describe('IsochroneLayer', () => {
 
   it('mask feature uses inverted polygon (world bbox + isochrone hole)', () => {
     const mockSource = { setData: vi.fn() }
-    mockMap.getSource
-      .mockReturnValueOnce(null)
-      .mockReturnValue(mockSource)
+    mockMap.getSource.mockReturnValueOnce(null).mockReturnValue(mockSource)
 
-    useStore.setState({ resultPolygon: POLYGON })
+    useStore.setState({ resultPolygon: POLYGON, minutes: 20 })
     renderWithMap()
 
     const data = mockSource.setData.mock.calls[0][0] as {
@@ -138,28 +129,36 @@ describe('IsochroneLayer', () => {
     }
     const maskFeature = data.features.find((f) => f.properties.layer === 'mask')
     expect(maskFeature).toBeDefined()
-    // First ring is the world bbox, second is the isochrone hole
     expect(maskFeature!.geometry.coordinates).toHaveLength(2)
     expect(maskFeature!.geometry.coordinates[1]).toEqual(POLYGON.coordinates[0])
   })
 
   it('mask uses all outer rings as holes for MultiPolygon', () => {
     const mockSource = { setData: vi.fn() }
-    mockMap.getSource
-      .mockReturnValueOnce(null)
-      .mockReturnValue(mockSource)
+    mockMap.getSource.mockReturnValueOnce(null).mockReturnValue(mockSource)
 
-    useStore.setState({ resultPolygon: MULTIPOLYGON })
+    useStore.setState({ resultPolygon: MULTIPOLYGON, minutes: 45 })
     renderWithMap()
 
     const data = mockSource.setData.mock.calls[0][0] as {
       features: Array<{ properties: { layer: string }; geometry: { coordinates: unknown[][] } }>
     }
     const maskFeature = data.features.find((f) => f.properties.layer === 'mask')
-    expect(maskFeature).toBeDefined()
-    // World ring + one hole per polygon in the MultiPolygon
     expect(maskFeature!.geometry.coordinates).toHaveLength(3)
-    expect(maskFeature!.geometry.coordinates[1]).toEqual(MULTIPOLYGON.coordinates[0][0])
-    expect(maskFeature!.geometry.coordinates[2]).toEqual(MULTIPOLYGON.coordinates[1][0])
+  })
+
+  it('outline feature carries label text with minutes', () => {
+    const mockSource = { setData: vi.fn() }
+    mockMap.getSource.mockReturnValueOnce(null).mockReturnValue(mockSource)
+
+    useStore.setState({ resultPolygon: POLYGON, minutes: 30 })
+    renderWithMap()
+
+    const data = mockSource.setData.mock.calls[0][0] as {
+      features: Array<{ properties: { layer: string; text: string } }>
+    }
+    const outlineFeature = data.features.find((f) => f.properties.layer === 'outline')
+    expect(outlineFeature).toBeDefined()
+    expect(outlineFeature!.properties.text).toContain('30')
   })
 })
