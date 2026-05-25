@@ -107,7 +107,7 @@ export function MetroLayer() {
           layout: {
             'text-field': ['get', 'NOM_ESTACIO'],
             'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
-            'text-size': 10,
+            'text-size': 9,
             'text-offset': [0, 1.0],
             'text-anchor': 'top',
             'text-max-width': 8,
@@ -118,7 +118,7 @@ export function MetroLayer() {
             'text-halo-width': 1.5,
             'text-opacity': 0.9,
           },
-          minzoom: 14,
+          minzoom: 12.4,
         })
       })
       .catch(() => { /* fail silently — non-critical overlay */ })

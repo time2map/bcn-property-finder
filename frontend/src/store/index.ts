@@ -4,11 +4,13 @@ import type { MultiPolygon, Polygon } from 'geojson'
 export interface AppState {
   workplace: [number, number] | null
   minutes: number
+  zoom: number
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
   mapAttribution: string
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
+  setZoom: (zoom: number) => void
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
   setMapAttribution: (attribution: string) => void
@@ -34,15 +36,19 @@ function readIsochroneCache(workplace: [number, number], minutes: number): Polyg
   }
 }
 
-export function readUrlParams(): Pick<AppState, 'workplace' | 'minutes'> {
+const DEFAULT_ZOOM = 12
+
+export function readUrlParams(): Pick<AppState, 'workplace' | 'minutes' | 'zoom'> {
   const params = new URLSearchParams(window.location.search)
   const lng = parseFloat(params.get('lng') ?? '')
   const lat = parseFloat(params.get('lat') ?? '')
   const rawMinutes = parseInt(params.get('minutes') ?? '', 10)
+  const rawZoom = parseFloat(params.get('zoom') ?? '')
 
   return {
     workplace: !isNaN(lng) && !isNaN(lat) ? [lng, lat] : DEFAULT_WORKPLACE,
     minutes: isValidMinutes(rawMinutes) ? rawMinutes : 60,
+    zoom: !isNaN(rawZoom) && rawZoom >= 1 && rawZoom <= 22 ? rawZoom : DEFAULT_ZOOM,
   }
 }
 
@@ -57,15 +63,17 @@ function loadNoiseLayerVisible(): boolean {
 }
 
 export const useStore = create<AppState>((set) => {
-  const { workplace, minutes } = readUrlParams()
+  const { workplace, minutes, zoom } = readUrlParams()
   return {
     workplace,
     minutes,
+    zoom,
     // Restored synchronously from localStorage — no flash of empty state on reload
     resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
     noiseLayerVisible: loadNoiseLayerVisible(),
     setWorkplace: (workplace) => set({ workplace }),
     setMinutes: (minutes) => set({ minutes }),
+    setZoom: (zoom) => set({ zoom }),
     setResultPolygon: (resultPolygon) => set({ resultPolygon }),
     setNoiseLayerVisible: (visible) => {
       try { localStorage.setItem(NOISE_LAYER_KEY, String(visible)) } catch { /* ignore */ }

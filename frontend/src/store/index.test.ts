@@ -16,6 +16,7 @@ describe('readUrlParams', () => {
     expect(readUrlParams()).toEqual({
       workplace: DEFAULT_WORKPLACE,
       minutes: 60,
+      zoom: 12,
     })
   })
 
@@ -69,7 +70,23 @@ describe('readUrlParams', () => {
     expect(readUrlParams()).toEqual({
       workplace: [2.17, 41.38],
       minutes: 60,
+      zoom: 12,
     })
+  })
+
+  it('reads zoom from URL', () => {
+    setSearch('?zoom=14.5')
+    expect(readUrlParams().zoom).toBe(14.5)
+  })
+
+  it('falls back to default zoom for out-of-range value', () => {
+    setSearch('?zoom=25')
+    expect(readUrlParams().zoom).toBe(12)
+  })
+
+  it('falls back to default zoom for NaN', () => {
+    setSearch('?zoom=abc')
+    expect(readUrlParams().zoom).toBe(12)
   })
 })
 

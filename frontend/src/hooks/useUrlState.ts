@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useStore } from '../store'
 
 export function useUrlState() {
-  const { workplace, minutes } = useStore()
+  const { workplace, minutes, zoom } = useStore()
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -11,6 +11,7 @@ export function useUrlState() {
       params.set('lat', workplace[1].toFixed(5))
     }
     params.set('minutes', String(minutes))
+    params.set('zoom', zoom.toFixed(2))
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`)
-  }, [workplace, minutes])
+  }, [workplace, minutes, zoom])
 }

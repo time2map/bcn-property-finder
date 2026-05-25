@@ -6,6 +6,7 @@ import { usePinsStore } from '../../store/pinsStore'
 import { MapContext } from './MapContext'
 import { IsochroneLayer } from '../IsochroneLayer/IsochroneLayer'
 import { MetroLayer } from '../MetroLayer/MetroLayer'
+import { FgcLayer } from '../FgcLayer/FgcLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
@@ -19,16 +20,18 @@ export function Map() {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null)
 
-  const { workplace, setWorkplace, setMapAttribution } = useStore()
+  const { workplace, zoom, setWorkplace, setZoom, setMapAttribution } = useStore()
   const { isAddingPin, setIsAddingPin, addPin } = usePinsStore()
 
   // Keep refs current so the stable map click handler can read latest values
   const isAddingPinRef = useRef(isAddingPin)
   const addPinRef = useRef(addPin)
   const workplaceRef = useRef(workplace)
+  const zoomRef = useRef(zoom)
   useEffect(() => { isAddingPinRef.current = isAddingPin }, [isAddingPin])
   useEffect(() => { addPinRef.current = addPin }, [addPin])
   useEffect(() => { workplaceRef.current = workplace }, [workplace])
+  useEffect(() => { zoomRef.current = zoom }, [zoom])
 
   // Init map
   useEffect(() => {
@@ -37,7 +40,7 @@ export function Map() {
       container: containerRef.current,
       style: STYLE_URL,
       center: BCN_CENTER,
-      zoom: 12,
+      zoom: zoomRef.current,
       attributionControl: false,
     })
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
@@ -50,6 +53,7 @@ export function Map() {
         setWorkplace([e.lngLat.lng, e.lngLat.lat])
       }
     })
+    map.on('zoomend', () => setZoom(map.getZoom()))
     map.on('load', () => {
       mapRef.current = map
       setMapInstance(map)
@@ -104,6 +108,7 @@ export function Map() {
       <NoiseLayer />
       <IsochroneLayer />
       <MetroLayer />
+      <FgcLayer />
       <PinAccuracyLayer />
       <PinLayer />
     </MapContext.Provider>
