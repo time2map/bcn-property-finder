@@ -332,9 +332,22 @@ thead .compare-table__col-rank {
 }
 
 
-/* Elevate all map controls above app overlays (compare panel z-index: 100) */
-.maplibregl-control-container {
-  z-index: 150 !important;
+/* Map attribution rendered as a React element — always above all overlays */
+.map-attribution {
+  position: fixed;
+  bottom: 4px;
+  left: 4px;
+  z-index: 200;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  border-radius: 2px;
+  pointer-events: auto;
+  color: #333;
+}
+.map-attribution a {
+  color: inherit;
 }
 
 /* Noise layer legend — inline inside FilterPanel */

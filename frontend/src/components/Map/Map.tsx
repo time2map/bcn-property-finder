@@ -5,6 +5,7 @@ import { useStore } from '../../store'
 import { usePinsStore } from '../../store/pinsStore'
 import { MapContext } from './MapContext'
 import { IsochroneLayer } from '../IsochroneLayer/IsochroneLayer'
+import { MetroLayer } from '../MetroLayer/MetroLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
@@ -17,6 +18,7 @@ export function Map() {
   const markerRef = useRef<maplibregl.Marker | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null)
+  const [attribution, setAttribution] = useState('')
 
   const { workplace, setWorkplace } = useStore()
   const { isAddingPin, setIsAddingPin, addPin } = usePinsStore()
@@ -40,7 +42,6 @@ export function Map() {
       attributionControl: false,
     })
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left')
     map.on('click', (e) => {
       if (isAddingPinRef.current) {
         addPinRef.current([e.lngLat.lng, e.lngLat.lat])
@@ -53,6 +54,10 @@ export function Map() {
     map.on('load', () => {
       mapRef.current = map
       setMapInstance(map)
+      const texts = Object.values(map.getStyle().sources)
+        .map((s) => (s as Record<string, unknown>).attribution as string | undefined)
+        .filter((t): t is string => !!t)
+      if (texts.length) setAttribution(texts.join(' | '))
     })
     return () => {
       setMapInstance(null)
@@ -97,8 +102,16 @@ export function Map() {
   return (
     <MapContext.Provider value={mapInstance}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      {attribution && (
+        <div
+          className="map-attribution"
+          // Attribution HTML comes from the trusted ICGC style URL we control
+          dangerouslySetInnerHTML={{ __html: attribution }}
+        />
+      )}
       <NoiseLayer />
       <IsochroneLayer />
+      <MetroLayer />
       <PinAccuracyLayer />
       <PinLayer />
     </MapContext.Provider>
