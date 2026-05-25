@@ -118,27 +118,46 @@ describe('geocodeAddress', () => {
     expect(await geocodeAddress("Carrer d'Aragó, Barcelona")).toBeNull()
   })
 
-  it('returns accuracyPolygon when addresstype is road and geojson is LineString', async () => {
-    global.fetch = mockFetch([{
-      lon: '2.17', lat: '41.38',
-      addresstype: 'road',
-      geojson: {
-        type: 'LineString',
-        coordinates: [[2.16, 41.37], [2.18, 41.39]],
-      },
-    }])
+  it('fetches full street from Overpass and returns accuracyPolygon when addresstype is road', async () => {
+    let call = 0
+    global.fetch = vi.fn().mockImplementation(() => {
+      call++
+      if (call === 1) {
+        // Nominatim
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([
+          { lon: '2.17', lat: '41.38', addresstype: 'road', name: 'Carrer del Consell de Cent' },
+        ]) })
+      }
+      // Overpass — returns multiple way segments
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ elements: [
+        { type: 'way', geometry: [{ lat: 41.37, lon: 2.15 }, { lat: 41.38, lon: 2.17 }] },
+        { type: 'way', geometry: [{ lat: 41.38, lon: 2.17 }, { lat: 41.39, lon: 2.19 }] },
+      ] }) })
+    })
     const result = await geocodeAddress('Carrer del Consell de Cent, Barcelona')
     expect(result?.accuracyPolygon).toBeDefined()
     expect(result?.accuracyPolygon?.type).toBe('Polygon')
   })
 
   it('does not return accuracyPolygon for non-road addresstype', async () => {
-    global.fetch = mockFetch([{
-      lon: '2.17', lat: '41.38',
-      addresstype: 'house',
-      geojson: { type: 'Point', coordinates: [2.17, 41.38] },
-    }])
+    global.fetch = mockFetch([{ lon: '2.17', lat: '41.38', addresstype: 'house' }])
     const result = await geocodeAddress('Carrer del Consell de Cent 42, Barcelona')
+    expect(result?.accuracyPolygon).toBeUndefined()
+  })
+
+  it('returns coords without accuracyPolygon when Overpass fails', async () => {
+    let call = 0
+    global.fetch = vi.fn().mockImplementation(() => {
+      call++
+      if (call === 1) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([
+          { lon: '2.17', lat: '41.38', addresstype: 'road', name: 'Carrer del Consell de Cent' },
+        ]) })
+      }
+      return Promise.resolve({ ok: false })
+    })
+    const result = await geocodeAddress('Carrer del Consell de Cent, Barcelona')
+    expect(result?.coords).toEqual([2.17, 41.38])
     expect(result?.accuracyPolygon).toBeUndefined()
   })
 })

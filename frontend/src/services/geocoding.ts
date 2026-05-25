@@ -1,7 +1,11 @@
 import buffer from '@turf/buffer'
-import type { LineString, MultiLineString, Polygon, MultiPolygon } from 'geojson'
+import type { MultiLineString, Polygon, MultiPolygon } from 'geojson'
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
+
+// Barcelona bounding box for Overpass queries: south,west,north,east
+const BCN_BBOX = '41.30,2.05,41.48,2.35'
 
 // Maps Spanish street-type prefixes to Catalan — Barcelona OSM data uses Catalan names.
 const SPANISH_TO_CATALAN: [RegExp, string][] = [
@@ -60,12 +64,35 @@ function buildQueries(address: string): string[] {
   return [...new Set(queries)]
 }
 
-function buildAccuracyPolygon(geojson: unknown): Polygon | MultiPolygon | undefined {
-  if (!geojson || typeof geojson !== 'object') return undefined
-  const geo = geojson as { type: string }
-  if (geo.type !== 'LineString' && geo.type !== 'MultiLineString') return undefined
+// Fetches ALL way segments for a named street from Overpass API within Barcelona.
+// Nominatim returns only one OSM way (a short segment); Overpass gives the full street.
+async function fetchFullStreetGeometry(streetName: string): Promise<MultiLineString | null> {
+  const query = `[out:json][timeout:15];way["name"="${streetName}"](${BCN_BBOX});out geom;`
   try {
-    const result = buffer(geojson as LineString | MultiLineString, 80, { units: 'meters' })
+    const res = await fetch(OVERPASS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const coords: number[][][] = (data.elements ?? [])
+      .filter((el: { type: string; geometry?: { lat: number; lon: number }[] }) =>
+        el.type === 'way' && Array.isArray(el.geometry),
+      )
+      .map((el: { geometry: { lat: number; lon: number }[] }) =>
+        el.geometry.map((pt) => [pt.lon, pt.lat]),
+      )
+    if (coords.length === 0) return null
+    return { type: 'MultiLineString', coordinates: coords }
+  } catch {
+    return null
+  }
+}
+
+function bufferLine(line: MultiLineString): Polygon | MultiPolygon | undefined {
+  try {
+    const result = buffer(line, 80, { units: 'meters' })
     const geom = result?.geometry
     if (geom && (geom.type === 'Polygon' || geom.type === 'MultiPolygon')) {
       return geom as Polygon | MultiPolygon
@@ -77,18 +104,21 @@ function buildAccuracyPolygon(geojson: unknown): Polygon | MultiPolygon | undefi
 }
 
 async function tryNominatim(query: string): Promise<GeocodedLocation | null> {
-  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(query)}&format=json&limit=1&polygon_geojson=1`
+  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(query)}&format=json&limit=1`
   const res = await fetch(url, {
     headers: { 'Accept-Language': 'en', 'User-Agent': 'bcn-property-finder/1.0' },
   })
   if (!res.ok) return null
   const results = await res.json()
   if (!Array.isArray(results) || results.length === 0) return null
-  const { lon, lat, addresstype, geojson } = results[0]
+  const { lon, lat, addresstype, name } = results[0]
   const coords: [number, number] = [parseFloat(lon), parseFloat(lat)]
 
-  // Build accuracy polygon only for street-level matches.
-  const accuracyPolygon = addresstype === 'road' ? buildAccuracyPolygon(geojson) : undefined
+  let accuracyPolygon: Polygon | MultiPolygon | undefined
+  if (addresstype === 'road' && name) {
+    const fullGeometry = await fetchFullStreetGeometry(name)
+    if (fullGeometry) accuracyPolygon = bufferLine(fullGeometry)
+  }
 
   return { coords, accuracyPolygon }
 }
