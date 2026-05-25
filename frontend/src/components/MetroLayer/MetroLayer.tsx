@@ -1,105 +1,111 @@
 import { useEffect } from 'react'
 import { useMap } from '../Map/MapContext'
 
-const SOURCE_ID = 'bcn-metro'
-const LAYER_CIRCLE = 'metro-circles'
-const LAYER_LABEL = 'metro-labels'
+const APP_ID  = import.meta.env.VITE_TMB_APP_ID  as string | undefined
+const APP_KEY = import.meta.env.VITE_TMB_APP_KEY as string | undefined
+const TMB_BASE = 'https://api.tmb.cat/v1/transit'
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
-// Fetch BCN metro route relations + their station nodes in one call
-const OVERPASS_QUERY = `[out:json][timeout:60];
-rel["type"="route"]["route"="subway"]["network"="Metro de Barcelona"]->.lines;
-node(r.lines)["railway"="station"]->.stations;
-(.lines;.stations;);
-out body;`
+const SOURCE_LINES    = 'tmb-metro-lines'
+const SOURCE_STATIONS = 'tmb-metro-stations'
+const LAYER_LINES     = 'metro-lines'
+const LAYER_CIRCLES   = 'metro-circles'
+const LAYER_LABELS    = 'metro-labels'
 
-// Fallback colors by line ref when OSM colour tag is absent
-const LINE_COLORS: Record<string, string> = {
-  L1: '#cc1a1a', L2: '#8a2a7a', L3: '#2a7a50', L4: '#c8a800',
-  L5: '#1a2e6a', L6: '#8a5aa0', L7: '#8a5aa0', L8: '#d04a8a',
-  L9: '#c87020', L9N: '#c87020', L9S: '#c87020',
-  L10: '#1a70b0', L10N: '#1a70b0', L10S: '#1a70b0',
-  L11: '#7ab035',
+const LINE_REF_RE = /L\d+[NS]?/g
+
+function tmbUrl(path: string): string {
+  return `${TMB_BASE}${path}?app_id=${APP_ID}&app_key=${APP_KEY}`
 }
-const FALLBACK_COLOR = '#888888'
 
-interface OverpassRelation {
-  type: 'relation'
-  id: number
-  tags?: Record<string, string>
-  members: Array<{ type: string; ref: number; role: string }>
+async function fetchGeoJson(path: string): Promise<GeoJSON.FeatureCollection> {
+  const res = await fetch(tmbUrl(path))
+  return res.json() as Promise<GeoJSON.FeatureCollection>
 }
-interface OverpassNode {
-  type: 'node'
-  id: number
-  lat: number
-  lon: number
-  tags?: Record<string, string>
-}
-type OverpassElement = OverpassRelation | OverpassNode
 
-async function fetchStations(): Promise<GeoJSON.FeatureCollection> {
-  const res = await fetch(OVERPASS_URL, { method: 'POST', body: OVERPASS_QUERY })
-  const data: { elements: OverpassElement[] } = await res.json()
-
-  const relations = data.elements.filter((el): el is OverpassRelation => el.type === 'relation')
-  const nodes     = data.elements.filter((el): el is OverpassNode     => el.type === 'node')
-
-  // Build nodeId → line color from route relations
-  const nodeColors = new Map<number, string>()
-  for (const rel of relations) {
-    const lineRef = rel.tags?.ref?.toUpperCase() ?? ''
-    const color = rel.tags?.colour ?? rel.tags?.color ?? LINE_COLORS[lineRef] ?? FALLBACK_COLOR
-    for (const member of rel.members) {
-      if (member.type === 'node' && !nodeColors.has(member.ref)) {
-        nodeColors.set(member.ref, color)
-      }
-    }
-  }
-
-  return {
-    type: 'FeatureCollection',
-    features: nodes.map((node) => ({
-      type: 'Feature' as const,
-      geometry: { type: 'Point' as const, coordinates: [node.lon, node.lat] },
-      properties: {
-        name: node.tags?.name ?? '',
-        color: nodeColors.get(node.id) ?? FALLBACK_COLOR,
-      },
-    })),
-  }
+// Parse PICTO like "L2L3L4" → ["L2", "L3", "L4"]
+function pictoLines(picto: string): string[] {
+  return picto.match(LINE_REF_RE) ?? []
 }
 
 export function MetroLayer() {
   const map = useMap()
 
   useEffect(() => {
-    if (!map) return
+    if (!map || !APP_ID || !APP_KEY) return
     let cancelled = false
 
-    fetchStations()
-      .then((geojson) => {
-        if (cancelled || map.getSource(SOURCE_ID)) return
-        map.addSource(SOURCE_ID, { type: 'geojson', data: geojson })
+    Promise.all([
+      fetchGeoJson('/linies/metro'),
+      fetchGeoJson('/estacions'),
+    ])
+      .then(([linesRaw, stationsRaw]) => {
+        if (cancelled || map.getSource(SOURCE_LINES)) return
+
+        // Build lineRef → official color from TMB lines data
+        const lineColor = new Map<string, string>()
+        for (const f of linesRaw.features) {
+          const ref   = f.properties?.NOM_LINIA as string
+          const color = '#' + (f.properties?.COLOR_LINIA as string ?? '888888')
+          if (ref) lineColor.set(ref, color)
+        }
+
+        // Attach color to each line feature
+        const linesGeoJson: GeoJSON.FeatureCollection = {
+          ...linesRaw,
+          features: linesRaw.features.map((f) => ({
+            ...f,
+            properties: {
+              ...f.properties,
+              color: '#' + (f.properties?.COLOR_LINIA as string ?? '888888'),
+            },
+          })),
+        }
+
+        // Attach color to each station feature (first line from PICTO)
+        const stationsGeoJson: GeoJSON.FeatureCollection = {
+          ...stationsRaw,
+          features: stationsRaw.features.map((f) => {
+            const lines = pictoLines((f.properties?.PICTO as string) ?? '')
+            const color = lines[0] ? (lineColor.get(lines[0]) ?? '#888888') : '#888888'
+            return { ...f, properties: { ...f.properties, color } }
+          }),
+        }
+
+        // Lines
+        map.addSource(SOURCE_LINES, { type: 'geojson', data: linesGeoJson })
         map.addLayer({
-          id: LAYER_CIRCLE,
-          type: 'circle',
-          source: SOURCE_ID,
+          id: LAYER_LINES,
+          type: 'line',
+          source: SOURCE_LINES,
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 3],
+            'line-color': ['get', 'color'],
+            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 15, 3],
+            'line-opacity': 0.6,
+          },
+          minzoom: 10,
+        })
+
+        // Stations
+        map.addSource(SOURCE_STATIONS, { type: 'geojson', data: stationsGeoJson })
+        map.addLayer({
+          id: LAYER_CIRCLES,
+          type: 'circle',
+          source: SOURCE_STATIONS,
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 4],
             'circle-color': ['get', 'color'],
             'circle-stroke-width': 0.5,
             'circle-stroke-color': '#ffffff',
-            'circle-opacity': 0.8,
+            'circle-opacity': 0.85,
           },
           minzoom: 10,
         })
         map.addLayer({
-          id: LAYER_LABEL,
+          id: LAYER_LABELS,
           type: 'symbol',
-          source: SOURCE_ID,
+          source: SOURCE_STATIONS,
           layout: {
-            'text-field': ['get', 'name'],
+            'text-field': ['get', 'NOM_ESTACIO'],
             'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
             'text-size': 10,
             'text-offset': [0, 1.0],
@@ -120,9 +126,11 @@ export function MetroLayer() {
     return () => {
       cancelled = true
       try {
-        if (map.getLayer(LAYER_LABEL)) map.removeLayer(LAYER_LABEL)
-        if (map.getLayer(LAYER_CIRCLE)) map.removeLayer(LAYER_CIRCLE)
-        if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
+        if (map.getLayer(LAYER_LABELS))  map.removeLayer(LAYER_LABELS)
+        if (map.getLayer(LAYER_CIRCLES)) map.removeLayer(LAYER_CIRCLES)
+        if (map.getLayer(LAYER_LINES))   map.removeLayer(LAYER_LINES)
+        if (map.getSource(SOURCE_STATIONS)) map.removeSource(SOURCE_STATIONS)
+        if (map.getSource(SOURCE_LINES))    map.removeSource(SOURCE_LINES)
       } catch { /* map may already be destroyed */ }
     }
   }, [map])
