@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { useStore } from '../store'
+import type { MultiPolygon, Polygon } from 'geojson'
+import { useStore, isochroneCacheKey } from '../store'
 import { fetchOtpIsochrone } from '../services/otp'
+
+function writeCache(key: string, polygon: Polygon | MultiPolygon): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(polygon))
+  } catch {
+    // quota exceeded — ignore
+  }
+}
 
 export function useIsochrone(onError?: (err: Error) => void) {
   const { workplace, minutes, setResultPolygon } = useStore()
@@ -9,11 +18,22 @@ export function useIsochrone(onError?: (err: Error) => void) {
 
   useEffect(() => {
     if (!workplace) return
+
+    const key = isochroneCacheKey(workplace, minutes)
+    const cached = localStorage.getItem(key)
+    if (cached) {
+      try {
+        setResultPolygon(JSON.parse(cached) as Polygon | MultiPolygon)
+      } catch { /* malformed cache entry — fall through to OTP */ }
+      return
+    }
+
     setIsLoading(true)
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(async () => {
       try {
         const polygon = await fetchOtpIsochrone(workplace, minutes)
+        writeCache(key, polygon)
         setResultPolygon(polygon)
       } catch (err) {
         onError?.(err instanceof Error ? err : new Error(String(err)))

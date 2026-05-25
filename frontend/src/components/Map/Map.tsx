@@ -22,8 +22,10 @@ export function Map() {
   // Keep refs current so the stable map click handler can read latest values
   const isAddingPinRef = useRef(isAddingPin)
   const addPinRef = useRef(addPin)
+  const workplaceRef = useRef(workplace)
   useEffect(() => { isAddingPinRef.current = isAddingPin }, [isAddingPin])
   useEffect(() => { addPinRef.current = addPin }, [addPin])
+  useEffect(() => { workplaceRef.current = workplace }, [workplace])
 
   // Init map
   useEffect(() => {
@@ -39,7 +41,8 @@ export function Map() {
       if (isAddingPinRef.current) {
         addPinRef.current([e.lngLat.lng, e.lngLat.lat])
         setIsAddingPin(false)
-      } else {
+      } else if (!workplaceRef.current) {
+        // Only set workplace via click when it hasn't been placed yet
         setWorkplace([e.lngLat.lng, e.lngLat.lat])
       }
     })
@@ -69,7 +72,7 @@ export function Map() {
     return () => window.removeEventListener('keydown', handler)
   }, [setIsAddingPin])
 
-  // Sync workplace marker
+  // Sync workplace marker (draggable)
   useEffect(() => {
     if (!mapInstance) return
     markerRef.current?.remove()
@@ -77,10 +80,15 @@ export function Map() {
     const el = document.createElement('div')
     el.className = 'work-marker'
     el.innerHTML = '<span class="work-marker__label">Work</span><div class="work-marker__dot"></div>'
-    markerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+    const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', draggable: true })
       .setLngLat(workplace)
       .addTo(mapInstance)
-  }, [workplace, mapInstance])
+    marker.on('dragend', () => {
+      const { lng, lat } = marker.getLngLat()
+      setWorkplace([lng, lat])
+    })
+    markerRef.current = marker
+  }, [workplace, mapInstance]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <MapContext.Provider value={mapInstance}>

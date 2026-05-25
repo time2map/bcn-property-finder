@@ -17,6 +17,19 @@ function isValidMinutes(n: number): boolean {
 // Plaça de Catalunya — shown on first load when no URL params are present
 const DEFAULT_WORKPLACE: [number, number] = [2.1687, 41.3874]
 
+export function isochroneCacheKey(workplace: [number, number], minutes: number): string {
+  return `bcn_isochrone:${workplace[0].toFixed(5)},${workplace[1].toFixed(5)},${minutes}`
+}
+
+function readIsochroneCache(workplace: [number, number], minutes: number): Polygon | MultiPolygon | null {
+  try {
+    const raw = localStorage.getItem(isochroneCacheKey(workplace, minutes))
+    return raw ? (JSON.parse(raw) as Polygon | MultiPolygon) : null
+  } catch {
+    return null
+  }
+}
+
 export function readUrlParams(): Pick<AppState, 'workplace' | 'minutes'> {
   const params = new URLSearchParams(window.location.search)
   const lng = parseFloat(params.get('lng') ?? '')
@@ -29,10 +42,15 @@ export function readUrlParams(): Pick<AppState, 'workplace' | 'minutes'> {
   }
 }
 
-export const useStore = create<AppState>((set) => ({
-  ...readUrlParams(),
-  resultPolygon: null,
-  setWorkplace: (workplace) => set({ workplace }),
-  setMinutes: (minutes) => set({ minutes }),
-  setResultPolygon: (resultPolygon) => set({ resultPolygon }),
-}))
+export const useStore = create<AppState>((set) => {
+  const { workplace, minutes } = readUrlParams()
+  return {
+    workplace,
+    minutes,
+    // Restored synchronously from localStorage — no flash of empty state on reload
+    resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
+    setWorkplace: (workplace) => set({ workplace }),
+    setMinutes: (minutes) => set({ minutes }),
+    setResultPolygon: (resultPolygon) => set({ resultPolygon }),
+  }
+})

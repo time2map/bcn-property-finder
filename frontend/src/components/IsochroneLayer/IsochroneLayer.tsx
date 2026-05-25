@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
@@ -43,7 +43,13 @@ export function IsochroneLayer() {
   const map = useMap()
   const resultPolygon = useStore((s) => s.resultPolygon)
 
-  // Set up source and layers once the map style is loaded
+  // Updated synchronously during render (before effects run), so the [map] setup
+  // effect always initializes the source with the latest polygon, not null.
+  const resultPolygonRef = useRef(resultPolygon)
+  resultPolygonRef.current = resultPolygon
+
+  // Set up source and layers once the map style is loaded.
+  // Uses ref so the source is created with the current polygon from the start.
   useEffect(() => {
     if (!map) return
 
@@ -51,7 +57,7 @@ export function IsochroneLayer() {
       if (map.getSource(SOURCE_ID)) return
       map.addSource(SOURCE_ID, {
         type: 'geojson',
-        data: buildSourceData(null),
+        data: buildSourceData(resultPolygonRef.current),
       })
       map.addLayer({
         id: FILL_LAYER_ID,
@@ -65,7 +71,7 @@ export function IsochroneLayer() {
         type: 'fill',
         source: SOURCE_ID,
         filter: ['==', ['get', 'layer'], 'mask'],
-        paint: { 'fill-color': '#000000', 'fill-opacity': 0.45 },
+        paint: { 'fill-color': '#000000', 'fill-opacity': 0.3 },
       })
     }
 
@@ -86,21 +92,11 @@ export function IsochroneLayer() {
     }
   }, [map])
 
-  // Update source data whenever the polygon changes
+  // Update source data whenever the polygon changes (map is always loaded when non-null).
   useEffect(() => {
     if (!map) return
-
-    const update = () => {
-      const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined
-      source?.setData?.(buildSourceData(resultPolygon))
-    }
-
-    if (map.isStyleLoaded()) {
-      update()
-    } else {
-      map.once('load', update)
-      return () => { map.off('load', update) }
-    }
+    const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined
+    source?.setData?.(buildSourceData(resultPolygon))
   }, [map, resultPolygon])
 
   return null
