@@ -5,6 +5,7 @@ import { Map } from './components/Map/Map'
 import { FilterPanel } from './components/FilterPanel/FilterPanel'
 import { PinCompareTable } from './components/PropertyPins/PinCompareTable'
 import { AddPinButton } from './components/PropertyPins/AddPinButton'
+import { ScreenshotDropZone } from './components/PropertyPins/ScreenshotDropZone'
 import { useUrlState } from './hooks/useUrlState'
 import { useIsochrone } from './hooks/useIsochrone'
 import { usePinAnalytics } from './hooks/usePinAnalytics'
@@ -24,7 +25,9 @@ export function App() {
 
   return (
     <div className="app">
-      <Map />
+      <ScreenshotDropZone onError={(msg) => { setErrorMsg(msg); setTimeout(() => setErrorMsg(null), 4000) }}>
+        <Map />
+      </ScreenshotDropZone>
 
       {isMobile ? (
         <>

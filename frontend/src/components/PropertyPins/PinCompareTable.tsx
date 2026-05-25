@@ -3,40 +3,10 @@ import { Badge } from '@mantine/core'
 import { usePinsStore } from '../../store/pinsStore'
 import type { PropertyPin } from '../../types/pins'
 import { PhotoLightbox } from './PhotoLightbox'
+import { compressImage } from '../../services/imageUtils'
 
 const MAX_PANEL_H = 320
 const MAX_PHOTOS = 5
-const MAX_PHOTO_BYTES = 200 * 1024
-
-async function compressImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      const canvas = document.createElement('canvas')
-      const MAX_DIM = 800
-      let { width, height } = img
-      if (width > MAX_DIM || height > MAX_DIM) {
-        const ratio = Math.min(MAX_DIM / width, MAX_DIM / height)
-        width = Math.round(width * ratio)
-        height = Math.round(height * ratio)
-      }
-      canvas.width = width
-      canvas.height = height
-      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-      let quality = 0.85
-      let dataUrl = canvas.toDataURL('image/jpeg', quality)
-      while (dataUrl.length * 0.75 > MAX_PHOTO_BYTES && quality > 0.3) {
-        quality -= 0.1
-        dataUrl = canvas.toDataURL('image/jpeg', quality)
-      }
-      resolve(dataUrl)
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
-    img.src = url
-  })
-}
 
 function sortPins(pins: PropertyPin[]): PropertyPin[] {
   return [...pins].sort((a, b) => {

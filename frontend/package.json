@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
     "@mantine/core": "^9.2.0",
     "@mantine/hooks": "^9.2.0",
     "@types/geojson": "^7946.0.16",
