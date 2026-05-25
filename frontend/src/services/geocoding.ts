@@ -1,3 +1,6 @@
+import buffer from '@turf/buffer'
+import type { LineString, MultiLineString, Polygon, MultiPolygon } from 'geojson'
+
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
 
 // Maps Spanish street-type prefixes to Catalan — Barcelona OSM data uses Catalan names.
@@ -18,6 +21,11 @@ const SPANISH_TO_CATALAN: [RegExp, string][] = [
   [/^Paseo\s+/i, 'Passeig '],
   [/^Gran Vía\s*/i, 'Gran Via '],
 ]
+
+export interface GeocodedLocation {
+  coords: [number, number]
+  accuracyPolygon?: Polygon | MultiPolygon
+}
 
 function toBarcelonaCatalan(street: string): string {
   for (const [pattern, replacement] of SPANISH_TO_CATALAN) {
@@ -52,19 +60,40 @@ function buildQueries(address: string): string[] {
   return [...new Set(queries)]
 }
 
-async function tryNominatim(query: string): Promise<[number, number] | null> {
-  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(query)}&format=json&limit=1`
+function buildAccuracyPolygon(geojson: unknown): Polygon | MultiPolygon | undefined {
+  if (!geojson || typeof geojson !== 'object') return undefined
+  const geo = geojson as { type: string }
+  if (geo.type !== 'LineString' && geo.type !== 'MultiLineString') return undefined
+  try {
+    const result = buffer(geojson as LineString | MultiLineString, 80, { units: 'meters' })
+    const geom = result?.geometry
+    if (geom && (geom.type === 'Polygon' || geom.type === 'MultiPolygon')) {
+      return geom as Polygon | MultiPolygon
+    }
+  } catch {
+    // turf failed — no buffer
+  }
+  return undefined
+}
+
+async function tryNominatim(query: string): Promise<GeocodedLocation | null> {
+  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(query)}&format=json&limit=1&polygon_geojson=1`
   const res = await fetch(url, {
     headers: { 'Accept-Language': 'en', 'User-Agent': 'bcn-property-finder/1.0' },
   })
   if (!res.ok) return null
   const results = await res.json()
   if (!Array.isArray(results) || results.length === 0) return null
-  const { lon, lat } = results[0]
-  return [parseFloat(lon), parseFloat(lat)]
+  const { lon, lat, addresstype, geojson } = results[0]
+  const coords: [number, number] = [parseFloat(lon), parseFloat(lat)]
+
+  // Build accuracy polygon only for street-level matches.
+  const accuracyPolygon = addresstype === 'road' ? buildAccuracyPolygon(geojson) : undefined
+
+  return { coords, accuracyPolygon }
 }
 
-export async function geocodeAddress(address: string | null | undefined): Promise<[number, number] | null> {
+export async function geocodeAddress(address: string | null | undefined): Promise<GeocodedLocation | null> {
   if (!address) return null
 
   try {

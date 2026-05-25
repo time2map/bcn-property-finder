@@ -16,5 +16,6 @@ export interface PropertyPin {
   photos?: string[]
   comment?: string
   analytics?: PinAnalytics
+  accuracyPolygon?: GeoJSON.Polygon | GeoJSON.MultiPolygon
   createdAt: string
 }

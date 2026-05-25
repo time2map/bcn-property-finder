@@ -81,10 +81,10 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
       let geocodeFailed = false
 
       if (parsed.address) {
-        const coords = await geocodeAddress(parsed.address)
-        if (coords) {
-          finalCoords = coords
-          updatePin(pinId, { coordinates: coords })
+        const geocoded = await geocodeAddress(parsed.address)
+        if (geocoded) {
+          finalCoords = geocoded.coords
+          updatePin(pinId, { coordinates: geocoded.coords, accuracyPolygon: geocoded.accuracyPolygon })
         } else {
           geocodeFailed = true
         }

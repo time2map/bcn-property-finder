@@ -92,7 +92,8 @@ export function PinLayer() {
         marker.on('dragend', () => {
           const lngLat = marker.getLngLat()
           const newCoords: [number, number] = [lngLat.lng, lngLat.lat]
-          usePinsStore.getState().updatePin(pin.id, { coordinates: newCoords })
+          // Clear accuracy polygon — user explicitly placed the pin
+          usePinsStore.getState().updatePin(pin.id, { coordinates: newCoords, accuracyPolygon: undefined })
           const workplace = useStore.getState().workplace
           if (workplace) {
             calcAnalytics(newCoords, workplace).then((analytics) => {

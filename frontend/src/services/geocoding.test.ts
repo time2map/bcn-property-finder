@@ -82,10 +82,10 @@ describe('geocodeAddress', () => {
     expect(await geocodeAddress('')).toBeNull()
   })
 
-  it('returns [lng, lat] on first query success', async () => {
+  it('returns coords on first query success', async () => {
     global.fetch = mockFetch([{ lon: '2.1734', lat: '41.3851' }])
     const result = await geocodeAddress("Carrer d'Aragó, Barcelona")
-    expect(result).toEqual([2.1734, 41.3851])
+    expect(result?.coords).toEqual([2.1734, 41.3851])
   })
 
   it('falls back to street-only query when full address returns nothing', async () => {
@@ -94,7 +94,7 @@ describe('geocodeAddress', () => {
       [{ lon: '2.17', lat: '41.39' }],           // street only: success
     )
     const result = await geocodeAddress('Calle del Consell de Cent, La Dreta de l\'Eixample')
-    expect(result).toEqual([2.17, 41.39])
+    expect(result?.coords).toEqual([2.17, 41.39])
   })
 
   it('falls back to Catalan translation when Spanish query fails', async () => {
@@ -104,7 +104,7 @@ describe('geocodeAddress', () => {
       [{ lon: '2.18', lat: '41.38' }],           // Catalan translation: success
     )
     const result = await geocodeAddress('Calle del Consell de Cent, Eixample')
-    expect(result).toEqual([2.18, 41.38])
+    expect(result?.coords).toEqual([2.18, 41.38])
   })
 
   it('returns null when all queries fail', async () => {
@@ -116,5 +116,29 @@ describe('geocodeAddress', () => {
   it('returns null on network error (no throw)', async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
     expect(await geocodeAddress("Carrer d'Aragó, Barcelona")).toBeNull()
+  })
+
+  it('returns accuracyPolygon when addresstype is road and geojson is LineString', async () => {
+    global.fetch = mockFetch([{
+      lon: '2.17', lat: '41.38',
+      addresstype: 'road',
+      geojson: {
+        type: 'LineString',
+        coordinates: [[2.16, 41.37], [2.18, 41.39]],
+      },
+    }])
+    const result = await geocodeAddress('Carrer del Consell de Cent, Barcelona')
+    expect(result?.accuracyPolygon).toBeDefined()
+    expect(result?.accuracyPolygon?.type).toBe('Polygon')
+  })
+
+  it('does not return accuracyPolygon for non-road addresstype', async () => {
+    global.fetch = mockFetch([{
+      lon: '2.17', lat: '41.38',
+      addresstype: 'house',
+      geojson: { type: 'Point', coordinates: [2.17, 41.38] },
+    }])
+    const result = await geocodeAddress('Carrer del Consell de Cent 42, Barcelona')
+    expect(result?.accuracyPolygon).toBeUndefined()
   })
 })

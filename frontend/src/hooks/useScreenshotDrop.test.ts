@@ -72,7 +72,7 @@ describe('useScreenshotDrop', () => {
       addressIsApproximate: false,
       url: 'https://www.idealista.com/inmueble/12345678/',
     })
-    vi.mocked(geocodeAddress).mockResolvedValue([2.17, 41.39])
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.17, 41.39] })
 
     const onError = vi.fn()
     const { result } = renderHook(() => useScreenshotDrop(onError))
@@ -89,7 +89,7 @@ describe('useScreenshotDrop', () => {
       comment: "Carrer d'Aragó, Eixample",
       photos: ['data:image/jpeg;base64,compressed'],
     }))
-    expect(mockUpdatePin).toHaveBeenCalledWith('pin-123', { coordinates: [2.17, 41.39] })
+    expect(mockUpdatePin).toHaveBeenCalledWith('pin-123', expect.objectContaining({ coordinates: [2.17, 41.39] }))
     expect(result.current.state.approxBanner).toBe(false)
     expect(onError).not.toHaveBeenCalled()
   })
@@ -99,7 +99,7 @@ describe('useScreenshotDrop', () => {
       address: 'Calle del Consell de Cent, Eixample',
       addressIsApproximate: false,
     })
-    vi.mocked(geocodeAddress).mockResolvedValue([2.18, 41.39])
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.18, 41.39] })
 
     const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
     await act(async () => {
@@ -133,7 +133,7 @@ describe('useScreenshotDrop', () => {
       address: 'Eixample, Barcelona',
       addressIsApproximate: true,
     })
-    vi.mocked(geocodeAddress).mockResolvedValue([2.16, 41.38])
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.16, 41.38] })
 
     const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
     await act(async () => {
@@ -175,7 +175,7 @@ describe('useScreenshotDrop', () => {
       address: 'Eixample',
       addressIsApproximate: true,
     })
-    vi.mocked(geocodeAddress).mockResolvedValue([2.17, 41.39])
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.17, 41.39] })
 
     const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
     await act(async () => {
