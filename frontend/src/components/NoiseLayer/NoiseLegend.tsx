@@ -111,9 +111,6 @@ export function NoiseLegend() {
             </div>
           ))}
         </div>
-        <div className="noise-legend__source">
-          Lden · Road + rail + industry + leisure · 2022
-        </div>
       </div>
     </>
   )

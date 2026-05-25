@@ -10,7 +10,7 @@ import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
 
 const BCN_CENTER: [number, number] = [2.1734, 41.3851]
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
+const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
 
 export function Map() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -37,8 +37,10 @@ export function Map() {
       style: STYLE_URL,
       center: BCN_CENTER,
       zoom: 12,
+      attributionControl: false,
     })
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left')
     map.on('click', (e) => {
       if (isAddingPinRef.current) {
         addPinRef.current([e.lngLat.lng, e.lngLat.lat])

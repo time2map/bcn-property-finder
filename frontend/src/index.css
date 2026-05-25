@@ -332,6 +332,11 @@ thead .compare-table__col-rank {
 }
 
 
+/* Elevate all map controls above app overlays (compare panel z-index: 100) */
+.maplibregl-control-container {
+  z-index: 150 !important;
+}
+
 /* Noise layer legend — inline inside FilterPanel */
 .noise-legend {
   background: #f8f9fa;

@@ -28,6 +28,7 @@ function makeMockMap(overrides?: Record<string, unknown>) {
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
     getLayer: vi.fn().mockReturnValue(null),
+
     isStyleLoaded: vi.fn().mockReturnValue(true),
     once: vi.fn(),
     off: vi.fn(),

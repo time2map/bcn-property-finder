@@ -37,6 +37,7 @@ vi.mock('maplibre-gl', () => ({
       remove: vi.fn(),
     })),
     NavigationControl: vi.fn(),
+    AttributionControl: vi.fn(),
     Marker: vi.fn(() => ({
       setLngLat: vi.fn().mockReturnThis(),
       addTo: vi.fn().mockReturnThis(),

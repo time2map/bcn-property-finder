@@ -1,4 +1,5 @@
-import { Divider, Paper, Slider, Stack, Switch, Text } from '@mantine/core'
+import { useState } from 'react'
+import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Text } from '@mantine/core'
 import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
@@ -12,17 +13,68 @@ const TIME_MARKS = [
   { value: 120, label: '2h' },
 ]
 
+function IsochroneInfoModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
+  return (
+    <Modal opened={opened} onClose={onClose} title="Commute zone" size="md">
+      <Text size="sm" fw={500} mb={4}>What the zone shows</Text>
+      <Text size="sm" c="dimmed" mb="md">
+        The shaded area on the map contains all locations reachable from your workplace
+        within the selected travel time — by public transport. Use it to quickly see
+        which neighbourhoods are within reach.
+      </Text>
+
+      <Text size="sm" fw={500} mb={4}>How the score is calculated</Text>
+      <Text size="sm" c="dimmed" mb={6}>
+        For each pinned property, travel time from that address to the workplace is
+        computed for four modes. Each mode is scored 0–100 (100 = instant, 0 = at cap
+        or beyond), then combined into a weighted travel index:
+      </Text>
+      <Table withTableBorder withColumnBorders fz="xs" mb="md">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Mode</Table.Th>
+            <Table.Th>Weight</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr><Table.Td>Walking</Table.Td><Table.Td>4</Table.Td></Table.Tr>
+          <Table.Tr><Table.Td>Public transport</Table.Td><Table.Td>3</Table.Td></Table.Tr>
+          <Table.Tr><Table.Td>Cycling</Table.Td><Table.Td>2</Table.Td></Table.Tr>
+          <Table.Tr><Table.Td>Driving</Table.Td><Table.Td>1</Table.Td></Table.Tr>
+        </Table.Tbody>
+      </Table>
+
+      <Text size="sm" c="dimmed">
+        The composite <strong>Score</strong> shown in the table combines the travel index
+        with the noise score (weight 5 : 2). Higher is better.
+      </Text>
+    </Modal>
+  )
+}
+
 interface FilterPanelProps {
   isLoading?: boolean
 }
 
 export function FilterPanel({ isLoading = false }: FilterPanelProps) {
   const { minutes, setMinutes, noiseLayerVisible, setNoiseLayerVisible } = useStore()
+  const [isoModalOpen, setIsoModalOpen] = useState(false)
 
   return (
     <Paper shadow="md" p="md" radius="md" w={260}>
+      <IsochroneInfoModal opened={isoModalOpen} onClose={() => setIsoModalOpen(false)} />
       <Stack gap="md">
-        <Text fw={500} size="sm">Commute from work</Text>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text fw={500} size="sm">Commute from work</Text>
+          <button
+            className="noise-legend__info-btn"
+            onClick={() => setIsoModalOpen(true)}
+            aria-label="About the commute zone"
+            title="About the commute zone"
+          >
+            ⓘ
+          </button>
+        </div>
 
         <div style={{ paddingBottom: 20 }}>
           <Text size="xs" c="dimmed" mb={6}>Travel time by public transport: {minutes} min</Text>
@@ -39,14 +91,8 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
         </div>
 
         <Divider />
-        <Text size="xs" c="dimmed">
-          The highlighted zone shows areas within commute reach — good candidates for buying or renting.
-        </Text>
-
-        <Divider />
-        <Text fw={500} size="sm">Layers</Text>
         <Switch
-          label="Noise map (Lden)"
+          label="Noise"
           size="sm"
           checked={noiseLayerVisible}
           onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
