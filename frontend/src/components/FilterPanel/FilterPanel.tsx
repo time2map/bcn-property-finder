@@ -44,9 +44,27 @@ function IsochroneInfoModal({ opened, onClose }: { opened: boolean; onClose: () 
         </Table.Tbody>
       </Table>
 
-      <Text size="sm" c="dimmed">
-        The composite <strong>Score</strong> shown in the table combines the travel index
-        with the noise score (weight 5 : 2). Higher is better.
+      <Text size="sm" c="dimmed" mb={6}>
+        The composite <strong>Score</strong> shown in the table combines three factors.
+        Higher is better.
+      </Text>
+      <Table withTableBorder withColumnBorders fz="xs">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Factor</Table.Th>
+            <Table.Th>Weight</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr><Table.Td>Travel index</Table.Td><Table.Td>5</Table.Td></Table.Tr>
+          <Table.Tr><Table.Td>Noise score</Table.Td><Table.Td>2</Table.Td></Table.Tr>
+          <Table.Tr><Table.Td>🏙️ Walkability</Table.Td><Table.Td>3</Table.Td></Table.Tr>
+        </Table.Tbody>
+      </Table>
+      <Text size="xs" c="dimmed" mt={6}>
+        Walkability (0–100) measures how many of 8 essential service categories
+        (supermarket, pharmacy, park, school, kindergarten, clinic, metro, cafe)
+        are reachable within a ~15-minute walk. Select a pin to see service markers on the map.
       </Text>
     </Modal>
   )

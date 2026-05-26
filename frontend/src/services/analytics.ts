@@ -8,8 +8,9 @@ const WEIGHTS = {
 }
 const CAP_MINUTES = Number(import.meta.env.VITE_TRAVEL_CAP_MINUTES ?? 60)
 
-const COMPOSITE_WEIGHT_TRAVEL = Number(import.meta.env.VITE_COMPOSITE_WEIGHT_TRAVEL ?? 5)
-const COMPOSITE_WEIGHT_NOISE  = Number(import.meta.env.VITE_COMPOSITE_WEIGHT_NOISE  ?? 2)
+const COMPOSITE_WEIGHT_TRAVEL      = Number(import.meta.env.VITE_COMPOSITE_WEIGHT_TRAVEL      ?? 5)
+const COMPOSITE_WEIGHT_NOISE       = Number(import.meta.env.VITE_COMPOSITE_WEIGHT_NOISE       ?? 2)
+const COMPOSITE_WEIGHT_WALKABILITY = Number(import.meta.env.VITE_COMPOSITE_WEIGHT_WALKABILITY ?? 3)
 
 export function computeTravelIndex(analytics: PinAnalytics): number | undefined {
   const modes = [
@@ -32,15 +33,15 @@ export function computeTravelIndex(analytics: PinAnalytics): number | undefined 
 }
 
 export function computeCompositeScore(analytics: PinAnalytics): number | undefined {
-  const travel = analytics.travelIndex
-  const noise  = analytics.noiseScore
+  const factors = [
+    { value: analytics.travelIndex,      weight: COMPOSITE_WEIGHT_TRAVEL },
+    { value: analytics.noiseScore,       weight: COMPOSITE_WEIGHT_NOISE },
+    { value: analytics.walkabilityScore, weight: COMPOSITE_WEIGHT_WALKABILITY },
+  ].filter((f): f is { value: number; weight: number } => f.value !== undefined)
 
-  if (travel === undefined && noise === undefined) return undefined
-  if (travel === undefined) return noise
-  if (noise  === undefined) return travel
+  if (factors.length === 0) return undefined
 
-  return Math.round(
-    (travel * COMPOSITE_WEIGHT_TRAVEL + noise * COMPOSITE_WEIGHT_NOISE) /
-    (COMPOSITE_WEIGHT_TRAVEL + COMPOSITE_WEIGHT_NOISE),
-  )
+  const totalWeight = factors.reduce((acc, f) => acc + f.weight, 0)
+  const weightedSum = factors.reduce((acc, f) => acc + f.value * f.weight, 0)
+  return Math.round(weightedSum / totalWeight)
 }

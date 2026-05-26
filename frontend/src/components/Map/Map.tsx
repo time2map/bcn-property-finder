@@ -10,6 +10,7 @@ import { FgcLayer } from '../FgcLayer/FgcLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
+import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 
 const BCN_CENTER: [number, number] = [2.1734, 41.3851]
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
@@ -111,6 +112,7 @@ export function Map() {
       <FgcLayer />
       <PinAccuracyLayer />
       <PinLayer />
+      <WalkabilityLayer />
     </MapContext.Provider>
   )
 }

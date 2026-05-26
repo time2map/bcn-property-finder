@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
-import { Badge } from '@mantine/core'
+import { Badge, Tooltip } from '@mantine/core'
 import { usePinsStore } from '../../store/pinsStore'
 import type { PropertyPin } from '../../types/pins'
+import type { ServiceResult } from '../../services/walkability/walkabilityTypes'
 import { PhotoLightbox } from './PhotoLightbox'
 import { compressImage } from '../../services/imageUtils'
 import { computeCompositeScore } from '../../services/analytics'
+import { SERVICE_CATEGORIES } from '../../services/walkability/serviceCategories'
 
 const MAX_PANEL_H = 320
 const MAX_PHOTOS = 5
@@ -27,6 +29,35 @@ function sortPins(pins: PropertyPin[]): PropertyPin[] {
 function fmt(min: number | undefined): string {
   if (min === undefined) return '—'
   return `${Math.round(min)} min`
+}
+
+function categoryBreakdown(services: ServiceResult[]) {
+  return SERVICE_CATEGORIES.map((cat) => {
+    const nearest = services
+      .filter((s) => s.categoryId === cat.id)
+      .sort((a, b) => a.walkingMinutes - b.walkingMinutes)[0]
+    return { cat, nearest }
+  })
+}
+
+function WalkabilityTooltip({ services }: { services: ServiceResult[] }) {
+  const rows = categoryBreakdown(services)
+  return (
+    <div style={{ fontSize: 11, lineHeight: 1.6, minWidth: 180 }}>
+      {rows.map(({ cat, nearest }) => (
+        <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+          <span>{cat.emoji} {cat.label}</span>
+          {nearest ? (
+            <span style={{ color: nearest.walkingMinutes <= 15 ? '#51cf66' : '#ffa94d', fontWeight: 600 }}>
+              {nearest.walkingMinutes} min{nearest.name ? ` · ${nearest.name}` : ''}
+            </span>
+          ) : (
+            <span style={{ color: '#868e96' }}>—</span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function indexColor(index: number | undefined): string {
@@ -96,6 +127,7 @@ export function PinCompareTable() {
                   <th className="compare-table__col-header">🚲</th>
                   <th className="compare-table__col-header">🚗</th>
                   <th className="compare-table__col-header">Noise, dB</th>
+                  <th className="compare-table__col-header">🏙️</th>
                   <th className="compare-table__col-header">Score</th>
                   <th className="compare-table__col-header">URL</th>
                   <th className="compare-table__col-header">Comment</th>
@@ -225,7 +257,29 @@ export function PinCompareTable() {
                         : '—'}
                     </td>
 
-                    {/* Score (composite: travel + noise) */}
+                    {/* Walkability */}
+                    <td className="compare-table__cell">
+                      {pin.analytics?.walkabilityScore !== undefined && pin.analytics.walkabilityServices ? (
+                        <Tooltip
+                          label={<WalkabilityTooltip services={pin.analytics.walkabilityServices} />}
+                          multiline
+                          withArrow
+                          position="top"
+                          color="dark"
+                        >
+                          <Badge
+                            size="xs"
+                            color={indexColor(pin.analytics.walkabilityScore)}
+                            variant="light"
+                            style={{ cursor: 'default' }}
+                          >
+                            {pin.analytics.walkabilityScore}
+                          </Badge>
+                        </Tooltip>
+                      ) : '—'}
+                    </td>
+
+                    {/* Score (composite: travel + noise + walkability) */}
                     <td className="compare-table__cell">
                       {compositeScore(pin) !== undefined ? (
                         <Badge

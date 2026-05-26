@@ -1,3 +1,5 @@
+import type { ServiceResult } from '../services/walkability/walkabilityTypes'
+
 export interface PinAnalytics {
   walkingMinutes?: number
   publicTransportMinutes?: number
@@ -6,6 +8,8 @@ export interface PinAnalytics {
   travelIndex?: number
   noiseLden?: number
   noiseScore?: number
+  walkabilityScore?: number
+  walkabilityServices?: ServiceResult[]
   calculatedAt: string
 }
 

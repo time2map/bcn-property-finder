@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
         'src/vite-env.d.ts',
         'src/test/**',
         'src/types/**',
+        'src/services/walkability/walkabilityTypes.ts',
         'src/components/PropertyPins/PinLayer.tsx',
       ],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
