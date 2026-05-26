@@ -9,7 +9,7 @@ function lastUrl() {
 
 describe('useUrlState', () => {
   beforeEach(() => {
-    useStore.setState({ workplace: null, minutes: 60, mapCenter: DEFAULT_CENTER, resultPolygon: null })
+    useStore.setState({ workplace: null, minutes: 60, mapCenter: DEFAULT_CENTER })
     vi.spyOn(window.history, 'replaceState')
   })
 
@@ -22,17 +22,11 @@ describe('useUrlState', () => {
     )
   })
 
-  it('omits lng/lat when workplace is null', () => {
+  it('never writes lng/lat to URL', () => {
+    useStore.setState({ workplace: [2.1734, 41.3851] })
     renderHook(() => useUrlState())
     expect(lastUrl()).not.toContain('lng=')
     expect(lastUrl()).not.toContain('lat=')
-  })
-
-  it('writes workplace coords when set', () => {
-    useStore.setState({ workplace: [2.1734, 41.3851] })
-    renderHook(() => useUrlState())
-    expect(lastUrl()).toContain('lng=2.17340')
-    expect(lastUrl()).toContain('lat=41.38510')
   })
 
   it('writes non-default minutes to URL', () => {

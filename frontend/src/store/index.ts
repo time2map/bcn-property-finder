@@ -22,9 +22,6 @@ function isValidMinutes(n: number): boolean {
   return Number.isInteger(n) && n >= 15 && n <= 120 && n % 5 === 0
 }
 
-// Plaça de Catalunya — shown on first load when no URL params are present
-const DEFAULT_WORKPLACE: [number, number] = [2.1687, 41.3874]
-
 export const DEFAULT_CENTER: [number, number] = [2.1734, 41.3851]
 
 export function isochroneCacheKey(workplace: [number, number], minutes: number): string {
@@ -41,25 +38,36 @@ function readIsochroneCache(workplace: [number, number], minutes: number): Polyg
 }
 
 const DEFAULT_ZOOM = 12
+const WORKPLACE_KEY = 'bcn_workplace'
+const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
 
-export function readUrlParams(): Pick<AppState, 'workplace' | 'minutes' | 'zoom' | 'mapCenter'> {
+export function readWorkplaceFromStorage(): [number, number] | null {
+  try {
+    const raw = localStorage.getItem(WORKPLACE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as unknown
+    if (Array.isArray(parsed) && parsed.length === 2 && !isNaN(parsed[0]) && !isNaN(parsed[1])) {
+      return [parsed[0] as number, parsed[1] as number]
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+export function readUrlParams(): Pick<AppState, 'minutes' | 'zoom' | 'mapCenter'> {
   const params = new URLSearchParams(window.location.search)
-  const lng = parseFloat(params.get('lng') ?? '')
-  const lat = parseFloat(params.get('lat') ?? '')
   const cx = parseFloat(params.get('cx') ?? '')
   const cy = parseFloat(params.get('cy') ?? '')
   const rawMinutes = parseInt(params.get('minutes') ?? '', 10)
   const rawZoom = parseFloat(params.get('zoom') ?? '')
 
   return {
-    workplace: !isNaN(lng) && !isNaN(lat) ? [lng, lat] : DEFAULT_WORKPLACE,
     mapCenter: !isNaN(cx) && !isNaN(cy) ? [cx, cy] : DEFAULT_CENTER,
     minutes: isValidMinutes(rawMinutes) ? rawMinutes : 60,
     zoom: !isNaN(rawZoom) && rawZoom >= 1 && rawZoom <= 22 ? rawZoom : DEFAULT_ZOOM,
   }
 }
-
-const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
 
 function loadNoiseLayerVisible(): boolean {
   try {
@@ -70,7 +78,8 @@ function loadNoiseLayerVisible(): boolean {
 }
 
 export const useStore = create<AppState>((set) => {
-  const { workplace, minutes, zoom, mapCenter } = readUrlParams()
+  const { minutes, zoom, mapCenter } = readUrlParams()
+  const workplace = readWorkplaceFromStorage()
   return {
     workplace,
     minutes,
@@ -79,7 +88,13 @@ export const useStore = create<AppState>((set) => {
     // Restored synchronously from localStorage — no flash of empty state on reload
     resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
     noiseLayerVisible: loadNoiseLayerVisible(),
-    setWorkplace: (workplace) => set({ workplace }),
+    setWorkplace: (workplace) => {
+      try {
+        if (workplace) localStorage.setItem(WORKPLACE_KEY, JSON.stringify(workplace))
+        else localStorage.removeItem(WORKPLACE_KEY)
+      } catch { /* ignore */ }
+      set({ workplace })
+    },
     setMinutes: (minutes) => set({ minutes }),
     setZoom: (zoom) => set({ zoom }),
     setMapCenter: (mapCenter) => set({ mapCenter }),

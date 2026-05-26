@@ -169,7 +169,16 @@ Clicking a marker → opens edit drawer.
 
 ### Persistence
 
-Store the `propertyPins` array in `localStorage` under key `bcn_property_pins`. Serialize/deserialize on app load. No sync across tabs needed for MVP.
+| Data | Storage | Key |
+|---|---|---|
+| Property pins array | `localStorage` | `bcn_property_pins` |
+| Workplace coordinates | `localStorage` | `bcn_workplace` |
+| Map center (viewport) | URL params | `cx`, `cy` |
+| Zoom level | URL params | `zoom` |
+| Travel time filter | URL params | `minutes` |
+| Noise layer toggle | `localStorage` | `bcn_noise_layer_visible` |
+
+`setWorkplace` writes/removes from `localStorage` on every call. On app init, workplace is restored via `readWorkplaceFromStorage()` (not from URL).
 
 Photos are base64-encoded and included in the stored JSON. **Practical limit: ~5–10 photos total** before localStorage quota is a concern; no hard cap in code for now.
 
