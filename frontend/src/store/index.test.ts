@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { readUrlParams, useStore } from './index'
+import { readUrlParams, useStore, DEFAULT_CENTER } from './index'
 
 function setSearch(search: string) {
   Object.defineProperty(window, 'location', {
@@ -15,6 +15,7 @@ describe('readUrlParams', () => {
     setSearch('')
     expect(readUrlParams()).toEqual({
       workplace: DEFAULT_WORKPLACE,
+      mapCenter: DEFAULT_CENTER,
       minutes: 60,
       zoom: 12,
     })
@@ -69,9 +70,30 @@ describe('readUrlParams', () => {
     setSearch('?lng=2.17&lat=41.38&minutes=60')
     expect(readUrlParams()).toEqual({
       workplace: [2.17, 41.38],
+      mapCenter: DEFAULT_CENTER,
       minutes: 60,
       zoom: 12,
     })
+  })
+
+  it('reads map center from cx/cy', () => {
+    setSearch('?cx=2.19&cy=41.40')
+    expect(readUrlParams().mapCenter).toEqual([2.19, 41.40])
+  })
+
+  it('falls back to default center when cx/cy are absent', () => {
+    setSearch('?lng=2.17&lat=41.38')
+    expect(readUrlParams().mapCenter).toEqual(DEFAULT_CENTER)
+  })
+
+  it('falls back to default center when cx/cy are invalid', () => {
+    setSearch('?cx=abc&cy=def')
+    expect(readUrlParams().mapCenter).toEqual(DEFAULT_CENTER)
+  })
+
+  it('falls back to default center when only cx is present', () => {
+    setSearch('?cx=2.19')
+    expect(readUrlParams().mapCenter).toEqual(DEFAULT_CENTER)
   })
 
   it('reads zoom from URL', () => {

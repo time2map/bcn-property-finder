@@ -13,7 +13,6 @@ import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
 
-const BCN_CENTER: [number, number] = [2.1734, 41.3851]
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
 
 export function Map() {
@@ -22,7 +21,7 @@ export function Map() {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null)
 
-  const { workplace, zoom, setWorkplace, setZoom, setMapAttribution } = useStore()
+  const { workplace, zoom, mapCenter, setWorkplace, setZoom, setMapCenter, setMapAttribution } = useStore()
   const { isAddingPin, setIsAddingPin, addPin } = usePinsStore()
 
   // Keep refs current so the stable map click handler can read latest values
@@ -30,10 +29,12 @@ export function Map() {
   const addPinRef = useRef(addPin)
   const workplaceRef = useRef(workplace)
   const zoomRef = useRef(zoom)
+  const mapCenterRef = useRef(mapCenter)
   useEffect(() => { isAddingPinRef.current = isAddingPin }, [isAddingPin])
   useEffect(() => { addPinRef.current = addPin }, [addPin])
   useEffect(() => { workplaceRef.current = workplace }, [workplace])
   useEffect(() => { zoomRef.current = zoom }, [zoom])
+  useEffect(() => { mapCenterRef.current = mapCenter }, [mapCenter])
 
   // Init map
   useEffect(() => {
@@ -41,7 +42,7 @@ export function Map() {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: STYLE_URL,
-      center: BCN_CENTER,
+      center: mapCenterRef.current,
       zoom: zoomRef.current,
       attributionControl: false,
     })
@@ -54,6 +55,10 @@ export function Map() {
         // Only set workplace via click when it hasn't been placed yet
         setWorkplace([e.lngLat.lng, e.lngLat.lat])
       }
+    })
+    map.on('moveend', () => {
+      const { lng, lat } = map.getCenter()
+      setMapCenter([lng, lat])
     })
     map.on('zoomend', () => setZoom(map.getZoom()))
     map.on('load', () => {
