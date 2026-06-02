@@ -24,7 +24,7 @@ a headline **Location** score.
    composite **Location** score (`computeCompositeScore`, unchanged; only relabeled from "Score").
 3. **Indoor** — the flat itself: price, area, €/m², rooms, floor, year, photos, notes.
    Rich Idealista fields (orientation/condition/amenities/energy/lift) stay in `comment` as
-   text for now. A future "visit recorder" (subjective per-viewing rating) reserves a slot here.
+   text for now. A subjective per-viewing rating is captured in `PropertyPin.rating` (1–10).
 
 ## Decisions
 
@@ -55,13 +55,20 @@ Desktop                                  Mobile (toggle)
 
 - First (sticky-left) column: section headers + attribute labels.
 - One column per pin, sorted best→left (reuse `sortPins` / `compositeScore`).
-- **Header row (sticky-top)** per pin: cover photo (`photos[0]` or placeholder), rank `#i`,
-  **Location** badge + mini-bar (`indexColor`), delete (🗑).
-- **OUTDOOR section** rows: Location · 🚶 Walk · 🚌 Transit · 🚲 Cycle · 🚗 Drive ·
-  🔊 Noise · 🏙 Walkability.
-- **INDOOR section** rows: Price · Area · €/m² · Rooms (bd/ba) · Floor · Year · Photos ·
-  URL · Notes (`comment`) · **Visit** (inert disabled rating stub).
-- Editable cells (Price/Area/Rooms/Floor/Year/URL/Comment) → `updatePin` on blur.
+- **Header row (sticky-top)** per pin: a thin strip with rank `#i` (left) + delete `✕`
+  (right, off the photo), then the cover photo, then the **Location** score badge + mini-bar
+  (`indexColor`). The "Location" label appears **once** in the sticky corner cell
+  (`Location score ↓`) — not repeated per column.
+- **OUTDOOR section** rows: 🚶 Walk · 🚌 Transit · 🚲 Cycle · 🚗 Drive · 🔊 Noise · 🏙 Walkability.
+- **INDOOR section** rows: ⭐ My rating · Price · Area · €/m² · Rooms (bd/ba) · Floor · Year ·
+  Listing · Notes.
+  - **⭐ My rating** — settable 1–10 dot scale persisted to `PropertyPin.rating` (replaces the
+    earlier inert "Visit" stub).
+  - **Price** — formatted with thousands separators (`€320,000`); edits in raw digits, reformats on blur.
+  - **Photos** — no thumbnail strip; the cover opens the gallery lightbox, a `+` overlay adds photos.
+  - **Listing** — compact URL control: `+ link` to add, then an open-link + `⋯` menu (Copy / Edit / Remove).
+  - **Notes** — large textarea (min-height 110px) so listing details are visible at a glance.
+- Editable cells (Rating/Price/Area/Rooms/Floor/Year/URL/Comment) → `updatePin` on blur/click.
 - **Best-in-row highlight:** `computeBests(pins)` (`compareHighlight.ts`) → `--best` class
   on the winning cell (only when ≥2 pins have that metric).
 - Reuses `PhotoLightbox`, `compressImage`, `WalkabilityTooltip`.
@@ -88,10 +95,10 @@ explicit compare-set selection, the isochrone/zone feature.
 
 ## Definition of Done
 
-- [ ] Transposed grid: apartments as columns, Outdoor/Indoor section rows, sticky label col + header row.
-- [ ] Location hero (badge + mini-bar); best-in-row highlight with ≥2 pins.
-- [ ] Editable cells persist via `updatePin` on blur; photos add/lightbox work; Visit stub inert.
-- [ ] Split layout Compare-left/Map-right with draggable, persisted, collapsible width; `map.resize()` on resize.
-- [ ] Mobile full-screen Map/Compare toggle.
-- [ ] `npm test` green (grid + `useSplitPane` + `compareHighlight`), `npm run lint` clean, `npm run typecheck` clean.
-- [ ] Manually verified via `npm run dev`; targeted Playwright pass on the compare panel + split.
+- [x] Transposed grid: apartments as columns, Outdoor/Indoor section rows, sticky label col + header row.
+- [x] Location hero (badge + mini-bar); best-in-row highlight with ≥2 pins.
+- [x] Editable cells persist via `updatePin` on blur; photos add/lightbox work; Visit stub inert.
+- [x] Split layout Compare-left/Map-right with draggable, persisted, collapsible width; `map.resize()` on resize.
+- [x] Mobile full-screen Map/Compare toggle.
+- [x] `npm test` green (grid + `useSplitPane` + `compareHighlight`), `npm run lint` clean, `npm run typecheck` clean.
+- [x] Manually verified via `npm run dev`; targeted Playwright pass on the compare panel + split.

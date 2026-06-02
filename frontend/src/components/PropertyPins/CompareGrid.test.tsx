@@ -138,20 +138,30 @@ describe('CompareGrid (via ComparePane)', () => {
     expect(updatePin).toHaveBeenCalledWith('a', { area: 80 })
   })
 
-  it('calls updatePin with url on blur', () => {
+  it('adds a listing URL via the edit field', () => {
     const updatePin = vi.fn()
     usePinsStore.setState({ pins: [makePin('a')], selectedPinId: null, isAddingPin: false, updatePin } as never)
     renderPane()
+    fireEvent.click(screen.getByLabelText('Add listing URL'))
     fireEvent.blur(screen.getByLabelText('Listing URL'), { target: { value: 'https://idealista.com/1' } })
     expect(updatePin).toHaveBeenCalledWith('a', { url: 'https://idealista.com/1' })
   })
 
-  it('calls updatePin with undefined url when cleared', () => {
+  it('removes a listing URL via the options menu', async () => {
     const updatePin = vi.fn()
     usePinsStore.setState({ pins: [makePin('a', { url: 'https://old.com' })], selectedPinId: null, isAddingPin: false, updatePin } as never)
     renderPane()
-    fireEvent.blur(screen.getByLabelText('Listing URL'), { target: { value: '' } })
+    fireEvent.click(screen.getByLabelText('Listing options'))
+    fireEvent.click(await screen.findByText('Remove'))
     expect(updatePin).toHaveBeenCalledWith('a', { url: undefined })
+  })
+
+  it('sets a 1–10 rating on click', () => {
+    const updatePin = vi.fn()
+    usePinsStore.setState({ pins: [makePin('a')], selectedPinId: null, isAddingPin: false, updatePin } as never)
+    renderPane()
+    fireEvent.click(screen.getByLabelText('Rate 7 out of 10'))
+    expect(updatePin).toHaveBeenCalledWith('a', { rating: 7 })
   })
 
   it('calls updatePin with comment on blur', () => {
@@ -174,14 +184,14 @@ describe('CompareGrid (via ComparePane)', () => {
     expect(screen.getByLabelText('Price')).toBeInTheDocument()
   })
 
-  it('shows photo thumbnails', () => {
+  it('shows a single cover photo per column', () => {
     usePinsStore.setState({
       pins: [makePin('a', { photos: ['data:image/jpeg;base64,abc', 'data:image/jpeg;base64,def'] })],
       selectedPinId: null,
       isAddingPin: false,
     })
     renderPane()
-    expect(screen.getAllByAltText('Property photo')).toHaveLength(2)
+    expect(screen.getAllByAltText('Property photo')).toHaveLength(1)
   })
 
   it('shows add photo button when fewer than 5 photos', () => {

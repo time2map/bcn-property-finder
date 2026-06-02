@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Badge, Tooltip } from '@mantine/core'
+import { Badge, Menu, Tooltip } from '@mantine/core'
 import { usePinsStore } from '../../store/pinsStore'
 import type { PropertyPin } from '../../types/pins'
 import type { ServiceResult } from '../../services/walkability/walkabilityTypes'
@@ -11,10 +11,11 @@ import { COMPARE_METRICS, computeBests } from './compareHighlight'
 
 const MAX_PHOTOS = 5
 
-// Accessor for each comparable metric, keyed by metric id (shared with computeBests).
 const METRIC_GET = Object.fromEntries(
   COMPARE_METRICS.map((m) => [m.key, m.get]),
 ) as Record<string, (pin: PropertyPin) => number | undefined>
+
+const stop = (e: React.MouseEvent) => e.stopPropagation()
 
 function compositeScore(pin: PropertyPin): number | undefined {
   return pin.analytics ? computeCompositeScore(pin.analytics) : undefined
@@ -72,11 +73,122 @@ function WalkabilityTooltip({ services }: { services: ServiceResult[] }) {
   )
 }
 
+// ─── Editable cells ───────────────────────────────────────────────
+
+/** Number input that shows a thousands-formatted, €-prefixed value when blurred. */
+function PriceCell({ value, onCommit }: { value?: number; onCommit: (v: number | undefined) => void }) {
+  const display = value !== undefined ? `€${value.toLocaleString('en-US')}` : ''
+  return (
+    <input
+      className="compare-grid__input compare-grid__input--price"
+      defaultValue={display}
+      placeholder="—"
+      inputMode="numeric"
+      onClick={stop}
+      onFocus={(e) => {
+        e.target.value = value !== undefined ? String(value) : ''
+        e.target.select()
+      }}
+      onBlur={(e) => {
+        const n = parseFloat(e.target.value.replace(/[^0-9.]/g, ''))
+        const v = isNaN(n) ? undefined : n
+        onCommit(v)
+        e.target.value = v !== undefined ? `€${v.toLocaleString('en-US')}` : ''
+      }}
+      aria-label="Price"
+    />
+  )
+}
+
+/** Compact listing-URL control: add → edit → open + menu (copy / edit / remove). */
+function UrlCell({ url, onCommit }: { url?: string; onCommit: (v: string | undefined) => void }) {
+  const [editing, setEditing] = useState(false)
+
+  if (editing) {
+    return (
+      <input
+        type="url"
+        className="compare-grid__input"
+        autoFocus
+        defaultValue={url ?? ''}
+        placeholder="https://…"
+        aria-label="Listing URL"
+        onClick={stop}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+          if (e.key === 'Escape') setEditing(false)
+        }}
+        onBlur={(e) => {
+          onCommit(e.target.value.trim() || undefined)
+          setEditing(false)
+        }}
+      />
+    )
+  }
+
+  if (!url) {
+    return (
+      <button
+        className="compare-grid__url-add"
+        aria-label="Add listing URL"
+        onClick={(e) => { stop(e); setEditing(true) }}
+      >
+        + link
+      </button>
+    )
+  }
+
+  return (
+    <div className="compare-grid__url" onClick={stop}>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="compare-grid__url-link"
+        aria-label="Open listing"
+      >
+        🔗 Listing
+      </a>
+      <Menu position="bottom-end" withinPortal={false}>
+        <Menu.Target>
+          <button className="compare-grid__url-menu" aria-label="Listing options">⋯</button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item onClick={() => navigator.clipboard?.writeText(url)}>Copy link</Menu.Item>
+          <Menu.Item onClick={() => setEditing(true)}>Edit</Menu.Item>
+          <Menu.Item color="red" onClick={() => onCommit(undefined)}>Remove</Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </div>
+  )
+}
+
+/** Settable 1–10 subjective rating shown as a clickable dot scale. */
+function RatingCell({ value, onCommit }: { value?: number; onCommit: (v: number | undefined) => void }) {
+  const tier = value === undefined ? ''
+    : value >= 8 ? ' compare-grid__rating--high'
+    : value >= 5 ? ' compare-grid__rating--mid'
+    : ' compare-grid__rating--low'
+  return (
+    <div className={`compare-grid__rating${tier}`} onClick={stop}>
+      <div className="compare-grid__rating-dots">
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            type="button"
+            className={`compare-grid__rating-dot${value !== undefined && n <= value ? ' compare-grid__rating-dot--on' : ''}`}
+            aria-label={`Rate ${n} out of 10`}
+            onClick={() => onCommit(n === value ? undefined : n)}
+          />
+        ))}
+      </div>
+      <span className="compare-grid__rating-num">{value !== undefined ? `${value}/10` : '—'}</span>
+    </div>
+  )
+}
+
 interface LightboxState { pinId: string; idx: number }
 
-// ─── Row definitions ──────────────────────────────────────────────
-// Each attribute is one row; `metric` (when set) keys into computeBests for
-// "best in row" highlighting and uses the shared accessor in METRIC_GET.
 interface RowDef {
   key: string
   label: React.ReactNode
@@ -111,9 +223,11 @@ export function CompareGrid() {
     updatePin(pinId, { photos: [...current, ...compressed] })
   }
 
-  const stop = (e: React.MouseEvent) => e.stopPropagation()
+  function openCover(pin: PropertyPin) {
+    if (pin.photos?.length) setLightbox({ pinId: pin.id, idx: 0 })
+    else fileInputRefs.current.get(pin.id)?.click()
+  }
 
-  // Editable number cell → commit on blur.
   const numInput = (
     current: number | undefined,
     label: string,
@@ -159,16 +273,17 @@ export function CompareGrid() {
   ]
 
   const indoorRows: RowDef[] = [
-    { key: 'price', label: 'Price, €', metric: 'price', render: (p) => numInput(p.price, 'Price', (v) => updatePin(p.id, { price: v })) },
+    { key: 'rating', label: '⭐ My rating', render: (p) => <RatingCell value={p.rating} onCommit={(v) => updatePin(p.id, { rating: v })} /> },
+    { key: 'price', label: 'Price', metric: 'price', render: (p) => <PriceCell value={p.price} onCommit={(v) => updatePin(p.id, { price: v })} /> },
     { key: 'area', label: 'Area, m²', metric: 'area', render: (p) => numInput(p.area, 'Area', (v) => updatePin(p.id, { area: v })) },
     {
       key: 'ppm2', label: '€/m²', metric: 'pricePerM2',
-      render: (p) => (p.price && p.area ? `€${Math.round(p.price / p.area).toLocaleString()}` : '—'),
+      render: (p) => (p.price && p.area ? `€${Math.round(p.price / p.area).toLocaleString('en-US')}` : '—'),
     },
     {
       key: 'rooms', label: 'Rooms',
       render: (p) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap' }} onClick={stop}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, whiteSpace: 'nowrap' }} onClick={stop}>
           <input
             type="number" className="compare-grid__input" style={{ width: 30, textAlign: 'center' }}
             defaultValue={p.bedrooms ?? ''} placeholder="bd"
@@ -195,68 +310,15 @@ export function CompareGrid() {
       ),
     },
     { key: 'year', label: 'Year', render: (p) => numInput(p.yearBuilt, 'Year built', (v) => updatePin(p.id, { yearBuilt: v })) },
-    {
-      key: 'photos', label: 'Photos',
-      render: (p) => (
-        <div className="compare-grid__photos" onClick={stop}>
-          {p.photos?.map((src, idx) => (
-            <img
-              key={idx} src={src} alt="Property photo" className="compare-grid__thumb"
-              onClick={() => setLightbox({ pinId: p.id, idx })}
-            />
-          ))}
-          {(p.photos?.length ?? 0) < MAX_PHOTOS && (
-            <>
-              <button
-                className="compare-grid__add-photo"
-                onClick={() => fileInputRefs.current.get(p.id)?.click()}
-                aria-label="Add photo"
-              >
-                +
-              </button>
-              <input
-                ref={(el) => {
-                  if (el) fileInputRefs.current.set(p.id, el)
-                  else fileInputRefs.current.delete(p.id)
-                }}
-                type="file" accept="image/*" multiple style={{ display: 'none' }}
-                onChange={(e) => handlePhotos(p.id, e.target.files)}
-              />
-            </>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'url', label: 'URL',
-      render: (p) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={stop}>
-          <input
-            type="url" className="compare-grid__input" defaultValue={p.url ?? ''} placeholder="https://…"
-            onBlur={(e) => updatePin(p.id, { url: e.target.value || undefined })} aria-label="Listing URL"
-          />
-          {p.url && (
-            <a href={p.url} target="_blank" rel="noopener noreferrer" className="compare-grid__link">↗</a>
-          )}
-        </div>
-      ),
-    },
+    { key: 'url', label: 'Listing', render: (p) => <UrlCell url={p.url} onCommit={(v) => updatePin(p.id, { url: v })} /> },
     {
       key: 'comment', label: 'Notes',
       render: (p) => (
         <textarea
           className="compare-grid__input compare-grid__textarea" defaultValue={p.comment ?? ''}
-          placeholder="Notes…" rows={2} onClick={stop}
+          placeholder="Notes…" rows={5} onClick={stop}
           onBlur={(e) => updatePin(p.id, { comment: e.target.value || undefined })} aria-label="Comment"
         />
-      ),
-    },
-    {
-      key: 'visit', label: 'Visit',
-      render: () => (
-        <span className="compare-grid__visit-stub" title="Visit rating — coming soon" aria-hidden="true">
-          ☆☆☆☆☆
-        </span>
       ),
     },
   ]
@@ -303,9 +365,12 @@ export function CompareGrid() {
       <table className="compare-grid">
         <thead>
           <tr>
-            <th className="compare-grid__corner" />
+            <th className="compare-grid__corner">
+              <span className="compare-grid__corner-label">Location<br />score ↓</span>
+            </th>
             {sorted.map((pin, i) => {
               const score = compositeScore(pin)
+              const photoCount = pin.photos?.length ?? 0
               return (
                 <th
                   key={pin.id}
@@ -313,26 +378,52 @@ export function CompareGrid() {
                   onClick={() => setSelectedPin(pin.id === selectedPinId ? null : pin.id)}
                 >
                   <div className="compare-grid__card">
-                    <div className="compare-grid__cover">
-                      {pin.photos?.[0]
-                        ? <img src={pin.photos[0]} alt="" />
-                        : <div className="compare-grid__cover-empty">🏠</div>}
+                    <div className="compare-grid__card-top">
+                      <span className="compare-grid__rank">#{i + 1}</span>
                       <button
                         className="compare-grid__delete"
                         onClick={(e) => { e.stopPropagation(); deletePin(pin.id) }}
                         aria-label={`Delete apartment ${i + 1}`}
+                        title="Remove"
                       >
-                        🗑
+                        ✕
                       </button>
                     </div>
-                    <div className="compare-grid__rank">#{i + 1}</div>
+
+                    <div
+                      className="compare-grid__cover"
+                      onClick={(e) => { e.stopPropagation(); openCover(pin) }}
+                      title={photoCount ? 'Open gallery' : 'Add photos'}
+                    >
+                      {pin.photos?.[0]
+                        ? <img src={pin.photos[0]} alt="Property photo" />
+                        : <div className="compare-grid__cover-empty">🏠</div>}
+                      {photoCount > 1 && <span className="compare-grid__photo-count">⊞ {photoCount}</span>}
+                      {photoCount < MAX_PHOTOS && (
+                        <button
+                          className="compare-grid__add-photo"
+                          onClick={(e) => { e.stopPropagation(); fileInputRefs.current.get(pin.id)?.click() }}
+                          aria-label="Add photo"
+                        >
+                          +
+                        </button>
+                      )}
+                      <input
+                        ref={(el) => {
+                          if (el) fileInputRefs.current.set(pin.id, el)
+                          else fileInputRefs.current.delete(pin.id)
+                        }}
+                        type="file" accept="image/*" multiple style={{ display: 'none' }}
+                        onChange={(e) => handlePhotos(pin.id, e.target.files)}
+                      />
+                    </div>
+
                     {score !== undefined ? (
                       <div className="compare-grid__score">
-                        <Badge size="lg" color={indexColor(score)} variant="filled">{score}</Badge>
+                        <Badge size="md" color={indexColor(score)} variant="filled">{score}</Badge>
                         <div className="compare-grid__score-bar">
                           <span style={{ width: `${score}%`, background: `var(--mantine-color-${indexColor(score)}-6)` }} />
                         </div>
-                        <span className="compare-grid__score-label">Location</span>
                       </div>
                     ) : (
                       <div className="compare-grid__score compare-grid__score--empty">—</div>

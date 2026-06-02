@@ -25,6 +25,7 @@ export interface PropertyPin {
   bathrooms?: number
   floor?: string
   yearBuilt?: number
+  rating?: number // subjective 1–10 score from a viewing
   analytics?: PinAnalytics
   accuracyPolygon?: GeoJSON.Polygon | GeoJSON.MultiPolygon
   createdAt: string
