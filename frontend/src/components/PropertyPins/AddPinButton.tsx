@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { ActionIcon, Tooltip, Menu } from '@mantine/core'
 import { usePinsStore } from '../../store/pinsStore'
 import { useScreenshotDrop } from '../../hooks/useScreenshotDrop'
@@ -8,30 +8,19 @@ interface Props {
 }
 
 export function AddPinButton({ onError }: Props) {
-  const { pins, isAddingPin, setIsAddingPin } = usePinsStore()
+  const { isAddingPin, setIsAddingPin } = usePinsStore()
   const { processImageFile, processHtmlFile } = useScreenshotDrop(onError)
-  const [panelH, setPanelH] = useState(40)
   const photoRef = useRef<HTMLInputElement>(null)
   const htmlRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (pins.length === 0) { setPanelH(40); return }
-    const panel = document.querySelector('.compare-panel') as HTMLElement | null
-    if (!panel) return
-    const obs = new ResizeObserver(([entry]) => setPanelH(entry.contentRect.height))
-    obs.observe(panel)
-    return () => obs.disconnect()
-  }, [pins.length])
-
-  const bottom = pins.length > 0 ? panelH + 16 : 24
-
+  // The compare panel no longer occupies the bottom edge, so the FAB simply
+  // sits bottom-right over the map pane.
   const buttonStyle = {
     position: 'fixed' as const,
-    bottom,
+    bottom: 24,
     right: 16,
     zIndex: 200,
     boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-    transition: 'bottom 0.18s ease',
   }
 
   if (isAddingPin) {

@@ -76,6 +76,16 @@ export function Map() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Keep the canvas in sync when the map pane resizes (split divider drag,
+  // panel collapse, mobile Map/Compare toggle, window resize).
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const obs = new ResizeObserver(() => mapRef.current?.resize())
+    obs.observe(container)
+    return () => obs.disconnect()
+  }, [])
+
   // Crosshair cursor in "add pin" mode
   useEffect(() => {
     const canvas = mapRef.current?.getCanvas()
