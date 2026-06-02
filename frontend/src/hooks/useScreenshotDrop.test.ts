@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useScreenshotDrop } from './useScreenshotDrop'
 
-// Mock services
 vi.mock('../services/vision/visionService', () => ({
   parseScreenshot: vi.fn(),
 }))
@@ -16,14 +15,45 @@ vi.mock('../services/imageUtils', () => ({
 vi.mock('./usePinAnalytics', () => ({
   calcAnalytics: vi.fn(),
 }))
+vi.mock('../services/parser/IdealistaHTMLParser', () => ({
+  IdealistaHTMLParser: vi.fn().mockImplementation(() => ({
+    parse: vi.fn().mockReturnValue({
+      id: '12345',
+      url: 'https://www.idealista.com/en/inmueble/12345/',
+      price: 350000,
+      areaSqm: 70,
+      bedrooms: 2,
+      bathrooms: 1,
+      street: 'Carrer de Test',
+      neighborhood: 'Eixample',
+      city: 'Barcelona',
+      floor: '3rd floor exterior',
+      hasLift: true,
+      yearBuilt: 2000,
+      orientation: ['South'],
+      condition: 'Good condition',
+      amenities: ['Air conditioning'],
+      basicFeatures: [],
+      description: 'Nice apartment',
+      energyConsumption: null,
+      energyCO2: null,
+      photos: ['https://img.idealista.com/photo1.jpg'],
+    }),
+  })),
+  buildPinComment: vi.fn().mockReturnValue('Carrer de Test, Eixample\n\nNice apartment'),
+}))
+vi.mock('../components/Map/MapContext', () => ({
+  useMap: () => null,
+}))
 
-// Mock stores
 const mockAddPin = vi.fn()
+const mockAddParsedPin = vi.fn()
 const mockUpdatePin = vi.fn()
 const mockUpdatePinAnalytics = vi.fn()
 vi.mock('../store/pinsStore', () => ({
   usePinsStore: () => ({
     addPin: mockAddPin,
+    addParsedPin: mockAddParsedPin,
     updatePin: mockUpdatePin,
     updatePinAnalytics: mockUpdatePinAnalytics,
   }),
@@ -55,6 +85,10 @@ function makeImageFile(name = 'screenshot.png') {
   return new File(['data'], name, { type: 'image/png' })
 }
 
+function makeHtmlFile(name = 'listing.html') {
+  return new File(['<html></html>'], name, { type: 'text/html' })
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mockAddPin.mockReturnValue('pin-123')
@@ -63,7 +97,7 @@ beforeEach(() => {
   vi.mocked(calcAnalytics).mockResolvedValue(MOCK_ANALYTICS)
 })
 
-describe('useScreenshotDrop', () => {
+describe('useScreenshotDrop — image', () => {
   it('happy path: places pin with price, area, photo, address in comment, and geocoded coords', async () => {
     vi.mocked(parseScreenshot).mockResolvedValue({
       price: 320000,
@@ -122,7 +156,6 @@ describe('useScreenshotDrop', () => {
       await result.current.handleDrop(makeDropEvent(makeImageFile()))
     })
 
-    // Falls back to workplace coords [2.17, 41.38]
     expect(calcAnalytics).toHaveBeenCalledWith([2.17, 41.38], [2.17, 41.38])
     expect(mockUpdatePinAnalytics).toHaveBeenCalledWith('pin-123', MOCK_ANALYTICS)
     expect(result.current.state.approxBanner).toBe(true)
@@ -212,8 +245,87 @@ describe('useScreenshotDrop', () => {
     act(() => result.current.dismissBanner())
     expect(result.current.state.approxBanner).toBe(false)
   })
+})
 
-  it('ignores non-image files', async () => {
+describe('useScreenshotDrop — HTML', () => {
+  it('happy path: calls addParsedPin with geocoded coords and formatted comment', async () => {
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.19, 41.40] })
+
+    const onError = vi.fn()
+    const { result } = renderHook(() => useScreenshotDrop(onError))
+
+    await act(async () => {
+      await result.current.handleDrop(makeDropEvent(makeHtmlFile()))
+    })
+
+    expect(mockAddParsedPin).toHaveBeenCalledOnce()
+    expect(mockAddParsedPin).toHaveBeenCalledWith(expect.objectContaining({
+      coordinates: [2.19, 41.40],
+      price: 350000,
+      area: 70,
+      bedrooms: 2,
+      bathrooms: 1,
+      floor: '3rd floor exterior',
+      yearBuilt: 2000,
+      comment: 'Carrer de Test, Eixample\n\nNice apartment',
+    }))
+    expect(onError).not.toHaveBeenCalled()
+    expect(result.current.state.isProcessing).toBe(false)
+  })
+
+  it('calls onError when geocoding fails', async () => {
+    vi.mocked(geocodeAddress).mockResolvedValue(null)
+
+    const onError = vi.fn()
+    const { result } = renderHook(() => useScreenshotDrop(onError))
+
+    await act(async () => {
+      await result.current.handleDrop(makeDropEvent(makeHtmlFile()))
+    })
+
+    expect(mockAddParsedPin).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledWith(expect.stringContaining('Could not geocode'))
+    expect(result.current.state.isProcessing).toBe(false)
+  })
+
+  it('also handles .html files by extension when MIME type is missing', async () => {
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.19, 41.40] })
+    const noMimeFile = new File(['<html></html>'], 'listing.html', { type: '' })
+
+    const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
+    await act(async () => {
+      await result.current.handleDrop(makeDropEvent(noMimeFile))
+    })
+
+    expect(mockAddParsedPin).toHaveBeenCalledOnce()
+  })
+
+  it('processHtmlFile can be called directly (for file input in menu)', async () => {
+    vi.mocked(geocodeAddress).mockResolvedValue({ coords: [2.19, 41.40] })
+
+    const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
+    await act(async () => {
+      await result.current.processHtmlFile(makeHtmlFile())
+    })
+
+    expect(mockAddParsedPin).toHaveBeenCalledOnce()
+  })
+
+  it('processImageFile can be called directly (for file input in menu)', async () => {
+    vi.mocked(parseScreenshot).mockResolvedValue({ addressIsApproximate: false })
+    vi.mocked(geocodeAddress).mockResolvedValue(null)
+
+    const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
+    await act(async () => {
+      await result.current.processImageFile(makeImageFile())
+    })
+
+    expect(mockAddPin).toHaveBeenCalledOnce()
+  })
+})
+
+describe('useScreenshotDrop — ignored files', () => {
+  it('ignores non-image non-html files', async () => {
     const csvFile = new File(['data'], 'file.csv', { type: 'text/csv' })
     const { result } = renderHook(() => useScreenshotDrop(vi.fn()))
 
@@ -222,5 +334,6 @@ describe('useScreenshotDrop', () => {
     })
 
     expect(mockAddPin).not.toHaveBeenCalled()
+    expect(mockAddParsedPin).not.toHaveBeenCalled()
   })
 })

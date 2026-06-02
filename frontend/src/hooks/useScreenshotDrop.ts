@@ -5,25 +5,31 @@ import { parseScreenshot } from '../services/vision/visionService'
 import { geocodeAddress } from '../services/geocoding'
 import { compressImage, fileToBase64 } from '../services/imageUtils'
 import { calcAnalytics } from './usePinAnalytics'
+import { useMap } from '../components/Map/MapContext'
+import { IdealistaHTMLParser, buildPinComment } from '../services/parser/IdealistaHTMLParser'
 
 const BCN_CENTER: [number, number] = [2.1734, 41.3851]
 
 export interface DropState {
   isDragging: boolean
+  dragType: 'image' | 'html' | null
   isProcessing: boolean
+  processingLabel: string
   approxBanner: boolean
 }
 
 export function useScreenshotDrop(onError: (msg: string) => void) {
-  const { addPin, updatePin, updatePinAnalytics } = usePinsStore()
+  const { addPin, addParsedPin, updatePin, updatePinAnalytics } = usePinsStore()
   const { workplace } = useStore()
+  const map = useMap()
   const [state, setState] = useState<DropState>({
     isDragging: false,
+    dragType: null,
     isProcessing: false,
+    processingLabel: '',
     approxBanner: false,
   })
 
-  // Keep ref to avoid stale closure in drag handlers
   const isProcessingRef = useRef(false)
 
   const dismissBanner = useCallback(() => {
@@ -33,41 +39,33 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'copy'
-    if (!state.isDragging) setState((s) => ({ ...s, isDragging: true }))
+    if (!state.isDragging) {
+      let dragType: 'image' | 'html' | null = null
+      const item = e.dataTransfer.items?.[0]
+      if (item?.type.startsWith('image/')) dragType = 'image'
+      else if (item?.type === 'text/html' || item?.type === 'text/htm') dragType = 'html'
+      setState((s) => ({ ...s, isDragging: true, dragType }))
+    }
   }, [state.isDragging])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    // only clear if leaving the drop zone itself, not a child
     if (e.currentTarget.contains(e.relatedTarget as Node)) return
-    setState((s) => ({ ...s, isDragging: false }))
+    setState((s) => ({ ...s, isDragging: false, dragType: null }))
   }, [])
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault()
-    setState((s) => ({ ...s, isDragging: false }))
-
+  const processImageFile = useCallback(async (file: File) => {
     if (isProcessingRef.current) return
-    const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith('image/'))
-    if (!file) return
-
     isProcessingRef.current = true
-    setState((s) => ({ ...s, isProcessing: true, approxBanner: false }))
+    setState((s) => ({ ...s, isProcessing: true, processingLabel: 'Parsing screenshot…', approxBanner: false }))
 
     const fallbackCoords = workplace ?? BCN_CENTER
-
     try {
-      // Place pin immediately at map center / workplace so it's visible
       const pinId = addPin(fallbackCoords)
-
-      // Parse screenshot and compress in parallel
       const [base64, compressedDataUrl] = await Promise.all([
         fileToBase64(file),
         compressImage(file),
       ])
-
       const parsed = await parseScreenshot(base64, file.type)
-
-      // Pre-fill parsed fields; address goes into comment for reference
       const patch: Record<string, unknown> = {}
       if (parsed.price !== undefined) patch.price = parsed.price
       if (parsed.area !== undefined) patch.area = parsed.area
@@ -76,10 +74,8 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
       patch.photos = [compressedDataUrl]
       updatePin(pinId, patch)
 
-      // Geocode address; fall back to initial coords on failure
       let finalCoords: [number, number] = fallbackCoords
       let geocodeFailed = false
-
       if (parsed.address) {
         const geocoded = await geocodeAddress(parsed.address)
         if (geocoded) {
@@ -92,9 +88,6 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
         geocodeFailed = true
       }
 
-      // Always recalculate analytics with the final coords (geocoded or fallback).
-      // usePinAnalytics already fires for the initial fallback coords, but we
-      // overwrite with the correct location once geocoding is done.
       if (workplace) {
         calcAnalytics(finalCoords, workplace).then((analytics) => {
           updatePinAnalytics(pinId, analytics)
@@ -108,9 +101,72 @@ export function useScreenshotDrop(onError: (msg: string) => void) {
       onError('Could not read screenshot — pin placed at map center')
     } finally {
       isProcessingRef.current = false
-      setState((s) => ({ ...s, isProcessing: false }))
+      setState((s) => ({ ...s, isProcessing: false, processingLabel: '' }))
     }
   }, [addPin, updatePin, updatePinAnalytics, workplace, onError])
 
-  return { state, handleDragOver, handleDragLeave, handleDrop, dismissBanner }
+  const processHtmlFile = useCallback(async (file: File) => {
+    if (isProcessingRef.current) return
+    isProcessingRef.current = true
+    setState((s) => ({ ...s, isProcessing: true, processingLabel: 'Importing from Idealista…', approxBanner: false }))
+
+    try {
+      const html = await file.text()
+      const parsed = new IdealistaHTMLParser(html).parse()
+      const addressQuery = `${parsed.street}, ${parsed.neighborhood}, ${parsed.city}`
+      const geo = await geocodeAddress(addressQuery)
+      if (!geo) {
+        onError(`Could not geocode address: ${addressQuery}`)
+        return
+      }
+      addParsedPin({
+        id: crypto.randomUUID(),
+        coordinates: geo.coords,
+        price: parsed.price || undefined,
+        area: parsed.areaSqm || undefined,
+        url: parsed.url || undefined,
+        photos: parsed.photos.length ? parsed.photos : undefined,
+        comment: buildPinComment(parsed),
+        bedrooms: parsed.bedrooms || undefined,
+        bathrooms: parsed.bathrooms || undefined,
+        floor: parsed.floor || undefined,
+        yearBuilt: parsed.yearBuilt ?? undefined,
+        accuracyPolygon: geo.accuracyPolygon,
+        createdAt: new Date().toISOString(),
+      })
+      map?.flyTo({ center: geo.coords, zoom: 15 })
+    } catch {
+      onError('Could not parse Idealista HTML')
+    } finally {
+      isProcessingRef.current = false
+      setState((s) => ({ ...s, isProcessing: false, processingLabel: '' }))
+    }
+  }, [addParsedPin, onError, map])
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault()
+    setState((s) => ({ ...s, isDragging: false, dragType: null }))
+    const file = e.dataTransfer.files[0]
+    if (!file) return
+    if (file.type.startsWith('image/')) {
+      await processImageFile(file)
+    } else if (
+      file.type === 'text/html' ||
+      file.type === 'text/htm' ||
+      file.name.endsWith('.html') ||
+      file.name.endsWith('.htm')
+    ) {
+      await processHtmlFile(file)
+    }
+  }, [processImageFile, processHtmlFile])
+
+  return {
+    state,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    dismissBanner,
+    processImageFile,
+    processHtmlFile,
+  }
 }

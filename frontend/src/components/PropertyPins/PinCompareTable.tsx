@@ -122,6 +122,9 @@ export function PinCompareTable() {
                   <th className="compare-table__col-header">Price, €</th>
                   <th className="compare-table__col-header">Area, m²</th>
                   <th className="compare-table__col-header">€/m²</th>
+                  <th className="compare-table__col-header">Rooms</th>
+                  <th className="compare-table__col-header">Floor</th>
+                  <th className="compare-table__col-header">Year</th>
                   <th className="compare-table__col-header">🚶</th>
                   <th className="compare-table__col-header">🚌</th>
                   <th className="compare-table__col-header">🚲</th>
@@ -230,6 +233,63 @@ export function PinCompareTable() {
                         : '—'}
                     </td>
 
+                    {/* Rooms */}
+                    <td
+                      className="compare-table__cell"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap' }}>
+                        <input
+                          type="number"
+                          className="compare-table__input"
+                          style={{ width: 28, textAlign: 'center' }}
+                          defaultValue={pin.bedrooms ?? ''}
+                          placeholder="bd"
+                          onBlur={(e) => updatePin(pin.id, { bedrooms: e.target.value ? +e.target.value : undefined })}
+                          aria-label="Bedrooms"
+                        />
+                        <span style={{ color: '#868e96' }}>/</span>
+                        <input
+                          type="number"
+                          className="compare-table__input"
+                          style={{ width: 28, textAlign: 'center' }}
+                          defaultValue={pin.bathrooms ?? ''}
+                          placeholder="ba"
+                          onBlur={(e) => updatePin(pin.id, { bathrooms: e.target.value ? +e.target.value : undefined })}
+                          aria-label="Bathrooms"
+                        />
+                      </div>
+                    </td>
+
+                    {/* Floor */}
+                    <td
+                      className="compare-table__cell"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        className="compare-table__input"
+                        defaultValue={pin.floor ?? ''}
+                        placeholder="—"
+                        onBlur={(e) => updatePin(pin.id, { floor: e.target.value || undefined })}
+                        aria-label="Floor"
+                      />
+                    </td>
+
+                    {/* Year */}
+                    <td
+                      className="compare-table__cell"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="number"
+                        className="compare-table__input"
+                        defaultValue={pin.yearBuilt ?? ''}
+                        placeholder="—"
+                        onBlur={(e) => updatePin(pin.id, { yearBuilt: e.target.value ? +e.target.value : undefined })}
+                        aria-label="Year built"
+                      />
+                    </td>
+
                     {/* Walking */}
                     <td className="compare-table__cell">
                       {fmt(pin.analytics?.walkingMinutes)}
@@ -321,7 +381,7 @@ export function PinCompareTable() {
 
                     {/* Comment */}
                     <td
-                      className="compare-table__cell"
+                      className="compare-table__cell compare-table__cell--comment"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <textarea

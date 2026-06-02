@@ -266,9 +266,11 @@ thead .compare-table__col-rank {
 .compare-table__photos {
   display: flex;
   gap: 4px;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   padding: 2px 0;
+  max-height: 80px;
+  overflow: hidden;
 }
 
 .compare-table__thumb {
@@ -321,9 +323,14 @@ thead .compare-table__col-rank {
 }
 
 .compare-table__textarea {
-  resize: none;
-  height: 40px;
+  resize: vertical;
+  min-height: 72px;
   line-height: 1.4;
+}
+
+.compare-table__cell--comment {
+  min-width: 240px;
+  white-space: normal;
 }
 
 .compare-table__link {

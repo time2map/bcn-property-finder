@@ -25,6 +25,7 @@ export interface PinsState {
   selectedPinId: string | null
   isAddingPin: boolean
   addPin: (lngLat: [number, number]) => string
+  addParsedPin: (pin: PropertyPin) => void
   updatePin: (id: string, patch: Partial<PropertyPin>) => void
   updatePinAnalytics: (id: string, analytics: PinAnalytics) => void
   deletePin: (id: string) => void
@@ -48,6 +49,12 @@ export const usePinsStore = create<PinsState>((set, get) => ({
     savePins(pins)
     set({ pins, selectedPinId: id })
     return id
+  },
+
+  addParsedPin: (pin) => {
+    const pins = [...get().pins, pin]
+    savePins(pins)
+    set({ pins, selectedPinId: pin.id })
   },
 
   updatePin: (id, patch) => {

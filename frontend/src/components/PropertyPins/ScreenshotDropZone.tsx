@@ -6,9 +6,16 @@ interface Props {
   onError: (msg: string) => void
 }
 
+const DRAG_LABELS: Record<string, string> = {
+  image: 'Drop screenshot here',
+  html: 'Drop Idealista page here',
+}
+
 export function ScreenshotDropZone({ children, onError }: Props) {
   const { state, handleDragOver, handleDragLeave, handleDrop, dismissBanner } =
     useScreenshotDrop(onError)
+
+  const dragLabel = DRAG_LABELS[state.dragType ?? ''] ?? 'Drop file here'
 
   return (
     <div
@@ -45,7 +52,7 @@ export function ScreenshotDropZone({ children, onError }: Props) {
               boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
             }}
           >
-            Drop screenshot here
+            {dragLabel}
           </div>
         </div>
       )}
@@ -75,7 +82,7 @@ export function ScreenshotDropZone({ children, onError }: Props) {
             }}
           >
             <Loader size="sm" />
-            <span style={{ fontSize: 16, fontWeight: 500 }}>Parsing screenshot…</span>
+            <span style={{ fontSize: 16, fontWeight: 500 }}>{state.processingLabel}</span>
           </div>
         </div>
       )}

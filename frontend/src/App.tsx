@@ -57,7 +57,7 @@ export function App() {
       )}
 
       <PinCompareTable />
-      <AddPinButton />
+      <AddPinButton onError={(msg) => { setErrorMsg(msg); setTimeout(() => setErrorMsg(null), 4000) }} />
 
       {errorMsg && (
         <Notification

@@ -21,6 +21,10 @@ export interface PropertyPin {
   url?: string
   photos?: string[]
   comment?: string
+  bedrooms?: number
+  bathrooms?: number
+  floor?: string
+  yearBuilt?: number
   analytics?: PinAnalytics
   accuracyPolygon?: GeoJSON.Polygon | GeoJSON.MultiPolygon
   createdAt: string
