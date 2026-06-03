@@ -4,6 +4,7 @@ import type { MultiPolygon } from 'geojson'
 import { useIdealistaAreas, useComputeIdealistaAreas } from './useIdealistaAreas'
 import { useStore } from '../store'
 import { useExclusionsStore } from '../store/exclusionsStore'
+import { useIdealistaBaseUrlStore } from '../store/idealistaBaseUrlStore'
 import { resetAreasCache } from '../services/areas'
 
 const TWO_BLOBS: MultiPolygon = {
@@ -18,6 +19,7 @@ describe('useIdealistaAreas', () => {
   beforeEach(() => {
     useStore.setState({ resultPolygon: null, idealistaAreas: [], idealistaUrls: [], hoveredAreaIndex: null, idealistaZonesVisible: true })
     useExclusionsStore.setState({ zones: [] })
+    useIdealistaBaseUrlStore.setState({ baseUrl: null })
     resetAreasCache()
   })
 
@@ -26,13 +28,23 @@ describe('useIdealistaAreas', () => {
     expect(result.current).toEqual({ areas: [], urls: [], count: 0 })
   })
 
-  it('returns store values after setIdealistaAreas', () => {
-    const fakePolygon = TWO_BLOBS.coordinates[0]
-    const poly1 = { type: 'Polygon' as const, coordinates: fakePolygon }
-    useStore.getState().setIdealistaAreas([poly1], ['https://idealista.com/test'])
+  it('derives URLs from areas using default template when no baseUrl', () => {
+    const poly1 = { type: 'Polygon' as const, coordinates: TWO_BLOBS.coordinates[0] }
+    useStore.getState().setIdealistaAreas([poly1], [])
     const { result } = renderHook(() => useIdealistaAreas())
     expect(result.current.count).toBe(1)
-    expect(result.current.urls[0]).toBe('https://idealista.com/test')
+    expect(result.current.urls[0]).toContain('idealista.com')
+    expect(result.current.urls[0]).toContain('shape=')
+  })
+
+  it('derives URLs using saved baseUrl when set', () => {
+    const base = 'https://www.idealista.com/en/areas/venta-viviendas/con-precio-hasta_500000/'
+    useIdealistaBaseUrlStore.setState({ baseUrl: base })
+    const poly1 = { type: 'Polygon' as const, coordinates: TWO_BLOBS.coordinates[0] }
+    useStore.getState().setIdealistaAreas([poly1], [])
+    const { result } = renderHook(() => useIdealistaAreas())
+    expect(result.current.urls[0]).toContain('con-precio-hasta_500000')
+    expect(result.current.urls[0]).toContain('shape=')
   })
 })
 

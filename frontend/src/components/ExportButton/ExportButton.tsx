@@ -2,6 +2,7 @@ import { Button, Loader, Stack, Text } from '@mantine/core'
 import { useIdealistaAreas, useComputeIdealistaAreas } from '../../hooks/useIdealistaAreas'
 import { useStore } from '../../store'
 import { useEffectiveArea } from '../../hooks/useEffectiveArea'
+import { BaseUrlInput } from './BaseUrlInput'
 
 interface ExportButtonProps {
   isLoading?: boolean
@@ -22,19 +23,22 @@ export function ExportButton({ isLoading = false }: ExportButtonProps) {
   // No isochrone yet and not loading — nothing to show.
   if (!hasArea && !isLoading) return null
 
-  // No computed areas yet: show the "make zones" button.
+  // No computed areas yet: show the filter URL input + "make zones" button.
   if (count === 0) {
     return (
-      <Button
-        fullWidth
-        size="xs"
-        disabled={busy}
-        onClick={computing ? undefined : compute}
-        leftSection={busy ? <Loader size={12} color="white" /> : '🏠'}
-        style={{ backgroundColor: busy ? undefined : '#F06965' }}
-      >
-        {isLoading ? 'Building isochrone…' : computing ? 'Computing…' : 'Make zones for Idealista'}
-      </Button>
+      <Stack gap={4}>
+        <BaseUrlInput />
+        <Button
+          fullWidth
+          size="xs"
+          disabled={busy}
+          onClick={computing ? undefined : compute}
+          leftSection={busy ? <Loader size={12} color="white" /> : '🏠'}
+          style={{ backgroundColor: busy ? undefined : '#F06965' }}
+        >
+          {isLoading ? 'Building isochrone…' : computing ? 'Computing…' : 'Make zones for Idealista'}
+        </Button>
+      </Stack>
     )
   }
 
@@ -44,6 +48,7 @@ export function ExportButton({ isLoading = false }: ExportButtonProps) {
   if (count === 1) {
     return (
       <Stack gap={4}>
+        <BaseUrlInput />
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Text size="xs" fw={500} style={{ flex: 1 }}>Idealista — 1 area</Text>
           <Button
@@ -76,6 +81,7 @@ export function ExportButton({ isLoading = false }: ExportButtonProps) {
 
   return (
     <Stack gap={6}>
+      <BaseUrlInput />
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <Text size="xs" fw={500} style={{ flex: 1 }}>Idealista — {count} areas</Text>
         <Button

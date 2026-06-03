@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Polygon } from 'geojson'
 import { useEffectiveArea } from './useEffectiveArea'
 import { decomposeByBarris, decomposeForIdealista } from '../services/idealistaAreas'
@@ -6,15 +6,17 @@ import { buildIdealistaUrl } from '../services/idealista'
 import { loadAreas } from '../services/areas'
 import type { AreaFeature } from '../services/areas'
 import { useStore } from '../store'
+import { useIdealistaBaseUrlStore } from '../store/idealistaBaseUrlStore'
 
 /**
  * Returns the Idealista areas that were last computed via `useComputeIdealistaAreas().compute`.
- * Returns empty arrays until the user explicitly triggers computation — this avoids running the
- * expensive barri-intersection+union on every isochrone slider change.
+ * URLs are derived from the stored areas + the current baseUrl so they update immediately when
+ * the user saves or clears their filter URL — without recomputing the zones.
  */
 export function useIdealistaAreas(): { areas: Polygon[]; urls: string[]; count: number } {
   const areas = useStore((s) => s.idealistaAreas)
-  const urls = useStore((s) => s.idealistaUrls)
+  const baseUrl = useIdealistaBaseUrlStore((s) => s.baseUrl)
+  const urls = useMemo(() => areas.map((a) => buildIdealistaUrl(a, baseUrl)), [areas, baseUrl])
   return { areas, urls, count: areas.length }
 }
 
@@ -58,12 +60,15 @@ export function useComputeIdealistaAreas(): {
     setComputing(true)
     // Let React render the loading state before the synchronous computation blocks the thread.
     setTimeout(() => {
+      // Read baseUrl at execution time so fitToUrlBudget sizes polygons against the actual
+      // (potentially longer) filter URL, not the default template.
+      const baseUrl = useIdealistaBaseUrlStore.getState().baseUrl
       const areas =
         loadedAreas.length > 0
-          ? decomposeByBarris(effectiveArea, loadedAreas)
-          : decomposeForIdealista(effectiveArea)
-      const urls = areas.map(buildIdealistaUrl)
-      setIdealistaAreas(areas, urls)
+          ? decomposeByBarris(effectiveArea, loadedAreas, baseUrl)
+          : decomposeForIdealista(effectiveArea, baseUrl)
+      // URLs are derived in useIdealistaAreas (areas + baseUrl), not stored.
+      setIdealistaAreas(areas, [])
       setComputing(false)
     }, 0)
   }, [effectiveArea, loadedAreas, setIdealistaAreas])

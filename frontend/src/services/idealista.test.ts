@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildIdealistaUrl, largestPolygon } from './idealista'
+import { buildIdealistaUrl, largestPolygon, parseIdealistaBaseUrl } from './idealista'
 
 // A minimal closed ring around a Barcelona block
 const POLYGON = {
@@ -62,10 +62,10 @@ describe('buildIdealistaUrl', () => {
     expect(inner.length).toBeGreaterThan(0)
   })
 
-  it('URL contains (( and )) delimiters unencoded', () => {
+  it('URL contains %28%28 and %29%29 encoded delimiters (Idealista requires encoded parens)', () => {
     const url = buildIdealistaUrl(POLYGON)
-    expect(url).toContain('((')
-    expect(url).toContain('))')
+    expect(url).toContain('%28%28')
+    expect(url).toContain('%29%29')
   })
 
   it('swaps lng/lat: GeoJSON [lng, lat] → polyline [lat, lng]', () => {
@@ -110,5 +110,71 @@ describe('buildIdealistaUrl', () => {
 
   it('MultiPolygon and its largest Polygon produce the same URL', () => {
     expect(buildIdealistaUrl(MULTIPOLYGON)).toBe(buildIdealistaUrl(largestPolygon(MULTIPOLYGON)))
+  })
+
+  it('uses default template when no baseUrl is provided', () => {
+    const url = buildIdealistaUrl(POLYGON)
+    expect(url).toContain('www.idealista.com/areas/venta-viviendas/mapa-google')
+  })
+
+  it('uses baseUrl when provided (no existing query params)', () => {
+    const base = 'https://www.idealista.com/en/areas/venta-viviendas/con-precio-hasta_500000/'
+    const url = buildIdealistaUrl(POLYGON, base)
+    expect(url).toContain(base)
+    expect(url).toContain('?shape=')
+    expect(url).not.toContain('mapa-google')
+  })
+
+  it('appends with & when baseUrl already has query params', () => {
+    const base = 'https://www.idealista.com/en/areas/venta-viviendas/?foo=bar'
+    const url = buildIdealistaUrl(POLYGON, base)
+    expect(url).toContain('&shape=')
+  })
+
+  it('null baseUrl falls back to default template', () => {
+    const url = buildIdealistaUrl(POLYGON, null)
+    expect(url).toContain('mapa-google')
+  })
+})
+
+describe('parseIdealistaBaseUrl', () => {
+  it('returns null for a non-URL string', () => {
+    expect(parseIdealistaBaseUrl('not a url')).toBeNull()
+  })
+
+  it('returns null for a non-Idealista URL', () => {
+    expect(parseIdealistaBaseUrl('https://example.com/venta-viviendas/')).toBeNull()
+  })
+
+  it('returns null for an Idealista URL without property search path', () => {
+    expect(parseIdealistaBaseUrl('https://www.idealista.com/en/')).toBeNull()
+  })
+
+  it('strips the shape param from a venta-viviendas URL', () => {
+    const input = 'https://www.idealista.com/en/areas/venta-viviendas/con-precio-hasta_500000/?shape=((abc))'
+    const result = parseIdealistaBaseUrl(input)
+    expect(result).toBe('https://www.idealista.com/en/areas/venta-viviendas/con-precio-hasta_500000/')
+    expect(result).not.toContain('shape')
+  })
+
+  it('accepts alquiler-viviendas URLs', () => {
+    const input = 'https://www.idealista.com/en/areas/alquiler-viviendas/con-precio-hasta_2000/?shape=((abc))'
+    const result = parseIdealistaBaseUrl(input)
+    expect(result).not.toBeNull()
+    expect(result).toContain('alquiler-viviendas')
+  })
+
+  it('preserves other query params and removes only shape', () => {
+    const input = 'https://www.idealista.com/en/areas/venta-viviendas/?foo=bar&shape=((abc))&baz=1'
+    const result = parseIdealistaBaseUrl(input)
+    expect(result).toContain('foo=bar')
+    expect(result).toContain('baz=1')
+    expect(result).not.toContain('shape')
+  })
+
+  it('returns a URL without trailing ? when no other query params remain', () => {
+    const input = 'https://www.idealista.com/en/areas/venta-viviendas/con-precio-hasta_500000/?shape=((abc))'
+    const result = parseIdealistaBaseUrl(input)
+    expect(result).not.toContain('?')
   })
 })

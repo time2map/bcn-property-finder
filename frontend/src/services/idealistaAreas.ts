@@ -145,15 +145,17 @@ function simplifyPolygon(polygon: Polygon, tolerance: number): Polygon {
  * Doubling the tolerance reduces vertices; if even that can't fit (pathological pieces), fall
  * back to the piece's bounding box — a 4-point shape that always fits and still covers the piece.
  */
-function fitToUrlBudget(polygon: Polygon): Polygon {
+// baseUrl is passed so the URL-length check accounts for the user's (potentially longer)
+// filter base URL instead of the default template.
+function fitToUrlBudget(polygon: Polygon, baseUrl?: string | null): Polygon {
   let tolerance = SIMPLIFY_TOL
   let result = simplifyPolygon(polygon, tolerance)
-  for (let i = 0; i < MAX_SIMPLIFY_STEPS && buildIdealistaUrl(result).length > MAX_URL_CHARS; i++) {
+  for (let i = 0; i < MAX_SIMPLIFY_STEPS && buildIdealistaUrl(result, baseUrl).length > MAX_URL_CHARS; i++) {
     tolerance *= 2
     // Always simplify from the original to avoid compounding distortion.
     result = simplifyPolygon(polygon, tolerance)
   }
-  if (buildIdealistaUrl(result).length > MAX_URL_CHARS) {
+  if (buildIdealistaUrl(result, baseUrl).length > MAX_URL_CHARS) {
     const [minX, maxX] = xExtent(polygon.coordinates[0])
     const [minY, maxY] = yExtent(polygon.coordinates[0])
     return rect(minX, minY, maxX, maxY)
@@ -188,14 +190,14 @@ function isThinSliver(polygon: Polygon, minDimDeg: number): boolean {
  * cuts significant holes, simplifies to fit the URL budget, drops negligible slivers, sorts by
  * area, caps the count (biggest first, so the main area and the largest islands are always kept).
  */
-export function decomposeForIdealista(geometry: Poly | null): Polygon[] {
+export function decomposeForIdealista(geometry: Poly | null, baseUrl?: string | null): Polygon[] {
   if (!geometry) return []
 
   const raw: Polygon[] = []
   for (const rings of subPolygons(geometry)) raw.push(...cutHoles(rings))
 
   const pieces = raw
-    .map(fitToUrlBudget)
+    .map((p) => fitToUrlBudget(p, baseUrl))
     .map((p) => ({ polygon: p, km2: areaKm2(p) }))
     .filter((p) => p.km2 > 0)
 
@@ -227,13 +229,13 @@ export function decomposeForIdealista(geometry: Poly | null): Polygon[] {
  *
  * Falls back to decomposeForIdealista() when areas is empty, none match, or geometry is null.
  */
-export function decomposeByBarris(geometry: Poly | null, areas: AreaFeature[]): Polygon[] {
+export function decomposeByBarris(geometry: Poly | null, areas: AreaFeature[], baseUrl?: string | null): Polygon[] {
   if (!geometry) return []
 
   const candidates = areas.filter(
     (a) => a.properties.kind === 'barri' || a.properties.kind === 'municipality',
   )
-  if (candidates.length === 0) return decomposeForIdealista(geometry)
+  if (candidates.length === 0) return decomposeForIdealista(geometry, baseUrl)
 
   const effectiveFeat: Feature<Poly> = { type: 'Feature', properties: {}, geometry }
 
@@ -246,14 +248,14 @@ export function decomposeByBarris(geometry: Poly | null, areas: AreaFeature[]): 
     clips.push(clip as Feature<Poly>)
   }
 
-  if (clips.length === 0) return decomposeForIdealista(geometry)
+  if (clips.length === 0) return decomposeForIdealista(geometry, baseUrl)
 
   // Step 3: union all clips — adjacent barris merge; small gaps fill automatically
   const merged = clips.reduce<Feature<Poly> | null>(
     (acc, clip) => (acc ? (union(collection([acc, clip])) ?? acc) : clip),
     null,
   )
-  if (!merged) return decomposeForIdealista(geometry)
+  if (!merged) return decomposeForIdealista(geometry, baseUrl)
 
   // Step 3b: fill tiny gaps between neighbouring barris and attach nearby islands.
   // Expand by MERGE_GAP_DEG (≈ 20 m) then shrink back — alleys/precision seams close up and
@@ -283,11 +285,11 @@ export function decomposeByBarris(geometry: Poly | null, areas: AreaFeature[]): 
   }
 
   const pieces = raw
-    .map(fitToUrlBudget)
+    .map((p) => fitToUrlBudget(p, baseUrl))
     .map((p) => ({ polygon: p, km2: areaKm2(p) }))
     .filter((p) => p.km2 > 0)
 
-  if (pieces.length === 0) return decomposeForIdealista(geometry)
+  if (pieces.length === 0) return decomposeForIdealista(geometry, baseUrl)
 
   const maxKm2 = Math.max(...pieces.map((p) => p.km2))
   const threshold = Math.max(MIN_AREA_KM2, AREA_RATIO * maxKm2)
@@ -302,5 +304,5 @@ export function decomposeByBarris(geometry: Poly | null, areas: AreaFeature[]): 
 
 /** One single-ring Idealista URL per decomposed simple polygon. */
 export function buildIdealistaUrls(geometry: Poly | null): string[] {
-  return decomposeForIdealista(geometry).map(buildIdealistaUrl)
+  return decomposeForIdealista(geometry).map((p) => buildIdealistaUrl(p))
 }

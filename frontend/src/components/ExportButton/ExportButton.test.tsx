@@ -4,6 +4,7 @@ import { MantineProvider } from '@mantine/core'
 import { ExportButton } from './ExportButton'
 import { useStore } from '../../store'
 import { useExclusionsStore } from '../../store/exclusionsStore'
+import { useIdealistaBaseUrlStore } from '../../store/idealistaBaseUrlStore'
 import { resetAreasCache } from '../../services/areas'
 
 const POLYGON = {
@@ -38,6 +39,7 @@ describe('ExportButton', () => {
       hoveredAreaIndex: null,
     })
     useExclusionsStore.setState({ zones: [] })
+    useIdealistaBaseUrlStore.setState({ baseUrl: null })
     resetAreasCache()
     vi.restoreAllMocks()
   })
@@ -69,22 +71,35 @@ describe('ExportButton', () => {
     useStore.setState({
       resultPolygon: POLYGON,
       idealistaAreas: [poly(2.0, 41.0)],
-      idealistaUrls: [FAKE_URL],
+      idealistaUrls: [],
     })
     renderButton()
     const link = screen.getByRole('link', { name: /main area/i })
-    expect(link).toHaveAttribute('href', FAKE_URL)
+    expect(link).toHaveAttribute('href', expect.stringContaining('idealista.com'))
+  })
+
+  it('uses saved baseUrl in generated links', () => {
+    const base = 'https://www.idealista.com/en/areas/venta-viviendas/con-precio-hasta_500000/'
+    useIdealistaBaseUrlStore.setState({ baseUrl: base })
+    useStore.setState({
+      resultPolygon: POLYGON,
+      idealistaAreas: [poly(2.0, 41.0)],
+      idealistaUrls: [],
+    })
+    renderButton()
+    const link = screen.getByRole('link', { name: /main area/i })
+    expect(link).toHaveAttribute('href', expect.stringContaining('con-precio-hasta_500000'))
   })
 
   it('labels first area "Main Area" and subsequent areas by number', () => {
     useStore.setState({
       resultPolygon: POLYGON,
       idealistaAreas: [poly(2.0, 41.0), poly(2.5, 41.5)],
-      idealistaUrls: [FAKE_URL + '1', FAKE_URL + '2'],
+      idealistaUrls: [],
     })
     renderButton()
-    expect(screen.getByRole('link', { name: /main area/i })).toHaveAttribute('href', FAKE_URL + '1')
-    expect(screen.getByRole('link', { name: /area 2\/2/i })).toHaveAttribute('href', FAKE_URL + '2')
+    expect(screen.getByRole('link', { name: /main area/i })).toHaveAttribute('href', expect.stringContaining('idealista.com'))
+    expect(screen.getByRole('link', { name: /area 2\/2/i })).toHaveAttribute('href', expect.stringContaining('idealista.com'))
   })
 
   it('visibility toggle button exists when areas are shown', () => {

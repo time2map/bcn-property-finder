@@ -43,15 +43,40 @@ export function largestPolygon(geometry: Polygon | MultiPolygon): Polygon {
   return { type: 'Polygon', coordinates: largest }
 }
 
+const DEFAULT_BASE = 'https://www.idealista.com/areas/venta-viviendas/mapa-google'
+
+/**
+ * Parses a user-supplied Idealista URL, strips the `shape` parameter, and returns the
+ * base string (origin + path + remaining query params) ready to append `?shape=…` to.
+ * Returns null if the URL is not a valid Idealista property-search URL.
+ */
+export function parseIdealistaBaseUrl(input: string): string | null {
+  let url: URL
+  try { url = new URL(input.trim()) } catch { return null }
+  if (!url.hostname.includes('idealista.com')) return null
+  const path = url.pathname
+  if (!path.includes('venta-viviendas') && !path.includes('alquiler-viviendas')) return null
+  url.searchParams.delete('shape')
+  const qs = url.searchParams.toString()
+  return url.origin + url.pathname + (qs ? `?${qs}` : '')
+}
+
 // Builds a search URL for ONE simple polygon. Idealista's `shape` accepts a single
 // hole-free outer ring only — multiple polygons (400) and holes (silently filled) are not
 // supported, so exclusions are handled upstream by splitting the area into simple polygons
 // (services/idealistaAreas.ts).
-export function buildIdealistaUrl(polygon: Polygon | MultiPolygon): string {
+// When `baseUrl` is provided (user's saved filter URL with `shape` already removed), the
+// shape parameter is appended to it instead of the default template.
+export function buildIdealistaUrl(polygon: Polygon | MultiPolygon, baseUrl?: string | null): string {
   const { coordinates } = largestPolygon(polygon)
   // GeoJSON ring is [lng, lat]; polyline spec requires [lat, lng]
   const coords = coordinates[0].map(([lng, lat]) => [lat, lng] as [number, number])
   const encoded = encodePolyline(coords)
-  const shape = encodeURIComponent(`((${encoded}))`)
-  return `https://www.idealista.com/areas/venta-viviendas/mapa-google?shape=${shape}`
+  // Idealista requires the (( )) wrapper to be percent-encoded (%28%28…%29%29).
+  // encodeURIComponent does NOT encode ( and ) (they are RFC 3986 unreserved), so we
+  // encode the delimiters explicitly and percent-encode only the polyline body.
+  const shape = '%28%28' + encodeURIComponent(encoded) + '%29%29'
+  const base = baseUrl ?? DEFAULT_BASE
+  const sep = base.includes('?') ? '&' : '?'
+  return `${base}${sep}shape=${shape}`
 }
