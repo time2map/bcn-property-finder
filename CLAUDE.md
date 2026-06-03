@@ -85,3 +85,7 @@ Show the failure output and propose a fix plan.
 ## ENV
 
 If you specify any default variables that may explicitly affect the result of calculations in the application, put them in the environment variables and in the corresponding ENV file.
+
+# Plan
+
+In plan / chat mode always use russian to explain what you are going to do.

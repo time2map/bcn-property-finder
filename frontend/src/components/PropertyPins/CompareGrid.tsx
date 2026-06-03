@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { Badge, Menu, Tooltip } from '@mantine/core'
 import { usePinsStore } from '../../store/pinsStore'
+import { useExclusionsStore } from '../../store/exclusionsStore'
+import { isPointInExclusions } from '../../services/exclusions'
 import type { PropertyPin } from '../../types/pins'
 import type { ServiceResult } from '../../services/walkability/walkabilityTypes'
 import { PhotoLightbox } from './PhotoLightbox'
@@ -198,6 +200,7 @@ interface RowDef {
 
 export function CompareGrid() {
   const { pins, selectedPinId, setSelectedPin, updatePin, deletePin } = usePinsStore()
+  const zones = useExclusionsStore((s) => s.zones)
   const [lightbox, setLightbox] = useState<LightboxState | null>(null)
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
 
@@ -371,6 +374,7 @@ export function CompareGrid() {
             {sorted.map((pin, i) => {
               const score = compositeScore(pin)
               const photoCount = pin.photos?.length ?? 0
+              const excluded = isPointInExclusions(pin.coordinates, zones)
               return (
                 <th
                   key={pin.id}
@@ -389,6 +393,12 @@ export function CompareGrid() {
                         ✕
                       </button>
                     </div>
+
+                    {excluded && (
+                      <Badge size="xs" color="red" variant="light" mb={4}>
+                        ⛔ In excluded area
+                      </Badge>
+                    )}
 
                     <div
                       className="compare-grid__cover"

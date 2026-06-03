@@ -58,12 +58,17 @@ bcn-property-finder/
 ├── frontend/        # React SPA
 ├── backend/         # OTP2 via Docker Compose (isochrone/routing engine)
 │   └── otp/data/    # GTFS + OSM graph files for OTP
-├── data/            # Static datasets (Barcelona open data)
-│   └── noise/       # Strategic noise map GPKG (gitignored, large)
+├── data/            # Static datasets (Barcelona open data, gitignored raw)
+│   ├── noise/       # Strategic noise map GPKG (gitignored, large)
+│   └── areas/       # Raw district/barri/municipality downloads (gitignored)
 ├── scripts/
-│   └── prepare-noise-data.sh  # GPKG → GeoJSON → PMTiles pipeline
+│   ├── prepare-noise-data.sh   # GPKG → GeoJSON → PMTiles pipeline
+│   ├── prepare-areas-data.sh   # districtes+barris+AMB municipis → areas.geojson
+│   └── _amb_muni_url.py        # builds the AMB municipalities export URL
 └── docs/
 ```
+
+The built `frontend/public/data/areas.geojson` (118 features, ~150 KB) is committed.
 
 ## Frontend (`frontend/src/`)
 
@@ -73,25 +78,32 @@ src/
 │   ├── Map/             # MapLibre canvas; drag-to-move workplace marker, click-to-place pins
 │   ├── IsochroneLayer/  # GeoJSON fill + outer mask layer
 │   ├── NoiseLayer/      # PMTiles vector fill layer (Lden) + legend + info modal
-│   ├── FilterPanel/     # travel time slider + layer toggles (noise map)
-│   ├── ExportButton/    # builds Idealista URL and opens it
+│   ├── FilterPanel/     # travel time slider + layer toggles + ExclusionControls
+│   ├── ExportButton/    # builds Idealista URL from the effective area
+│   ├── ExclusionLayer/  # red fill + outline for no-go zones
+│   ├── ExclusionDraw/   # terra-draw integration (polygon / freehand)
 │   └── PropertyPins/    # apartment pins: map markers, comparison table, photo lightbox
 ├── hooks/
 │   ├── useIsochrone.ts      # fetches isochrone from OTP2; caches in localStorage
 │   ├── usePinAnalytics.ts   # walk/cycle/drive/transit times + noise Lden per pin
 │   ├── useScreenshotDrop.ts # screenshot drop → Vision parse → geocode → pin creation
+│   ├── useEffectiveArea.ts  # isochrone − exclusion zones (shared by mask + export)
 │   └── useUrlState.ts       # syncs Zustand store ↔ URL search params
 ├── store/
-│   ├── index.ts         # Zustand: workplace, minutes, resultPolygon, noiseLayerVisible
-│   └── pinsStore.ts     # Zustand: apartment pins, localStorage persistence
+│   ├── index.ts            # Zustand: workplace, minutes, resultPolygon, noiseLayerVisible
+│   ├── pinsStore.ts        # Zustand: apartment pins, localStorage persistence
+│   └── exclusionsStore.ts  # Zustand: no-go zones + drawingMode, localStorage persistence
 ├── types/
-│   └── pins.ts          # PropertyPin, PinAnalytics (incl. noiseLden, noiseScore)
+│   ├── pins.ts          # PropertyPin, PinAnalytics (incl. noiseLden, noiseScore)
+│   └── exclusions.ts    # ExclusionZone (drawn | area)
 └── services/
     ├── otp.ts           # OTP2 client: isochrone + point-to-point routing (all modes)
     ├── geocoding.ts     # Nominatim geocoder; multi-query fallback + ES→CA translation
     ├── analytics.ts     # travelIndex + compositeScore (travel × W + noise × W)
     ├── imageUtils.ts    # image compression + base64 helpers
-    ├── idealista.ts     # GeoJSON.Polygon → Google Encoded Polyline → Idealista URL
+    ├── idealista.ts     # GeoJSON → Google Encoded Polyline (all rings) → Idealista URL
+    ├── exclusions.ts    # subtractExclusions (turf union+difference), isPointInExclusions
+    ├── areas.ts         # loads areas.geojson; grouped picker options; geometry lookup
     ├── noise/
     │   ├── noiseData.ts        # PMTiles tile fetch at z=14 + point-in-polygon → Lden
     │   ├── noiseScore.ts       # noiseScore(lden) = clamp(0,100,(75−lden)/30×100)
@@ -117,6 +129,18 @@ src/
 - Score formula: `clamp(0, 100, round((75 − lden) / 30 × 100))`
 
 **Composite score**: `round((travelIndex × W_travel + noiseScore × W_noise) / (W_travel + W_noise))`. Weights are ENV vars (`VITE_COMPOSITE_WEIGHT_TRAVEL`, `VITE_COMPOSITE_WEIGHT_NOISE`). If noise data is unavailable for a pin, falls back to `travelIndex` only.
+
+## Exclusion ("no-go") zones
+
+Statically subtracted from the exported area (feature 015). Zones are defined by **drawing**
+(terra-draw: polygon / freehand) or **picking** a district / barri / metro municipality, and
+persist in `localStorage` (`bcn_exclusion_zones`) independent of workplace/isochrone.
+
+- **Data**: `frontend/public/data/areas.geojson` — BCN districtes + barris ([martgnz/bcn-geodata](https://github.com/martgnz/bcn-geodata)) + AMB municipalities ([opendatasoft georef-spain-municipio](https://public.opendatasoft.com)). Built by `scripts/prepare-areas-data.sh`.
+- **Effective area** (`useEffectiveArea`): `subtractExclusions(isochrone, zones)` = `@turf/difference` over `@turf/union`. Shared by the isochrone mask (preview) and the Idealista export so they always match.
+- **Export** (`services/idealistaAreas.ts`, `useIdealistaAreas`): Idealista's `shape` accepts only **one simple, hole-free polygon per search** (multiple polygons → 400, holes → silently filled — probed in a real browser). So the effective area is **decomposed** into the minimal set of simple polygons — holes cut into vertical strips via `@turf/intersect`, slivers dropped by `@turf/area`, rings shortened by `@turf/simplify` — and the UI offers **one `((ring))` link per area** (ENV `VITE_IDEALISTA_*`). See `docs/features/TODO-015-exclusion-zones.md`.
+- **Pins**: `isPointInExclusions` flags pins inside a zone — "excluded" badge in the compare grid + dimmed map marker (kept, not removed).
+- **Deps**: `terra-draw`, `terra-draw-maplibre-gl-adapter`, `@turf/difference`, `@turf/union`, `@turf/intersect`, `@turf/area`, `@turf/simplify`.
 
 ## Scoring weights (ENV)
 

@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
 import { ComparePane } from './ComparePane'
 import { usePinsStore } from '../../store/pinsStore'
+import { useExclusionsStore } from '../../store/exclusionsStore'
 import type { PropertyPin } from '../../types/pins'
 
 vi.stubGlobal('localStorage', { getItem: vi.fn().mockReturnValue(null), setItem: vi.fn(), removeItem: vi.fn() })
@@ -38,6 +39,7 @@ function renderPane() {
 describe('CompareGrid (via ComparePane)', () => {
   beforeEach(() => {
     usePinsStore.setState({ pins: [], selectedPinId: null, isAddingPin: false })
+    useExclusionsStore.setState({ zones: [] })
   })
 
   it('renders nothing when there are no pins', () => {
@@ -212,6 +214,31 @@ describe('CompareGrid (via ComparePane)', () => {
     })
     renderPane()
     expect(screen.queryByLabelText('Add photo')).not.toBeInTheDocument()
+  })
+
+  it('flags a pin that falls inside an exclusion zone', () => {
+    usePinsStore.setState({ pins: [makePin('a')], selectedPinId: null, isAddingPin: false })
+    // Pin sits at [2.17, 41.38]; this zone covers it.
+    useExclusionsStore.setState({
+      zones: [{
+        id: 'z', name: 'No-go', source: 'drawn',
+        geometry: { type: 'Polygon', coordinates: [[[2.16, 41.37], [2.18, 41.37], [2.18, 41.39], [2.16, 41.39], [2.16, 41.37]]] },
+      }],
+    })
+    renderPane()
+    expect(screen.getByText(/In excluded area/)).toBeInTheDocument()
+  })
+
+  it('does not flag a pin outside every exclusion zone', () => {
+    usePinsStore.setState({ pins: [makePin('a')], selectedPinId: null, isAddingPin: false })
+    useExclusionsStore.setState({
+      zones: [{
+        id: 'z', name: 'Far', source: 'drawn',
+        geometry: { type: 'Polygon', coordinates: [[[2.0, 41.0], [2.01, 41.0], [2.01, 41.01], [2.0, 41.01], [2.0, 41.0]]] },
+      }],
+    })
+    renderPane()
+    expect(screen.queryByText(/In excluded area/)).not.toBeInTheDocument()
   })
 
   it('opens lightbox when a photo thumbnail is clicked', () => {

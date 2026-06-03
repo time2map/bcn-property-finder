@@ -3,6 +3,7 @@ import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useStore } from '../../store'
+import { useEffectiveArea } from '../../hooks/useEffectiveArea'
 
 const SOURCE_ID = 'isochrone'
 const MASK_LAYER_ID = 'isochrone-mask'
@@ -41,7 +42,8 @@ function buildSourceData(
 
 export function IsochroneLayer() {
   const map = useMap()
-  const resultPolygon = useStore((s) => s.resultPolygon)
+  // Use the effective area (isochrone minus exclusions) so the mask shows no-go holes.
+  const resultPolygon = useEffectiveArea()
   const minutes = useStore((s) => s.minutes)
 
   const resultPolygonRef = useRef(resultPolygon)

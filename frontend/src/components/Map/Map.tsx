@@ -12,6 +12,10 @@ import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
+import { ExclusionLayer } from '../ExclusionLayer/ExclusionLayer'
+import { ExclusionDraw } from '../ExclusionDraw/ExclusionDraw'
+import { ExportAreasLayer } from '../ExportAreasLayer/ExportAreasLayer'
+import { useExclusionsStore } from '../../store/exclusionsStore'
 
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
 
@@ -23,6 +27,7 @@ export function Map() {
 
   const { workplace, zoom, mapCenter, setWorkplace, setZoom, setMapCenter, setMapAttribution } = useStore()
   const { isAddingPin, setIsAddingPin, addPin } = usePinsStore()
+  const drawingMode = useExclusionsStore((s) => s.drawingMode)
 
   // Keep refs current so the stable map click handler can read latest values
   const isAddingPinRef = useRef(isAddingPin)
@@ -30,6 +35,8 @@ export function Map() {
   const workplaceRef = useRef(workplace)
   const zoomRef = useRef(zoom)
   const mapCenterRef = useRef(mapCenter)
+  const drawingModeRef = useRef(drawingMode)
+  useEffect(() => { drawingModeRef.current = drawingMode }, [drawingMode])
   useEffect(() => { isAddingPinRef.current = isAddingPin }, [isAddingPin])
   useEffect(() => { addPinRef.current = addPin }, [addPin])
   useEffect(() => { workplaceRef.current = workplace }, [workplace])
@@ -48,6 +55,8 @@ export function Map() {
     })
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
     map.on('click', (e) => {
+      // While drawing an exclusion zone, terra-draw owns map clicks.
+      if (drawingModeRef.current) return
       if (isAddingPinRef.current) {
         addPinRef.current([e.lngLat.lng, e.lngLat.lat])
         setIsAddingPin(false)
@@ -125,6 +134,9 @@ export function Map() {
       <PoiLayer />
       <NoiseLayer />
       <IsochroneLayer />
+      <ExportAreasLayer />
+      <ExclusionLayer />
+      <ExclusionDraw />
       <MetroLayer />
       <FgcLayer />
       <PinAccuracyLayer />

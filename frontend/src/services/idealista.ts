@@ -43,6 +43,10 @@ export function largestPolygon(geometry: Polygon | MultiPolygon): Polygon {
   return { type: 'Polygon', coordinates: largest }
 }
 
+// Builds a search URL for ONE simple polygon. Idealista's `shape` accepts a single
+// hole-free outer ring only — multiple polygons (400) and holes (silently filled) are not
+// supported, so exclusions are handled upstream by splitting the area into simple polygons
+// (services/idealistaAreas.ts).
 export function buildIdealistaUrl(polygon: Polygon | MultiPolygon): string {
   const { coordinates } = largestPolygon(polygon)
   // GeoJSON ring is [lng, lat]; polyline spec requires [lat, lng]

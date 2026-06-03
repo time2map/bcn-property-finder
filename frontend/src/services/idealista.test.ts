@@ -81,13 +81,34 @@ describe('buildIdealistaUrl', () => {
     expect(buildIdealistaUrl(POLYGON)).toBe(buildIdealistaUrl(POLYGON))
   })
 
-  it('accepts MultiPolygon and uses the largest sub-polygon', () => {
+  // Counts the number of `(ring)` groups inside the outer `( … )` wrapper.
+  function ringGroups(url: string): number {
+    const shape = decodeURIComponent(url.split('shape=')[1])
+    return (shape.match(/\(/g)!.length) - 1 // minus the outer opening paren
+  }
+
+  it('encodes a single ring group for a simple Polygon', () => {
+    expect(ringGroups(buildIdealistaUrl(POLYGON))).toBe(1)
+  })
+
+  it('ignores holes — encodes only the outer ring (Idealista cannot do holes)', () => {
+    const withHole = {
+      type: 'Polygon' as const,
+      coordinates: [
+        [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], // outer
+        [[3, 3], [3, 5], [5, 5], [5, 3], [3, 3]],     // hole (dropped)
+      ],
+    }
+    expect(ringGroups(buildIdealistaUrl(withHole))).toBe(1)
+  })
+
+  it('accepts MultiPolygon and uses the largest sub-polygon (single ring)', () => {
     const url = buildIdealistaUrl(MULTIPOLYGON)
     expect(url).toMatch(/^https:\/\/www\.idealista\.com\/areas\/venta-viviendas\/mapa-google\?shape=/)
+    expect(ringGroups(url)).toBe(1)
   })
 
   it('MultiPolygon and its largest Polygon produce the same URL', () => {
-    const largest = largestPolygon(MULTIPOLYGON)
-    expect(buildIdealistaUrl(MULTIPOLYGON)).toBe(buildIdealistaUrl(largest))
+    expect(buildIdealistaUrl(MULTIPOLYGON)).toBe(buildIdealistaUrl(largestPolygon(MULTIPOLYGON)))
   })
 })

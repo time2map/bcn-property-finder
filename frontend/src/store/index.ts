@@ -9,6 +9,14 @@ export interface AppState {
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
   mapAttribution: string
+  // Index of the export area being hovered (in panel or on map), for cross-highlighting. null = none.
+  hoveredAreaIndex: number | null
+  // Idealista export areas — computed on demand (button click), not reactively.
+  // Both arrays are parallel (same length).
+  idealistaAreas: Polygon[]
+  idealistaUrls: string[]
+  // Whether the export area zones are shown on the map (user can toggle while links stay).
+  idealistaZonesVisible: boolean
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setZoom: (zoom: number) => void
@@ -16,6 +24,10 @@ export interface AppState {
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
   setMapAttribution: (attribution: string) => void
+  setHoveredAreaIndex: (index: number | null) => void
+  setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
+  clearIdealistaAreas: () => void
+  setIdealistaZonesVisible: (visible: boolean) => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -105,5 +117,15 @@ export const useStore = create<AppState>((set) => {
     },
     mapAttribution: '',
     setMapAttribution: (mapAttribution) => set({ mapAttribution }),
+    hoveredAreaIndex: null,
+    setHoveredAreaIndex: (hoveredAreaIndex) => set({ hoveredAreaIndex }),
+    idealistaAreas: [],
+    idealistaUrls: [],
+    idealistaZonesVisible: true,
+    setIdealistaAreas: (idealistaAreas, idealistaUrls) =>
+      set({ idealistaAreas, idealistaUrls, idealistaZonesVisible: true }),
+    clearIdealistaAreas: () =>
+      set({ idealistaAreas: [], idealistaUrls: [], hoveredAreaIndex: null }),
+    setIdealistaZonesVisible: (idealistaZonesVisible) => set({ idealistaZonesVisible }),
   }
 })

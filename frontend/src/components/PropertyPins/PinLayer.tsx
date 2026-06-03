@@ -3,6 +3,8 @@ import maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { usePinsStore } from '../../store/pinsStore'
 import { useStore } from '../../store'
+import { useExclusionsStore } from '../../store/exclusionsStore'
+import { isPointInExclusions } from '../../services/exclusions'
 import { calcAnalytics } from '../../hooks/usePinAnalytics'
 import type { PropertyPin } from '../../types/pins'
 
@@ -35,8 +37,11 @@ function renderMarkerContent(
   index: number | undefined,
   photo: string | undefined,
   selected: boolean,
+  excluded: boolean,
 ) {
   el.innerHTML = ''
+  // Dim pins that fall inside a no-go zone (kept for comparison, visually de-emphasised).
+  el.style.opacity = excluded ? '0.4' : '1'
   if (photo) {
     const img = document.createElement('img')
     img.className = 'pin-marker__thumb'
@@ -66,6 +71,7 @@ function createMarkerEl(): HTMLElement {
 export function PinLayer() {
   const map = useMap()
   const { pins, selectedPinId, setSelectedPin } = usePinsStore()
+  const zones = useExclusionsStore((s) => s.zones)
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
 
   useEffect(() => {
@@ -87,19 +93,20 @@ export function PinLayer() {
       const rank = i + 1
       const index = pin.analytics?.travelIndex
       const photo = pin.photos?.[0]
+      const excluded = isPointInExclusions(pin.coordinates, zones)
       const existing = markersRef.current.get(pin.id)
 
       if (existing) {
         existing.setLngLat(pin.coordinates)
         const el = existing.getElement()
         const hadPhoto = el.querySelector('.pin-marker__thumb') !== null
-        renderMarkerContent(el, rank, index, photo, pin.id === selectedPinId)
+        renderMarkerContent(el, rank, index, photo, pin.id === selectedPinId, excluded)
         if (!!photo !== hadPhoto) {
           existing.setOffset(photo ? [0, PHOTO_OFFSET_Y] : [0, 0])
         }
       } else {
         const el = createMarkerEl()
-        renderMarkerContent(el, rank, index, photo, pin.id === selectedPinId)
+        renderMarkerContent(el, rank, index, photo, pin.id === selectedPinId, excluded)
 
         const marker = new maplibregl.Marker({
           element: el,
@@ -130,7 +137,7 @@ export function PinLayer() {
         markersRef.current.set(pin.id, marker)
       }
     })
-  }, [map, pins, selectedPinId, setSelectedPin])
+  }, [map, pins, selectedPinId, setSelectedPin, zones])
 
   // Cleanup on unmount
   useEffect(() => {

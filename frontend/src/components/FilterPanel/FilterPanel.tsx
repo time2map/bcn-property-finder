@@ -3,6 +3,7 @@ import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Text } from '@mant
 import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
+import { ExclusionControls } from './ExclusionControls'
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -109,6 +110,9 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
         </div>
 
         <ExportButton isLoading={isLoading} />
+
+        <Divider />
+        <ExclusionControls />
 
         <Divider />
         <Switch
