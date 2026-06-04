@@ -64,6 +64,8 @@ bcn-property-finder/
 ├── scripts/
 │   ├── prepare-noise-data.sh   # GPKG → GeoJSON → PMTiles pipeline
 │   ├── prepare-areas-data.sh   # districtes+barris+AMB municipis → areas.geojson
+│   ├── prepare-livability-grid.py # H3 grid + walkability + noise → livability-h3.geojson
+│   ├── extract_poi.py          # OSM PBF → barcelona_poi.pmtiles (walkability POIs)
 │   └── _amb_muni_url.py        # builds the AMB municipalities export URL
 └── docs/
 ```
@@ -78,7 +80,8 @@ src/
 │   ├── Map/             # MapLibre canvas; drag-to-move workplace marker, click-to-place pins
 │   ├── IsochroneLayer/  # GeoJSON fill + outer mask layer
 │   ├── NoiseLayer/      # PMTiles vector fill layer (Lden) + legend + info modal
-│   ├── FilterPanel/     # travel time slider + layer toggles + ExclusionControls
+│   ├── LivabilityLayer/ # H3 grid choropleth (walkability ± noise) + ramp + legend
+│   ├── FilterPanel/     # travel time slider + layer toggles + Exclusion/Livability controls
 │   ├── ExportButton/    # builds Idealista URL from the effective area
 │   ├── ExclusionLayer/  # red fill + outline for no-go zones
 │   ├── ExclusionDraw/   # terra-draw integration (polygon / freehand)
@@ -90,7 +93,7 @@ src/
 │   ├── useEffectiveArea.ts  # isochrone − exclusion zones (shared by mask + export)
 │   └── useUrlState.ts       # syncs Zustand store ↔ URL search params
 ├── store/
-│   ├── index.ts            # Zustand: workplace, minutes, resultPolygon, noiseLayerVisible
+│   ├── index.ts            # Zustand: workplace, minutes, resultPolygon, noise + livability layer state
 │   ├── pinsStore.ts        # Zustand: apartment pins, localStorage persistence
 │   └── exclusionsStore.ts  # Zustand: no-go zones + drawingMode, localStorage persistence
 ├── types/
@@ -108,6 +111,9 @@ src/
     │   ├── noiseData.ts        # PMTiles tile fetch at z=14 + point-in-polygon → Lden
     │   ├── noiseScore.ts       # noiseScore(lden) = clamp(0,100,(75−lden)/30×100)
     │   └── pmtilesProtocol.ts  # registers pmtiles:// protocol with MapLibre (once at startup)
+    ├── livability/
+    │   ├── livabilityScore.ts  # cellNoiseScore + livabilityIndex (walk, or walk+noise composite)
+    │   └── livabilityData.ts   # loads livability-h3.geojson; withIndex(grid, considerNoise)
     └── vision/
         ├── visionService.ts      # provider-agnostic entry point
         ├── anthropicProvider.ts  # Claude Vision via Anthropic API
@@ -129,6 +135,30 @@ src/
 - Score formula: `clamp(0, 100, round((75 − lden) / 30 × 100))`
 
 **Composite score**: `round((travelIndex × W_travel + noiseScore × W_noise) / (W_travel + W_noise))`. Weights are ENV vars (`VITE_COMPOSITE_WEIGHT_TRAVEL`, `VITE_COMPOSITE_WEIGHT_NOISE`). If noise data is unavailable for a pin, falls back to `travelIndex` only.
+
+## Livability index map (feature 017)
+
+A city-wide **exploration layer**: an H3 hex grid coloured by livability, visible before any pin is
+dropped. Walkability and noise are **workplace-independent**, so the whole grid is precomputed
+offline and served as static data — no backend, no per-cell runtime computation.
+
+- **Data**: `frontend/public/data/livability-h3.geojson` — one hexagon per H3 cell (res 9 ≈ 170 m)
+  covering BCN + AMB (cells filled from `areas.geojson`). Each cell carries
+  `{ h3, walk, lden }`: `walk` = walkability index 0–100 (distance-decay + per-category saturation
+  over nearby POIs at the cell centroid — same formula as the per-pin score, feature 010); `lden` =
+  representative noise level (dB) or `null`.
+- **Precompute** (`scripts/prepare-livability-grid.py`): fills H3 cells over the coverage union,
+  scores walkability from the OSM PBF (reusing `extract_poi.py` config) via a shapely STRtree, and
+  reads `lden` per cell from the noise GPKG/GeoJSON (reusing the feature-009 `Rang`→`lden` parsing).
+  Needs `pip install h3 shapely` + `ogr2ogr`.
+- **Client**: `services/livability/` loads the grid and computes per-cell `index` =
+  walkability only, or a weighted **walk + noise composite** when "Consider noise" is on (reusing the
+  composite weights). `LivabilityLayer` renders a MapLibre GeoJSON fill choropleth (RdYlGn ramp) and
+  recomputes `index` via `setData` when the toggle flips; a hover popup shows the per-factor
+  breakdown. `FilterPanel/LivabilityControls` hosts the layer toggle + "Consider noise" in an
+  **extensible** checkbox group (future per-hub accessibility layers — feature 018 — slot in here).
+- **State**: `livabilityVisible`, `livabilityConsiderNoise` in the Zustand store (localStorage).
+- **ENV**: `VITE_LIVABILITY_H3_RES` (default 9), `VITE_LIVABILITY_COVERAGE` (default `bcn-amb`).
 
 ## Exclusion ("no-go") zones
 

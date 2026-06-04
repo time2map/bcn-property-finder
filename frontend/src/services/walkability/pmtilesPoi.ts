@@ -2,7 +2,15 @@ import { PMTiles } from 'pmtiles'
 import { VectorTile } from '@mapbox/vector-tile'
 import Pbf from 'pbf'
 import { SERVICE_CATEGORIES } from './serviceCategories'
+import { computeWalkabilityScore } from './walkabilityScore'
 import type { ServiceResult } from './walkabilityTypes'
+
+export interface NearbyResult {
+  /** Top-N nearest objects per category, for map markers + the tooltip. */
+  services: ServiceResult[]
+  /** Walkability score 0–100 (decay + saturation over ALL objects in range). */
+  score: number
+}
 
 const PMTILES_URL = '/barcelona_poi.pmtiles'
 const ZOOM = 14
@@ -46,7 +54,7 @@ interface RawFeature {
   dist: number
 }
 
-export async function fetchNearbyServices(lng: number, lat: number): Promise<ServiceResult[]> {
+export async function fetchNearbyServices(lng: number, lat: number): Promise<NearbyResult> {
   const deltaLat = SEARCH_RADIUS_M / 111320
   const deltaLng = SEARCH_RADIUS_M / (111320 * Math.cos((lat * Math.PI) / 180))
 
@@ -79,13 +87,16 @@ export async function fetchNearbyServices(lng: number, lat: number): Promise<Ser
   }
 
   const results: ServiceResult[] = []
+  const distancesByCategory = new Map<string, number[]>()
 
   for (const cat of SERVICE_CATEGORIES) {
-    const matching = raw
-      .filter((f) => cat.matches(f.props))
-      .sort((a, b) => a.dist - b.dist)
-      .slice(0, cat.topN)
-      .map((f) => ({
+    const matching = raw.filter((f) => cat.matches(f.props)).sort((a, b) => a.dist - b.dist)
+
+    // Score uses ALL matching objects in range; markers use only the nearest topN.
+    distancesByCategory.set(cat.id, matching.map((f) => f.dist))
+
+    results.push(
+      ...matching.slice(0, cat.topN).map((f) => ({
         categoryId: cat.id,
         label: cat.label,
         emoji: cat.emoji,
@@ -94,10 +105,9 @@ export async function fetchNearbyServices(lng: number, lat: number): Promise<Ser
         lon: f.lng,
         distanceMeters: f.dist,
         walkingMinutes: estimateWalkingMinutes(f.dist),
-      }))
-
-    results.push(...matching)
+      })),
+    )
   }
 
-  return results
+  return { services: results, score: computeWalkabilityScore(distancesByCategory) }
 }

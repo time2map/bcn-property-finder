@@ -20,6 +20,10 @@ backend/__pycache__/
 backend/.venv/
 backend/.env
 
+# Scripts (livability grid precompute venv)
+.venv-livability/
+scripts/__pycache__/
+
 # OTP2 data (GTFS, OSM, built graph — large binary files)
 backend/otp/data/*.zip
 backend/otp/data/*.pbf

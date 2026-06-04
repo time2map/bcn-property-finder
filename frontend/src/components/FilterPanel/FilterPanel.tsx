@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { ExclusionControls } from './ExclusionControls'
+import { LivabilityControls } from './LivabilityControls'
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -63,9 +64,10 @@ function IsochroneInfoModal({ opened, onClose }: { opened: boolean; onClose: () 
         </Table.Tbody>
       </Table>
       <Text size="xs" c="dimmed" mt={6}>
-        Walkability (0–100) measures how many of 8 essential service categories
-        (supermarket, pharmacy, park, school, kindergarten, clinic, metro, cafe)
-        are reachable within a ~15-minute walk. Select a pin to see service markers on the map.
+        Walkability (0–100) rewards how many everyday services (supermarket, pharmacy, park,
+        school, kindergarten, clinic, metro, cafe, restaurant, beach) are nearby and how close —
+        closer and more numerous score higher, with diminishing returns per category. Select a pin
+        to see the nearest service markers on the map.
       </Text>
     </Modal>
   )
@@ -122,6 +124,9 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
         />
         <NoiseLegend />
+
+        <Divider />
+        <LivabilityControls />
 
         {mapAttribution && (
           <>

@@ -64,11 +64,23 @@ walkingMinutes = haversine(meters) × 1.3 / 80
 - `1.3` — urban detour factor
 - `80 m/min` — average walking speed (4.8 km/h)
 
-**Walkability score** (0–100):
+**Walkability score** (0–100) — distance-decay + per-category saturation (updated; replaces the
+original binary "category covered within 1200 m" rule, which saturated to green across dense
+Barcelona and ignored how many / how close services were):
 ```
-score = (categories_with_≥1_poi_within_1200m / 10) × 100
+access_c = Σ exp(-d_i / D0)        over objects of category c with d_i ≤ RMAX  (haversine, metres)
+sub_c    = 1 − exp(-access_c / S_c)                                            (0–1, diminishing returns)
+score    = round( 100 × Σ (w_c · sub_c) / Σ w_c )
 ```
-1200m haversine ≈ 15 min at 80 m/min with 1.3 detour.
+- `D0` = `VITE_WALK_DECAY_M` (default 400 m) — closer objects count more; an object at 400 m ≈ 0.37.
+- `RMAX` = `VITE_WALK_RMAX_M` (default 1500 m) — hard cutoff.
+- `S_c` (`saturation`) — per category in `serviceCategories.ts`: essentials saturate fast (one or
+  two nearby ≈ enough → small S), amenity richness saturates slowly (more & varied is better →
+  large S, e.g. cafe/restaurant = 3.0).
+- `w_c` (`weight`) — per-category importance (all 1 by default).
+
+The score is computed from **all** objects in range (`pmtilesPoi.fetchNearbyServices` returns
+`{ services, score }`; `services` is still the top-N nearest per category, for map markers).
 
 ## Data source
 

@@ -8,6 +8,9 @@ export interface AppState {
   mapCenter: [number, number]
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
+  // Livability index layer (H3 grid) — feature 017
+  livabilityVisible: boolean
+  livabilityConsiderNoise: boolean
   mapAttribution: string
   // Index of the export area being hovered (in panel or on map), for cross-highlighting. null = none.
   hoveredAreaIndex: number | null
@@ -23,6 +26,8 @@ export interface AppState {
   setMapCenter: (center: [number, number]) => void
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
+  setLivabilityVisible: (visible: boolean) => void
+  setLivabilityConsiderNoise: (consider: boolean) => void
   setMapAttribution: (attribution: string) => void
   setHoveredAreaIndex: (index: number | null) => void
   setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
@@ -52,6 +57,8 @@ function readIsochroneCache(workplace: [number, number], minutes: number): Polyg
 const DEFAULT_ZOOM = 12
 const WORKPLACE_KEY = 'bcn_workplace'
 const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
+const LIVABILITY_VISIBLE_KEY = 'bcn_livability_visible'
+const LIVABILITY_NOISE_KEY = 'bcn_livability_consider_noise'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -89,6 +96,14 @@ function loadNoiseLayerVisible(): boolean {
   }
 }
 
+function loadBoolKey(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export const useStore = create<AppState>((set) => {
   const { minutes, zoom, mapCenter } = readUrlParams()
   const workplace = readWorkplaceFromStorage()
@@ -100,6 +115,8 @@ export const useStore = create<AppState>((set) => {
     // Restored synchronously from localStorage — no flash of empty state on reload
     resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
     noiseLayerVisible: loadNoiseLayerVisible(),
+    livabilityVisible: loadBoolKey(LIVABILITY_VISIBLE_KEY),
+    livabilityConsiderNoise: loadBoolKey(LIVABILITY_NOISE_KEY),
     setWorkplace: (workplace) => {
       try {
         if (workplace) localStorage.setItem(WORKPLACE_KEY, JSON.stringify(workplace))
@@ -114,6 +131,14 @@ export const useStore = create<AppState>((set) => {
     setNoiseLayerVisible: (visible) => {
       try { localStorage.setItem(NOISE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
       set({ noiseLayerVisible: visible })
+    },
+    setLivabilityVisible: (visible) => {
+      try { localStorage.setItem(LIVABILITY_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
+      set({ livabilityVisible: visible })
+    },
+    setLivabilityConsiderNoise: (consider) => {
+      try { localStorage.setItem(LIVABILITY_NOISE_KEY, String(consider)) } catch { /* ignore */ }
+      set({ livabilityConsiderNoise: consider })
     },
     mapAttribution: '',
     setMapAttribution: (mapAttribution) => set({ mapAttribution }),

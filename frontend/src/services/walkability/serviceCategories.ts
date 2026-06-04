@@ -1,11 +1,16 @@
 import type { ServiceCategory } from './walkabilityTypes'
 
+// `saturation` (S) tunes how quickly a category satisfies. Essentials (you only need one or two
+// nearby) saturate fast → small S. Amenity richness (more & more varied is genuinely better)
+// saturates slowly → large S. See walkabilityScore.ts for the decay+saturation formula.
 export const SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'supermarket',
     label: 'Supermarket',
     emoji: '🏪',
     topN: 3,
+    saturation: 1.0,
+    weight: 1,
     matches: (p) => p.shop === 'supermarket',
   },
   {
@@ -13,6 +18,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Pharmacy',
     emoji: '💊',
     topN: 1,
+    saturation: 0.8,
+    weight: 1,
     matches: (p) => p.amenity === 'pharmacy',
   },
   {
@@ -20,6 +27,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Park',
     emoji: '🌿',
     topN: 3,
+    saturation: 1.2,
+    weight: 1,
     matches: (p) => p.leisure === 'park',
   },
   {
@@ -27,6 +36,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'School',
     emoji: '🎓',
     topN: 2,
+    saturation: 1.0,
+    weight: 1,
     matches: (p) => p.amenity === 'school',
   },
   {
@@ -34,6 +45,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Kindergarten',
     emoji: '🧸',
     topN: 2,
+    saturation: 1.0,
+    weight: 1,
     matches: (p) => p.amenity === 'kindergarten',
   },
   {
@@ -41,6 +54,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Clinic',
     emoji: '🏥',
     topN: 1,
+    saturation: 0.8,
+    weight: 1,
     matches: (p) => p.amenity === 'doctors' || p.amenity === 'clinic',
   },
   {
@@ -48,6 +63,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Metro',
     emoji: '🚇',
     topN: 1,
+    saturation: 0.7,
+    weight: 1,
     // Use station=subway only — subway_entrance gives one node per physical door (3-5 per station)
     matches: (p) => p.station === 'subway',
   },
@@ -56,6 +73,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Cafe',
     emoji: '☕',
     topN: 1,
+    saturation: 3.0,
+    weight: 1,
     matches: (p) => p.amenity === 'cafe',
   },
   {
@@ -63,6 +82,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Restaurant',
     emoji: '🍽️',
     topN: 3,
+    saturation: 3.0,
+    weight: 1,
     matches: (p) => p.amenity === 'restaurant',
   },
   {
@@ -70,6 +91,8 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
     label: 'Beach',
     emoji: '🏖️',
     topN: 1,
+    saturation: 0.6,
+    weight: 1,
     matches: (p) => p.natural === 'beach',
   },
 ]

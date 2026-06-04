@@ -6,7 +6,6 @@ import { computeTravelIndex } from '../services/analytics'
 import { getNoiseLden } from '../services/noise/noiseData'
 import { noiseScore } from '../services/noise/noiseScore'
 import { fetchNearbyServices } from '../services/walkability/pmtilesPoi'
-import { computeWalkabilityScore } from '../services/walkability/walkabilityScore'
 import type { PinAnalytics } from '../types/pins'
 
 async function calcAnalytics(
@@ -23,7 +22,7 @@ async function calcAnalytics(
   ])
 
   const noiseLden = ldenRes.status === 'fulfilled' ? ldenRes.value : undefined
-  const walkabilityServices = poiRes.status === 'fulfilled' ? poiRes.value : undefined
+  const poi = poiRes.status === 'fulfilled' ? poiRes.value : undefined
 
   const analytics: PinAnalytics = {
     walkingMinutes: walkRes.status === 'fulfilled' ? walkRes.value / 60 : undefined,
@@ -32,10 +31,8 @@ async function calcAnalytics(
     publicTransportMinutes: ptRes.status === 'fulfilled' ? ptRes.value / 60 : undefined,
     noiseLden,
     noiseScore: noiseLden !== undefined ? noiseScore(noiseLden) : undefined,
-    walkabilityServices,
-    walkabilityScore: walkabilityServices !== undefined
-      ? computeWalkabilityScore(walkabilityServices)
-      : undefined,
+    walkabilityServices: poi?.services,
+    walkabilityScore: poi?.score,
     calculatedAt: new Date().toISOString(),
   }
   analytics.travelIndex = computeTravelIndex(analytics)
