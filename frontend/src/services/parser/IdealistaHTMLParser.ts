@@ -174,6 +174,14 @@ export class IdealistaHTMLParser {
   }
 
   private parsePhotos(): string[] {
+    for (const sizeTag of ['WEB_DETAIL-XL-L', 'WEB_DETAIL-M-L']) {
+      const photos = this.parsePhotosBySize(sizeTag)
+      if (photos.length > 0) return photos
+    }
+    return []
+  }
+
+  private parsePhotosBySize(sizeTag: string): string[] {
     const seen = new Set<string>()
     const result: string[] = []
 
@@ -181,7 +189,7 @@ export class IdealistaHTMLParser {
       const srcset = el.getAttribute('srcset') ?? ''
       for (const part of srcset.split(',')) {
         const url = part.trim().split(/\s+/)[0]
-        if (url.includes('WEB_DETAIL-XL-L') && !seen.has(url)) {
+        if (url.includes(sizeTag) && !seen.has(url)) {
           seen.add(url)
           result.push(url)
         }
@@ -189,8 +197,9 @@ export class IdealistaHTMLParser {
     })
 
     if (result.length === 0) {
+      const escapedTag = sizeTag.replace(/-/g, '\\-')
       const matches = this.doc.body.innerHTML.matchAll(
-        /https:\/\/img[^"'\s]*WEB_DETAIL-XL-L[^"'\s]*/g,
+        new RegExp(`https://img[^"'\\s]*${escapedTag}[^"'\\s]*`, 'g'),
       )
       for (const m of matches) {
         if (!seen.has(m[0])) { seen.add(m[0]); result.push(m[0]) }

@@ -10,6 +10,13 @@ const FIXTURE_PATH = path.resolve(
 )
 const fixtureHtml = fs.readFileSync(FIXTURE_PATH, 'utf-8')
 
+const HOSPITALET_FIXTURE_PATH = path.resolve(
+  __dirname,
+  '../../../..',
+  "data/Flat _ apartment for sale in Riera de la Creu 54, 56, Centre, Hospitalet de Llobregat — idealista.html",
+)
+const hospitaleHtml = fs.readFileSync(HOSPITALET_FIXTURE_PATH, 'utf-8')
+
 describe('IdealistaHTMLParser — fixture', () => {
   const result = new IdealistaHTMLParser(fixtureHtml).parse()
 
@@ -95,6 +102,27 @@ describe('IdealistaHTMLParser — fixture', () => {
   it('extracts photos (XL resolution)', () => {
     expect(result.photos.length).toBeGreaterThan(5)
     expect(result.photos.every(u => u.includes('WEB_DETAIL-XL-L'))).toBe(true)
+  })
+
+  it('photos are unique', () => {
+    expect(new Set(result.photos).size).toBe(result.photos.length)
+  })
+})
+
+describe('IdealistaHTMLParser — Hospitalet fixture (M-L photos)', () => {
+  const result = new IdealistaHTMLParser(hospitaleHtml).parse()
+
+  it('extracts city as Hospitalet de Llobregat', () => {
+    expect(result.city).toBe('Hospitalet de Llobregat')
+  })
+
+  it('extracts street', () => {
+    expect(result.street).toMatch(/Riera de la Creu/i)
+  })
+
+  it('extracts photos via WEB_DETAIL-M-L fallback', () => {
+    expect(result.photos.length).toBeGreaterThan(0)
+    expect(result.photos.every(u => u.includes('WEB_DETAIL-M-L'))).toBe(true)
   })
 
   it('photos are unique', () => {

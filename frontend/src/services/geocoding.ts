@@ -1,71 +1,30 @@
 import buffer from '@turf/buffer'
 import type { MultiLineString, Polygon, MultiPolygon } from 'geojson'
 
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
+const GEOAPIFY_URL = 'https://api.geoapify.com/v1/geocode/search'
+const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY as string
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter'
 
-// Barcelona bounding box for Overpass queries: south,west,north,east
-const BCN_BBOX = '41.30,2.05,41.48,2.35'
+// Barcelona metro area bounding box: lon_min,lat_min,lon_max,lat_max
+const BCN_METRO_BBOX = '1.9,41.2,2.4,41.6'
 
-// Maps Spanish street-type prefixes to Catalan — Barcelona OSM data uses Catalan names.
-const SPANISH_TO_CATALAN: [RegExp, string][] = [
-  [/^Calle del\s+/i, 'Carrer del '],
-  [/^Calle de la\s+/i, 'Carrer de la '],
-  [/^Calle de los\s+/i, 'Carrer dels '],
-  [/^Calle de\s+/i, 'Carrer de '],
-  [/^Calle\s+/i, 'Carrer '],
-  [/^Avenida del\s+/i, 'Avinguda del '],
-  [/^Avenida de la\s+/i, 'Avinguda de la '],
-  [/^Avenida de\s+/i, 'Avinguda de '],
-  [/^Avenida\s+/i, 'Avinguda '],
-  [/^Plaza de la\s+/i, 'Plaça de la '],
-  [/^Plaza de\s+/i, 'Plaça de '],
-  [/^Plaza\s+/i, 'Plaça '],
-  [/^Paseo de\s+/i, 'Passeig de '],
-  [/^Paseo\s+/i, 'Passeig '],
-  [/^Gran Vía\s*/i, 'Gran Via '],
-]
+// Barcelona bounding box for Overpass queries: south,west,north,east
+const BCN_BBOX = '41.20,1.90,41.60,2.40'
 
 export interface GeocodedLocation {
   coords: [number, number]
   accuracyPolygon?: Polygon | MultiPolygon
 }
 
-function toBarcelonaCatalan(street: string): string {
-  for (const [pattern, replacement] of SPANISH_TO_CATALAN) {
-    if (pattern.test(street)) return street.replace(pattern, replacement)
-  }
-  return street
-}
-
-function ensureBarcelona(s: string): string {
-  return s.toLowerCase().includes('barcelona') ? s : `${s}, Barcelona`
-}
-
-// Returns a ranked list of queries to try, from most to least specific.
+// Returns ranked queries: full address first, then street-only fallback.
 function buildQueries(address: string): string[] {
-  const queries: string[] = []
-  const withBcn = ensureBarcelona(address)
-  queries.push(withBcn)
-
-  // If address has multiple comma-separated parts, try just the street segment.
+  const queries = [address.trim()]
   const street = address.split(',')[0].trim()
-  if (street !== address.trim()) {
-    queries.push(ensureBarcelona(street))
-  }
-
-  // Try Catalan street-type translation for the street segment.
-  const catalan = toBarcelonaCatalan(street)
-  if (catalan !== street) {
-    queries.push(ensureBarcelona(catalan))
-  }
-
-  // Deduplicate while preserving order.
+  if (street !== address.trim()) queries.push(street)
   return [...new Set(queries)]
 }
 
-// Fetches ALL way segments for a named street from Overpass API within Barcelona.
-// Nominatim returns only one OSM way (a short segment); Overpass gives the full street.
+// Fetches ALL way segments for a named street from Overpass API within the Barcelona metro area.
 async function fetchFullStreetGeometry(streetName: string): Promise<MultiLineString | null> {
   const query = `[out:json][timeout:15];way["name"="${streetName}"](${BCN_BBOX});out geom;`
   try {
@@ -103,20 +62,27 @@ function bufferLine(line: MultiLineString): Polygon | MultiPolygon | undefined {
   return undefined
 }
 
-async function tryNominatim(query: string): Promise<GeocodedLocation | null> {
-  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(query)}&format=json&limit=1`
-  const res = await fetch(url, {
-    headers: { 'Accept-Language': 'en', 'User-Agent': 'bcn-property-finder/1.0' },
+async function tryGeoapify(query: string): Promise<GeocodedLocation | null> {
+  const params = new URLSearchParams({
+    text: query,
+    filter: `rect:${BCN_METRO_BBOX}`,
+    lang: 'en',
+    limit: '1',
+    apiKey: GEOAPIFY_API_KEY ?? '',
   })
+  const res = await fetch(`${GEOAPIFY_URL}?${params}`)
   if (!res.ok) return null
-  const results = await res.json()
-  if (!Array.isArray(results) || results.length === 0) return null
-  const { lon, lat, addresstype, name } = results[0]
-  const coords: [number, number] = [parseFloat(lon), parseFloat(lat)]
+  const data = await res.json()
+  const feature = data.features?.[0]
+  if (!feature) return null
+
+  const [lon, lat] = feature.geometry.coordinates as [number, number]
+  const coords: [number, number] = [lon, lat]
 
   let accuracyPolygon: Polygon | MultiPolygon | undefined
-  if (addresstype === 'road' && name) {
-    const fullGeometry = await fetchFullStreetGeometry(name)
+  const { result_type, street } = feature.properties as { result_type: string; street?: string }
+  if (result_type === 'street' && street) {
+    const fullGeometry = await fetchFullStreetGeometry(street)
     if (fullGeometry) accuracyPolygon = bufferLine(fullGeometry)
   }
 
@@ -125,10 +91,9 @@ async function tryNominatim(query: string): Promise<GeocodedLocation | null> {
 
 export async function geocodeAddress(address: string | null | undefined): Promise<GeocodedLocation | null> {
   if (!address) return null
-
   try {
     for (const query of buildQueries(address)) {
-      const result = await tryNominatim(query)
+      const result = await tryGeoapify(query)
       if (result) return result
     }
     return null
@@ -137,4 +102,4 @@ export async function geocodeAddress(address: string | null | undefined): Promis
   }
 }
 
-export { buildQueries, toBarcelonaCatalan }
+export { buildQueries }
