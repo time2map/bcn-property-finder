@@ -5,6 +5,7 @@ import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { ExclusionControls } from './ExclusionControls'
 import { LivabilityControls } from './LivabilityControls'
+import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -124,6 +125,9 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
         />
         <NoiseLegend />
+
+        <Divider />
+        <IdealistaPricesControls />
 
         <Divider />
         <LivabilityControls />

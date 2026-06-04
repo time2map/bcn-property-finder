@@ -786,3 +786,59 @@ html, body, #root {
   padding-top: 4px;
   margin-top: 2px;
 }
+
+/* Idealista price layer legend (feature 019) */
+.price-legend__swatches {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+}
+
+.price-legend__swatch {
+  flex: 1;
+  border-radius: 2px;
+}
+
+.price-legend__labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+
+/* Idealista price popup (feature 019) */
+.price-popup-wrapper .maplibregl-popup-content {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.price-popup-wrapper .maplibregl-popup-tip {
+  display: none;
+}
+.price-popup-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.12);
+  border-radius: 5px;
+  padding: 5px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.price-popup-link:hover {
+  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+}
+.price-popup-link--hex {
+  gap: 7px;
+}
+.price-popup-ext {
+  font-size: 10px;
+  color: #9970ab;
+  font-weight: 400;
+}

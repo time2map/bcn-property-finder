@@ -20,6 +20,11 @@ export interface AppState {
   idealistaUrls: string[]
   // Whether the export area zones are shown on the map (user can toggle while links stay).
   idealistaZonesVisible: boolean
+  // Idealista price heatmap layer — feature 019
+  idealistaPricesVisible: boolean
+  idealistaPriceRange: [number, number]
+  idealistaPriceBounds: [number, number] | null
+  idealistaPricesMode: 'dots' | 'index'
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setZoom: (zoom: number) => void
@@ -33,6 +38,10 @@ export interface AppState {
   setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
   clearIdealistaAreas: () => void
   setIdealistaZonesVisible: (visible: boolean) => void
+  setIdealistaPricesVisible: (visible: boolean) => void
+  setIdealistaPriceRange: (range: [number, number]) => void
+  setIdealistaPriceBounds: (bounds: [number, number]) => void
+  setIdealistaPricesMode: (mode: 'dots' | 'index') => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -152,5 +161,13 @@ export const useStore = create<AppState>((set) => {
     clearIdealistaAreas: () =>
       set({ idealistaAreas: [], idealistaUrls: [], hoveredAreaIndex: null }),
     setIdealistaZonesVisible: (idealistaZonesVisible) => set({ idealistaZonesVisible }),
+    idealistaPricesVisible: false,
+    idealistaPriceRange: [200_000, 600_000],
+    idealistaPriceBounds: null,
+    idealistaPricesMode: 'dots',
+    setIdealistaPricesVisible: (idealistaPricesVisible) => set({ idealistaPricesVisible }),
+    setIdealistaPriceRange: (idealistaPriceRange) => set({ idealistaPriceRange }),
+    setIdealistaPriceBounds: (idealistaPriceBounds) => set({ idealistaPriceBounds }),
+    setIdealistaPricesMode: (idealistaPricesMode) => set({ idealistaPricesMode }),
   }
 })

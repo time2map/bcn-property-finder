@@ -17,6 +17,10 @@ vi.mock('../NoiseLayer/NoiseLegend', () => ({
   NoiseLegend: () => <div data-testid="noise-legend" />,
 }))
 
+vi.mock('../IdealistaPricesLayer/IdealistaPricesControls', () => ({
+  IdealistaPricesControls: () => <div data-testid="idealista-prices-controls" />,
+}))
+
 vi.mock('../ExportButton/ExportButton', () => ({
   ExportButton: () => <button>Export</button>,
 }))

@@ -26,6 +26,7 @@
     "@turf/simplify": "^7.3.5",
     "@turf/union": "^7.3.5",
     "@types/geojson": "^7946.0.16",
+    "h3-js": "^4.4.0",
     "maplibre-gl": "^5.24.0",
     "pbf": "^4.0.2",
     "pmtiles": "^4.4.1",

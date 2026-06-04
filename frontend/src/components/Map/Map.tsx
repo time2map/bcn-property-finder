@@ -16,6 +16,7 @@ import { PoiLayer } from '../PoiLayer/PoiLayer'
 import { ExclusionLayer } from '../ExclusionLayer/ExclusionLayer'
 import { ExclusionDraw } from '../ExclusionDraw/ExclusionDraw'
 import { ExportAreasLayer } from '../ExportAreasLayer/ExportAreasLayer'
+import { IdealistaPricesLayer } from '../IdealistaPricesLayer/IdealistaPricesLayer'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
@@ -135,6 +136,7 @@ export function Map() {
       <PoiLayer />
       <NoiseLayer />
       <LivabilityLayer />
+      <IdealistaPricesLayer />
       <IsochroneLayer />
       <ExportAreasLayer />
       <ExclusionLayer />
