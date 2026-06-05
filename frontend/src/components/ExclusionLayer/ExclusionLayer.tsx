@@ -18,28 +18,28 @@ function buildSourceData(zones: ExclusionZone[]): FeatureCollection {
   return { type: 'FeatureCollection', features }
 }
 
-/** Renders all exclusion ("no-go") zones as a red semi-transparent fill + outline. */
+/** Renders all exclusion ("no-go") zones as a dark semi-transparent fill + outline. */
 export function ExclusionLayer() {
   const map = useMap()
   const zones = useExclusionsStore((s) => s.zones)
+  const exclusionsVisible = useExclusionsStore((s) => s.exclusionsVisible)
 
   useEffect(() => {
     if (!map) return
 
     if (!map.getSource(SOURCE_ID)) {
-      // Start empty; the data effect below fills it (and keeps it in sync with zones).
       map.addSource(SOURCE_ID, { type: 'geojson', data: buildSourceData([]) })
       map.addLayer({
         id: FILL_LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
-        paint: { 'fill-color': '#E03131', 'fill-opacity': 0.25 },
+        paint: { 'fill-color': '#555555', 'fill-opacity': 0.28 },
       })
       map.addLayer({
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
-        paint: { 'line-color': '#E03131', 'line-width': 1.5, 'line-opacity': 0.9 },
+        paint: { 'line-color': '#555555', 'line-width': 1.5, 'line-opacity': 0.8 },
       })
     }
 
@@ -59,6 +59,13 @@ export function ExclusionLayer() {
     const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined
     source?.setData?.(buildSourceData(zones))
   }, [map, zones])
+
+  useEffect(() => {
+    if (!map) return
+    const v = exclusionsVisible ? 'visible' : 'none'
+    if (map.getLayer(FILL_LAYER_ID)) map.setLayoutProperty(FILL_LAYER_ID, 'visibility', v)
+    if (map.getLayer(LINE_LAYER_ID)) map.setLayoutProperty(LINE_LAYER_ID, 'visibility', v)
+  }, [map, exclusionsVisible])
 
   return null
 }

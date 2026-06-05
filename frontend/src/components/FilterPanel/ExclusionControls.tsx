@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ActionIcon, Button, Group, Select, Stack, Text } from '@mantine/core'
+import { ActionIcon, Group, Select, Stack, Switch, Text, Button } from '@mantine/core'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 import { getArea, listAreaOptions, loadAreas, type AreaFeature } from '../../services/areas'
 
@@ -10,7 +10,10 @@ export function ExclusionControls() {
   const setDrawingMode = useExclusionsStore((s) => s.setDrawingMode)
   const addZone = useExclusionsStore((s) => s.addZone)
   const removeZone = useExclusionsStore((s) => s.removeZone)
+  const exclusionsVisible = useExclusionsStore((s) => s.exclusionsVisible)
+  const setExclusionsVisible = useExclusionsStore((s) => s.setExclusionsVisible)
 
+  const [expanded, setExpanded] = useState(true)
   const [areas, setAreas] = useState<AreaFeature[]>([])
   useEffect(() => {
     loadAreas().then(setAreas)
@@ -32,64 +35,83 @@ export function ExclusionControls() {
   }
 
   return (
-    <Stack gap="xs">
-      <Text size="sm" fw={500}>
-        Exclusion zones
-      </Text>
-      <Text size="xs" c="dimmed">
-        Areas you won&apos;t live in — cut from the Idealista search.
-      </Text>
-
-      <Group gap="xs" grow>
-        <Button
+    <Stack gap={8}>
+      <Group justify="space-between" align="center" wrap="nowrap">
+        <Switch
+          label="Exclusion zones"
+          size="sm"
+          checked={exclusionsVisible}
+          onChange={(e) => setExclusionsVisible(e.currentTarget.checked)}
+        />
+        <ActionIcon
           size="xs"
-          variant={drawingMode === 'polygon' ? 'filled' : 'light'}
-          color="red"
-          onClick={() => setDrawingMode(drawingMode === 'polygon' ? null : 'polygon')}
+          variant="subtle"
+          color="gray"
+          aria-label={expanded ? 'Collapse exclusion controls' : 'Expand exclusion controls'}
+          onClick={() => setExpanded((v) => !v)}
         >
-          {drawingMode === 'polygon' ? 'Drawing… (Esc)' : 'Draw polygon'}
-        </Button>
-        <Button
-          size="xs"
-          variant={drawingMode === 'freehand' ? 'filled' : 'light'}
-          color="red"
-          onClick={() => setDrawingMode(drawingMode === 'freehand' ? null : 'freehand')}
-        >
-          {drawingMode === 'freehand' ? 'Drawing… (Esc)' : 'Freehand'}
-        </Button>
+          {expanded ? '▾' : '▸'}
+        </ActionIcon>
       </Group>
 
-      <Select
-        size="xs"
-        placeholder="Add district / barri / municipality"
-        searchable
-        clearable
-        data={options}
-        value={null}
-        onChange={handlePick}
-        nothingFoundMessage="No match"
-        comboboxProps={{ withinPortal: false }}
-      />
+      {expanded && (
+        <Stack gap="xs">
+          <Text size="xs" c="dimmed">
+            Areas you won&apos;t live in — cut from the Idealista search.
+          </Text>
 
-      {zones.length > 0 && (
-        <Stack gap={4}>
-          {zones.map((z) => (
-            <Group key={z.id} justify="space-between" gap="xs" wrap="nowrap">
-              <Text size="xs" truncate>
-                {z.source === 'drawn' ? '✎ ' : '📍 '}
-                {z.name}
-              </Text>
-              <ActionIcon
-                size="xs"
-                variant="subtle"
-                color="red"
-                aria-label={`Remove ${z.name}`}
-                onClick={() => removeZone(z.id)}
-              >
-                ×
-              </ActionIcon>
-            </Group>
-          ))}
+          <Group gap="xs" grow>
+            <Button
+              size="xs"
+              variant={drawingMode === 'polygon' ? 'filled' : 'light'}
+              color="dark"
+              onClick={() => setDrawingMode(drawingMode === 'polygon' ? null : 'polygon')}
+            >
+              {drawingMode === 'polygon' ? 'Drawing… (Esc)' : 'Draw polygon'}
+            </Button>
+            <Button
+              size="xs"
+              variant={drawingMode === 'freehand' ? 'filled' : 'light'}
+              color="dark"
+              onClick={() => setDrawingMode(drawingMode === 'freehand' ? null : 'freehand')}
+            >
+              {drawingMode === 'freehand' ? 'Drawing… (Esc)' : 'Freehand'}
+            </Button>
+          </Group>
+
+          <Select
+            size="xs"
+            placeholder="Add district / barri / municipality"
+            searchable
+            clearable
+            data={options}
+            value={null}
+            onChange={handlePick}
+            nothingFoundMessage="No match"
+            comboboxProps={{ withinPortal: false }}
+          />
+
+          {zones.length > 0 && (
+            <Stack gap={4}>
+              {zones.map((z) => (
+                <Group key={z.id} justify="space-between" gap="xs" wrap="nowrap">
+                  <Text size="xs" truncate>
+                    {z.source === 'drawn' ? '✎ ' : '📍 '}
+                    {z.name}
+                  </Text>
+                  <ActionIcon
+                    size="xs"
+                    variant="subtle"
+                    color="gray"
+                    aria-label={`Remove ${z.name}`}
+                    onClick={() => removeZone(z.id)}
+                  >
+                    ×
+                  </ActionIcon>
+                </Group>
+              ))}
+            </Stack>
+          )}
         </Stack>
       )}
     </Stack>

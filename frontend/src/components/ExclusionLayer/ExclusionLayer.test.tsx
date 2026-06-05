@@ -19,6 +19,7 @@ function makeMockMap(overrides?: Record<string, unknown>) {
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
     getLayer: vi.fn().mockReturnValue(null),
+    setLayoutProperty: vi.fn(),
     ...overrides,
   }
 }
@@ -36,7 +37,7 @@ function renderWithMap(map = mockMap) {
 describe('ExclusionLayer', () => {
   beforeEach(() => {
     mockMap = makeMockMap()
-    useExclusionsStore.setState({ zones: [] })
+    useExclusionsStore.setState({ zones: [], exclusionsVisible: true })
   })
 
   it('renders nothing to the DOM', () => {
@@ -49,6 +50,14 @@ describe('ExclusionLayer', () => {
     expect(mockMap.addSource).toHaveBeenCalledWith('exclusions', expect.objectContaining({ type: 'geojson' }))
     expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'exclusion-fill', type: 'fill' }))
     expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'exclusion-line', type: 'line' }))
+  })
+
+  it('uses grey fill color', () => {
+    renderWithMap()
+    const fillCall = mockMap.addLayer.mock.calls.find(
+      ([l]: [{ id: string }]) => l.id === 'exclusion-fill',
+    )
+    expect(fillCall?.[0].paint['fill-color']).toBe('#555555')
   })
 
   it('does nothing when map is null', () => {
@@ -69,5 +78,14 @@ describe('ExclusionLayer', () => {
     renderWithMap()
     const data = mockSource.setData.mock.calls[0][0] as { features: unknown[] }
     expect(data.features).toHaveLength(1)
+  })
+
+  it('hides layers when exclusionsVisible is false', () => {
+    const mockLayer = { id: 'exclusion-fill' }
+    mockMap.getLayer.mockReturnValue(mockLayer)
+    useExclusionsStore.setState({ exclusionsVisible: false })
+    renderWithMap()
+    expect(mockMap.setLayoutProperty).toHaveBeenCalledWith('exclusion-fill', 'visibility', 'none')
+    expect(mockMap.setLayoutProperty).toHaveBeenCalledWith('exclusion-line', 'visibility', 'none')
   })
 })

@@ -17,6 +17,7 @@ import { ExclusionLayer } from '../ExclusionLayer/ExclusionLayer'
 import { ExclusionDraw } from '../ExclusionDraw/ExclusionDraw'
 import { ExportAreasLayer } from '../ExportAreasLayer/ExportAreasLayer'
 import { IdealistaPricesLayer } from '../IdealistaPricesLayer/IdealistaPricesLayer'
+import { BarrioBoundariesLayer } from '../BarrioBoundariesLayer/BarrioBoundariesLayer'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
@@ -133,6 +134,7 @@ export function Map() {
   return (
     <MapContext.Provider value={mapInstance}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <BarrioBoundariesLayer />
       <PoiLayer />
       <NoiseLayer />
       <LivabilityLayer />

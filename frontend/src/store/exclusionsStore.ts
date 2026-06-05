@@ -22,20 +22,35 @@ function saveZones(zones: ExclusionZone[]): void {
 
 export type DrawingMode = 'polygon' | 'freehand'
 
+const EXCLUSIONS_VISIBLE_KEY = 'bcn_exclusion_zones_visible'
+
+function loadExclusionsVisible(): boolean {
+  try {
+    const v = localStorage.getItem(EXCLUSIONS_VISIBLE_KEY)
+    return v === null ? true : v === 'true'
+  } catch {
+    return true
+  }
+}
+
 export interface ExclusionsState {
   zones: ExclusionZone[]
   /** Active map drawing mode, or null when not drawing. */
   drawingMode: DrawingMode | null
+  /** Whether the exclusion zones layer is visible on the map. */
+  exclusionsVisible: boolean
   /** Adds a zone (auto-generates id). Area zones with a duplicate areaId are ignored. Returns the id. */
   addZone: (zone: Omit<ExclusionZone, 'id'>) => string
   removeZone: (id: string) => void
   clearZones: () => void
   setDrawingMode: (mode: DrawingMode | null) => void
+  setExclusionsVisible: (visible: boolean) => void
 }
 
 export const useExclusionsStore = create<ExclusionsState>((set, get) => ({
   zones: loadZones(),
   drawingMode: null,
+  exclusionsVisible: loadExclusionsVisible(),
 
   addZone: (zone) => {
     if (zone.areaId) {
@@ -61,4 +76,9 @@ export const useExclusionsStore = create<ExclusionsState>((set, get) => ({
   },
 
   setDrawingMode: (mode) => set({ drawingMode: mode }),
+
+  setExclusionsVisible: (visible) => {
+    try { localStorage.setItem(EXCLUSIONS_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
+    set({ exclusionsVisible: visible })
+  },
 }))

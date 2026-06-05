@@ -33,7 +33,7 @@ function renderControls() {
 describe('ExclusionControls', () => {
   beforeEach(() => {
     localStorage.clear()
-    useExclusionsStore.setState({ zones: [], drawingMode: null })
+    useExclusionsStore.setState({ zones: [], drawingMode: null, exclusionsVisible: true })
   })
 
   it('toggles polygon drawing mode via the Draw button', () => {
@@ -64,5 +64,27 @@ describe('ExclusionControls', () => {
     renderControls()
     const input = screen.getByPlaceholderText(/add district/i)
     await waitFor(() => expect(input).toBeInTheDocument())
+  })
+
+  it('toggles layer visibility via the Switch', () => {
+    renderControls()
+    const toggle = screen.getByRole('switch', { name: /exclusion zones/i })
+    expect(toggle).toBeChecked()
+    fireEvent.click(toggle)
+    expect(useExclusionsStore.getState().exclusionsVisible).toBe(false)
+    fireEvent.click(toggle)
+    expect(useExclusionsStore.getState().exclusionsVisible).toBe(true)
+  })
+
+  it('collapses and expands sub-controls via the chevron', () => {
+    renderControls()
+    // Draw buttons are present by default (expanded)
+    expect(screen.getByRole('button', { name: /draw polygon/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /collapse exclusion/i }))
+    // After collapse the draw button should be removed from the DOM
+    expect(screen.queryByRole('button', { name: /draw polygon/i })).not.toBeInTheDocument()
+    // Expand again
+    fireEvent.click(screen.getByRole('button', { name: /expand exclusion/i }))
+    expect(screen.getByRole('button', { name: /draw polygon/i })).toBeInTheDocument()
   })
 })

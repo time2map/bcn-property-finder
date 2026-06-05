@@ -79,69 +79,88 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ isLoading = false }: FilterPanelProps) {
-  const { minutes, setMinutes, noiseLayerVisible, setNoiseLayerVisible, mapAttribution } = useStore()
+  const {
+    minutes, setMinutes,
+    noiseLayerVisible, setNoiseLayerVisible,
+    barrioBoundariesVisible, setBarrioBoundariesVisible,
+    mapAttribution,
+  } = useStore()
   const [isoModalOpen, setIsoModalOpen] = useState(false)
 
   return (
-    <Paper shadow="md" p="md" radius="md" w={260}>
+    <Paper
+      shadow="md"
+      p="md"
+      radius="md"
+      w={260}
+      style={{ maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}
+    >
       <IsochroneInfoModal opened={isoModalOpen} onClose={() => setIsoModalOpen(false)} />
       <Stack gap="md">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Text fw={500} size="sm">Commute from work</Text>
-          <button
-            className="noise-legend__info-btn"
-            onClick={() => setIsoModalOpen(true)}
-            aria-label="About the commute zone"
-            title="About the commute zone"
-          >
-            ⓘ
-          </button>
-        </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Text fw={500} size="sm">Commute from work</Text>
+            <button
+              className="noise-legend__info-btn"
+              onClick={() => setIsoModalOpen(true)}
+              aria-label="About the commute zone"
+              title="About the commute zone"
+            >
+              ⓘ
+            </button>
+          </div>
 
-        <div style={{ paddingBottom: 20 }}>
-          <Text size="xs" c="dimmed" mb={6}>Travel time by public transport: {minutes} min</Text>
-          <Slider
-            min={15}
-            max={120}
-            step={5}
-            value={minutes}
-            onChange={setMinutes}
-            marks={TIME_MARKS}
-            style={{ '--slider-color': '#F06965' } as React.CSSProperties}
-            styles={{ markLabel: { fontSize: 10, marginTop: 6 } }}
-          />
-        </div>
-
-        <ExportButton isLoading={isLoading} />
-
-        <Divider />
-        <ExclusionControls />
-
-        <Divider />
-        <Switch
-          label="Noise"
-          size="sm"
-          checked={noiseLayerVisible}
-          onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
-        />
-        <NoiseLegend />
-
-        <Divider />
-        <IdealistaPricesControls />
-
-        <Divider />
-        <LivabilityControls />
-
-        {mapAttribution && (
-          <>
-            <Divider />
-            <div
-              className="panel-attribution"
-              // HTML attribution from trusted ICGC style URL
-              dangerouslySetInnerHTML={{ __html: mapAttribution }}
+          <div style={{ paddingBottom: 20 }}>
+            <Text size="xs" c="dimmed" mb={6}>Travel time by public transport: {minutes} min</Text>
+            <Slider
+              min={15}
+              max={120}
+              step={5}
+              value={minutes}
+              onChange={setMinutes}
+              marks={TIME_MARKS}
+              style={{ '--slider-color': '#F06965' } as React.CSSProperties}
+              styles={{ markLabel: { fontSize: 10, marginTop: 6 } }}
             />
-          </>
-        )}
+          </div>
+
+          <ExportButton isLoading={isLoading} />
+
+          <Divider />
+          <ExclusionControls />
+
+          <Divider />
+          <Switch
+            label="Area boundaries"
+            size="sm"
+            checked={barrioBoundariesVisible}
+            onChange={(e) => setBarrioBoundariesVisible(e.currentTarget.checked)}
+          />
+
+          <Divider />
+          <Switch
+            label="Noise"
+            size="sm"
+            checked={noiseLayerVisible}
+            onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
+          />
+          <NoiseLegend />
+
+          <Divider />
+          <IdealistaPricesControls />
+
+          <Divider />
+          <LivabilityControls />
+
+          {mapAttribution && (
+            <>
+              <Divider />
+              <div
+                className="panel-attribution"
+                // HTML attribution from trusted ICGC style URL
+                dangerouslySetInnerHTML={{ __html: mapAttribution }}
+              />
+            </>
+          )}
       </Stack>
     </Paper>
   )

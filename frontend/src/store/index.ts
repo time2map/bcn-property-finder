@@ -20,6 +20,8 @@ export interface AppState {
   idealistaUrls: string[]
   // Whether the export area zones are shown on the map (user can toggle while links stay).
   idealistaZonesVisible: boolean
+  // Area boundaries layer (barris / districts / municipalities) — feature 020
+  barrioBoundariesVisible: boolean
   // Idealista price heatmap layer — feature 019
   idealistaPricesVisible: boolean
   idealistaPriceRange: [number, number]
@@ -38,6 +40,7 @@ export interface AppState {
   setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
   clearIdealistaAreas: () => void
   setIdealistaZonesVisible: (visible: boolean) => void
+  setBarrioBoundariesVisible: (visible: boolean) => void
   setIdealistaPricesVisible: (visible: boolean) => void
   setIdealistaPriceRange: (range: [number, number]) => void
   setIdealistaPriceBounds: (bounds: [number, number]) => void
@@ -68,6 +71,7 @@ const WORKPLACE_KEY = 'bcn_workplace'
 const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
 const LIVABILITY_VISIBLE_KEY = 'bcn_livability_visible'
 const LIVABILITY_NOISE_KEY = 'bcn_livability_consider_noise'
+const BARRIO_BOUNDARIES_VISIBLE_KEY = 'bcn_barrio_boundaries_visible'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -126,6 +130,11 @@ export const useStore = create<AppState>((set) => {
     noiseLayerVisible: loadNoiseLayerVisible(),
     livabilityVisible: loadBoolKey(LIVABILITY_VISIBLE_KEY),
     livabilityConsiderNoise: loadBoolKey(LIVABILITY_NOISE_KEY),
+    barrioBoundariesVisible: (() => {
+      // default ON: show boundaries unless user has explicitly turned them off
+      const v = localStorage.getItem(BARRIO_BOUNDARIES_VISIBLE_KEY)
+      return v === null ? true : v === 'true'
+    })(),
     setWorkplace: (workplace) => {
       try {
         if (workplace) localStorage.setItem(WORKPLACE_KEY, JSON.stringify(workplace))
@@ -165,6 +174,10 @@ export const useStore = create<AppState>((set) => {
     idealistaPriceRange: [200_000, 600_000],
     idealistaPriceBounds: null,
     idealistaPricesMode: 'dots',
+    setBarrioBoundariesVisible: (visible) => {
+      try { localStorage.setItem(BARRIO_BOUNDARIES_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
+      set({ barrioBoundariesVisible: visible })
+    },
     setIdealistaPricesVisible: (idealistaPricesVisible) => set({ idealistaPricesVisible }),
     setIdealistaPriceRange: (idealistaPriceRange) => set({ idealistaPriceRange }),
     setIdealistaPriceBounds: (idealistaPriceBounds) => set({ idealistaPriceBounds }),
