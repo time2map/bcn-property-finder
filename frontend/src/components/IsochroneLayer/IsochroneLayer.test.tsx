@@ -65,12 +65,15 @@ describe('IsochroneLayer', () => {
     expect(mockMap.addLayer).toHaveBeenCalledTimes(3)
     expect(mockMap.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'isochrone-mask' }),
+      undefined,
     )
     expect(mockMap.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'isochrone-line' }),
+      undefined,
     )
     expect(mockMap.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'isochrone-label' }),
+      undefined,
     )
   })
 

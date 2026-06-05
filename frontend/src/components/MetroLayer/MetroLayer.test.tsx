@@ -78,9 +78,9 @@ describe('MetroLayer', () => {
     expect(mockMap.addSource).toHaveBeenCalledWith('tmb-metro-lines', expect.objectContaining({ type: 'geojson' }))
     expect(mockMap.addSource).toHaveBeenCalledWith('tmb-metro-stations', expect.objectContaining({ type: 'geojson' }))
     expect(mockMap.addLayer).toHaveBeenCalledTimes(3)
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'metro-lines' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'metro-circles' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'metro-labels' }))
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'metro-lines' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'metro-circles' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'metro-labels' }), undefined)
   })
 
   it('derives station color from PICTO via line color map', async () => {

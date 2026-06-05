@@ -72,9 +72,9 @@ describe('FgcLayer', () => {
     expect(mockMap.addSource).toHaveBeenCalledWith('fgc-lines', expect.objectContaining({ type: 'geojson' }))
     expect(mockMap.addSource).toHaveBeenCalledWith('fgc-stations', expect.objectContaining({ type: 'geojson' }))
     expect(mockMap.addLayer).toHaveBeenCalledTimes(3)
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'fgc-line' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'fgc-circle' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'fgc-label' }))
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'fgc-line' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'fgc-circle' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'fgc-label' }), undefined)
   })
 
   it('skips setup if sources already exist', async () => {

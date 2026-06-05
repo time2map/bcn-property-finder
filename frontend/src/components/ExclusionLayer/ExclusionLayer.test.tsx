@@ -48,8 +48,8 @@ describe('ExclusionLayer', () => {
   it('adds source and fill + line layers on mount', () => {
     renderWithMap()
     expect(mockMap.addSource).toHaveBeenCalledWith('exclusions', expect.objectContaining({ type: 'geojson' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'exclusion-fill', type: 'fill' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'exclusion-line', type: 'line' }))
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'exclusion-fill', type: 'fill' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'exclusion-line', type: 'line' }), undefined)
   })
 
   it('uses grey fill color', () => {

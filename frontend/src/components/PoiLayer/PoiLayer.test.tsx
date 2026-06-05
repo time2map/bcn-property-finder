@@ -84,11 +84,11 @@ describe('PoiLayer', () => {
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: 'poi-priority',
       minzoom: 14,
-    }))
+    }), undefined)
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({
       id: 'poi-secondary',
       minzoom: 16,
-    }))
+    }), undefined)
   })
 
   it('skips setup if source already exists', async () => {

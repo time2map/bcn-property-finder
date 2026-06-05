@@ -4,6 +4,7 @@ import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useIdealistaAreas } from '../../hooks/useIdealistaAreas'
 import { useStore } from '../../store'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'export-areas'
 const FILL_LAYER_ID = 'export-areas-fill'
@@ -46,13 +47,13 @@ export function ExportAreasLayer() {
 
     if (!map.getSource(SOURCE_ID)) {
       map.addSource(SOURCE_ID, { type: 'geojson', data: buildSourceData([]) })
-      map.addLayer({
+      addLayerOrdered(map, {
         id: FILL_LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
         paint: { 'fill-color': COLOR, 'fill-opacity': ['case', HOVER, 0.22, 0.08] },
-      })
-      map.addLayer({
+      }, FILL_LAYER_ID)
+      addLayerOrdered(map, {
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
@@ -61,8 +62,8 @@ export function ExportAreasLayer() {
           'line-width': ['case', HOVER, 4, 2],
           'line-dasharray': [2, 1],
         },
-      })
-      map.addLayer({
+      }, LINE_LAYER_ID)
+      addLayerOrdered(map, {
         id: LABEL_LAYER_ID,
         type: 'symbol',
         source: SOURCE_ID,
@@ -76,7 +77,7 @@ export function ExportAreasLayer() {
           'text-halo-color': '#ffffff',
           'text-halo-width': 2,
         },
-      })
+      }, LABEL_LAYER_ID)
     }
 
     // Map → panel: hovering an area on the map highlights its link too.

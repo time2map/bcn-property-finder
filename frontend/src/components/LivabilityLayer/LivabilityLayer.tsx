@@ -9,6 +9,7 @@ import {
 } from '../../services/livability/livabilityData'
 import { cellNoiseScore } from '../../services/livability/livabilityScore'
 import { LIVABILITY_FILL_COLOR } from './livabilityRamp'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 export const SOURCE_ID = 'livability-h3'
 export const LAYER_ID = 'livability-fill'
@@ -50,7 +51,7 @@ export function LivabilityLayer() {
     }
 
     if (!map.getLayer(LAYER_ID)) {
-      map.addLayer({
+      addLayerOrdered(map, {
         id: LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
@@ -60,7 +61,7 @@ export function LivabilityLayer() {
           'fill-opacity': 0.55,
           'fill-outline-color': 'rgba(0,0,0,0.05)',
         },
-      })
+      }, LAYER_ID)
     }
     // visibility handled in its own effect — excluded to avoid recomputing data on toggle
     // eslint-disable-next-line react-hooks/exhaustive-deps

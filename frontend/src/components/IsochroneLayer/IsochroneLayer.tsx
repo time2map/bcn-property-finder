@@ -4,6 +4,7 @@ import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { useEffectiveArea } from '../../hooks/useEffectiveArea'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'isochrone'
 const MASK_LAYER_ID = 'isochrone-mask'
@@ -60,21 +61,21 @@ export function IsochroneLayer() {
         type: 'geojson',
         data: buildSourceData(resultPolygonRef.current, minutesRef.current),
       })
-      map.addLayer({
+      addLayerOrdered(map, {
         id: MASK_LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
         filter: ['==', ['get', 'layer'], 'mask'],
         paint: { 'fill-color': '#000000', 'fill-opacity': 0.25 },
-      })
-      map.addLayer({
+      }, MASK_LAYER_ID)
+      addLayerOrdered(map, {
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
         filter: ['==', ['get', 'layer'], 'outline'],
         paint: { 'line-color': '#ffffff', 'line-width': 1.5, 'line-opacity': 0.8 },
-      })
-      map.addLayer({
+      }, LINE_LAYER_ID)
+      addLayerOrdered(map, {
         id: LABEL_LAYER_ID,
         type: 'symbol',
         source: SOURCE_ID,
@@ -92,7 +93,7 @@ export function IsochroneLayer() {
           'text-halo-color': 'rgba(0,0,0,0.4)',
           'text-halo-width': 1,
         },
-      })
+      }, LABEL_LAYER_ID)
     }
 
     setup()

@@ -1,6 +1,7 @@
 import { useContext, useEffect } from 'react'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'noise-pmtiles'
 const LAYER_ID = 'noise-overlay'
@@ -38,7 +39,7 @@ export function NoiseLayer() {
         })
       }
       if (!map.getLayer(LAYER_ID)) {
-        map.addLayer({
+        addLayerOrdered(map, {
           id: LAYER_ID,
           type: 'fill',
           source: SOURCE_ID,
@@ -50,7 +51,7 @@ export function NoiseLayer() {
             'fill-opacity': 0.6,
             'fill-outline-color': 'rgba(0,0,0,0.08)',
           },
-        })
+        }, LAYER_ID)
       }
     }
 

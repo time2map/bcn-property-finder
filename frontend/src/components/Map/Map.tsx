@@ -11,6 +11,7 @@ import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
 import { LivabilityLayer } from '../LivabilityLayer/LivabilityLayer'
+import { CityCorAccessLayer } from '../CityCorAccessLayer/CityCorAccessLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
 import { ExclusionLayer } from '../ExclusionLayer/ExclusionLayer'
@@ -134,17 +135,19 @@ export function Map() {
   return (
     <MapContext.Provider value={mapInstance}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-      <BarrioBoundariesLayer />
-      <PoiLayer />
-      <NoiseLayer />
+      {/* Layer z-order: first rendered = bottom of stack */}
+      <CityCorAccessLayer />
       <LivabilityLayer />
-      <IdealistaPricesLayer />
-      <IsochroneLayer />
-      <ExportAreasLayer />
+      <NoiseLayer />
       <ExclusionLayer />
       <ExclusionDraw />
+      <BarrioBoundariesLayer />
+      <ExportAreasLayer />
+      <IdealistaPricesLayer />
+      <IsochroneLayer />
       <MetroLayer />
       <FgcLayer />
+      <PoiLayer />
       <PinAccuracyLayer />
       <PinLayer />
       <WalkabilityLayer />

@@ -16,6 +16,34 @@ html, body, #root {
   height: 100%;
 }
 
+/* City Core Access — landmark pin markers on the map */
+.city-core-landmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.city-core-landmark__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #1a3a6b;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.city-core-landmark__label {
+  margin-top: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-family: sans-serif;
+  font-weight: 600;
+  color: #1a3a6b;
+  background: rgba(255,255,255,0.88);
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  white-space: nowrap;
+}
+
 /* Pin marker — map pin with optional photo thumbnail */
 .pin-marker {
   display: flex;

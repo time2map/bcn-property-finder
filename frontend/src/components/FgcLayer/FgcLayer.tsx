@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useMap } from '../Map/MapContext'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_LINES    = 'fgc-lines'
 const SOURCE_STATIONS = 'fgc-stations'
@@ -22,7 +23,7 @@ export function FgcLayer() {
         if (cancelled || map.getSource(SOURCE_LINES)) return
 
         map.addSource(SOURCE_LINES, { type: 'geojson', data: lines })
-        map.addLayer({
+        addLayerOrdered(map, {
           id: LAYER_LINES,
           type: 'line',
           source: SOURCE_LINES,
@@ -32,10 +33,10 @@ export function FgcLayer() {
             'line-opacity': 0.6,
           },
           minzoom: 10,
-        })
+        }, LAYER_LINES)
 
         map.addSource(SOURCE_STATIONS, { type: 'geojson', data: stations })
-        map.addLayer({
+        addLayerOrdered(map, {
           id: LAYER_CIRCLES,
           type: 'circle',
           source: SOURCE_STATIONS,
@@ -47,8 +48,8 @@ export function FgcLayer() {
             'circle-opacity': 0.85,
           },
           minzoom: 10,
-        })
-        map.addLayer({
+        }, LAYER_CIRCLES)
+        addLayerOrdered(map, {
           id: LAYER_LABELS,
           type: 'symbol',
           source: SOURCE_STATIONS,
@@ -67,7 +68,7 @@ export function FgcLayer() {
             'text-opacity': 0.9,
           },
           minzoom: 12.4,
-        })
+        }, LAYER_LABELS)
       })
       .catch(() => { /* fail silently — non-critical overlay */ })
 

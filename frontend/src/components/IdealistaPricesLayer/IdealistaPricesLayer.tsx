@@ -4,6 +4,7 @@ import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { PRICE_RAMP, buildPriceColorExpression, buildIconImageExpression } from './priceColors'
 import { aggregateToH3, h3CellsToGeoJSON } from './h3Index'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const DOTS_SOURCE = 'idealista-prices-dots'
 const DOTS_LAYER = 'idealista-prices-dots'
@@ -108,7 +109,7 @@ export function IdealistaPricesLayer() {
 
     // Dots source + symbol layer (symbol type → renders above basemap icons)
     map.addSource(DOTS_SOURCE, { type: 'geojson', data: GEOJSON_URL })
-    map.addLayer({
+    addLayerOrdered(map, {
       id: DOTS_LAYER,
       type: 'symbol',
       source: DOTS_SOURCE,
@@ -125,10 +126,10 @@ export function IdealistaPricesLayer() {
         'icon-ignore-placement': true,
       },
       paint: {},
-    })
+    }, DOTS_LAYER)
 
     // Price label layer — visible only at zoom ≥ 14.3
-    map.addLayer({
+    addLayerOrdered(map, {
       id: LABEL_LAYER,
       type: 'symbol',
       source: DOTS_SOURCE,
@@ -151,11 +152,11 @@ export function IdealistaPricesLayer() {
       paint: {
         'text-color': '#1a1a1a',
       },
-    })
+    }, LABEL_LAYER)
 
     // Hex source + fill + outline
     map.addSource(HEX_SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-    map.addLayer({
+    addLayerOrdered(map, {
       id: HEX_LAYER,
       type: 'fill',
       source: HEX_SOURCE,
@@ -164,14 +165,14 @@ export function IdealistaPricesLayer() {
         'fill-color': buildPriceColorExpression(100_000, 1_500_000) as maplibregl.ExpressionSpecification,
         'fill-opacity': 0.75,
       },
-    })
-    map.addLayer({
+    }, HEX_LAYER)
+    addLayerOrdered(map, {
       id: HEX_OUTLINE_LAYER,
       type: 'line',
       source: HEX_SOURCE,
       layout: { visibility: 'none' },
       paint: { 'line-color': '#fff', 'line-width': 0.5, 'line-opacity': 0.5 },
-    })
+    }, HEX_OUTLINE_LAYER)
 
     // Load data for H3 aggregation + bounds detection
     fetch(GEOJSON_URL)

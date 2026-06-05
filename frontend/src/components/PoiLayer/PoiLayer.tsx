@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { svgToImage } from './poiUtils'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 import grocerySvg from '@mapbox/maki/icons/grocery.svg?raw'
 import pharmacySvg from '@mapbox/maki/icons/pharmacy.svg?raw'
@@ -95,7 +96,7 @@ export function PoiLayer() {
       })
 
       // Priority POIs: supermarket, pharmacy, school, kindergarten, clinic, park, beach
-      map.addLayer({
+      addLayerOrdered(map, {
         id: LAYER_PRIORITY,
         type: 'symbol',
         source: SOURCE_ID,
@@ -120,10 +121,10 @@ export function PoiLayer() {
           'text-halo-width': 1.5,
           'text-opacity': ['interpolate', ['linear'], ['zoom'], 14.9, 0, 15, 1],
         },
-      })
+      }, LAYER_PRIORITY)
 
       // Secondary (dense) POIs: cafe, restaurant — visible only at street zoom
-      map.addLayer({
+      addLayerOrdered(map, {
         id: LAYER_SECONDARY,
         type: 'symbol',
         source: SOURCE_ID,
@@ -147,7 +148,7 @@ export function PoiLayer() {
           'text-halo-color': '#ffffff',
           'text-halo-width': 1.5,
         },
-      })
+      }, LAYER_SECONDARY)
     }
 
     setup().catch(() => { /* fail silently — non-critical overlay */ })

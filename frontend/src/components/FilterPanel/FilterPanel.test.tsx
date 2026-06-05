@@ -21,6 +21,10 @@ vi.mock('../IdealistaPricesLayer/IdealistaPricesControls', () => ({
   IdealistaPricesControls: () => <div data-testid="idealista-prices-controls" />,
 }))
 
+vi.mock('./CityCorAccessControls', () => ({
+  CityCorAccessControls: () => <div data-testid="city-core-access-controls" />,
+}))
+
 vi.mock('../ExportButton/ExportButton', () => ({
   ExportButton: () => <button>Export</button>,
 }))

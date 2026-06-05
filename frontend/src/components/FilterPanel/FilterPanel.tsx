@@ -5,6 +5,7 @@ import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { ExclusionControls } from './ExclusionControls'
 import { LivabilityControls } from './LivabilityControls'
+import { CityCorAccessControls } from './CityCorAccessControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 
 const TIME_MARKS = [
@@ -125,8 +126,9 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
 
           <ExportButton isLoading={isLoading} />
 
+          {/* Layer toggles ordered top→bottom (matching map z-order: top layer first) */}
           <Divider />
-          <ExclusionControls />
+          <IdealistaPricesControls />
 
           <Divider />
           <Switch
@@ -135,6 +137,9 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
             checked={barrioBoundariesVisible}
             onChange={(e) => setBarrioBoundariesVisible(e.currentTarget.checked)}
           />
+
+          <Divider />
+          <ExclusionControls />
 
           <Divider />
           <Switch
@@ -146,10 +151,10 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           <NoiseLegend />
 
           <Divider />
-          <IdealistaPricesControls />
+          <LivabilityControls />
 
           <Divider />
-          <LivabilityControls />
+          <CityCorAccessControls />
 
           {mapAttribution && (
             <>

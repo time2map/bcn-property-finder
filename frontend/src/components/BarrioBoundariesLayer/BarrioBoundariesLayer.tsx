@@ -7,6 +7,7 @@ import { useStore } from '../../store'
 import { loadAreas, type AreaFeature } from '../../services/areas'
 import { buildIdealistaUrl } from '../../services/idealista'
 import { useIdealistaBaseUrlStore } from '../../store/idealistaBaseUrlStore'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'barrio-boundaries'
 const FILL_LAYER_ID = 'barrio-boundaries-fill'
@@ -46,15 +47,15 @@ export function BarrioBoundariesLayer() {
       map.addSource(SOURCE_ID, { type: 'geojson', data: fc })
 
       // Transparent fill — only for hit-testing on right-click
-      map.addLayer({
+      addLayerOrdered(map, {
         id: FILL_LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
         paint: { 'fill-opacity': 0 },
-      })
+      }, FILL_LAYER_ID)
 
       // Thin red boundary lines
-      map.addLayer({
+      addLayerOrdered(map, {
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
@@ -63,10 +64,10 @@ export function BarrioBoundariesLayer() {
           'line-width': 0.8,
           'line-opacity': 0.7,
         },
-      })
+      }, LINE_LAYER_ID)
 
       // Labels for districts and municipalities (visible from lower zoom)
-      map.addLayer({
+      addLayerOrdered(map, {
         id: LABEL_DISTRICT_ID,
         type: 'symbol',
         source: SOURCE_ID,
@@ -86,10 +87,10 @@ export function BarrioBoundariesLayer() {
           'text-halo-width': 1,
           'text-opacity': 0.85,
         },
-      })
+      }, LABEL_DISTRICT_ID)
 
       // Labels for barris (only at higher zoom levels)
-      map.addLayer({
+      addLayerOrdered(map, {
         id: LABEL_BARRI_ID,
         type: 'symbol',
         source: SOURCE_ID,
@@ -109,7 +110,7 @@ export function BarrioBoundariesLayer() {
           'text-halo-width': 1,
           'text-opacity': 0.8,
         },
-      })
+      }, LABEL_BARRI_ID)
     })
 
     const handleContextMenu = (e: MapMouseEvent) => {

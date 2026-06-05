@@ -4,6 +4,7 @@ import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 import type { ExclusionZone } from '../../types/exclusions'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'exclusions'
 const FILL_LAYER_ID = 'exclusion-fill'
@@ -29,18 +30,18 @@ export function ExclusionLayer() {
 
     if (!map.getSource(SOURCE_ID)) {
       map.addSource(SOURCE_ID, { type: 'geojson', data: buildSourceData([]) })
-      map.addLayer({
+      addLayerOrdered(map, {
         id: FILL_LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
         paint: { 'fill-color': '#555555', 'fill-opacity': 0.28 },
-      })
-      map.addLayer({
+      }, FILL_LAYER_ID)
+      addLayerOrdered(map, {
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
         paint: { 'line-color': '#555555', 'line-width': 1.5, 'line-opacity': 0.8 },
-      })
+      }, LINE_LAYER_ID)
     }
 
     return () => {

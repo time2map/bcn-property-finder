@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useMap } from '../Map/MapContext'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const APP_ID  = import.meta.env.VITE_TMB_APP_ID  as string | undefined
 const APP_KEY = import.meta.env.VITE_TMB_APP_KEY as string | undefined
@@ -73,7 +74,7 @@ export function MetroLayer() {
 
         // Lines
         map.addSource(SOURCE_LINES, { type: 'geojson', data: linesGeoJson })
-        map.addLayer({
+        addLayerOrdered(map, {
           id: LAYER_LINES,
           type: 'line',
           source: SOURCE_LINES,
@@ -83,11 +84,11 @@ export function MetroLayer() {
             'line-opacity': 0.6,
           },
           minzoom: 10,
-        })
+        }, LAYER_LINES)
 
         // Stations
         map.addSource(SOURCE_STATIONS, { type: 'geojson', data: stationsGeoJson })
-        map.addLayer({
+        addLayerOrdered(map, {
           id: LAYER_CIRCLES,
           type: 'circle',
           source: SOURCE_STATIONS,
@@ -99,8 +100,8 @@ export function MetroLayer() {
             'circle-opacity': 0.85,
           },
           minzoom: 10,
-        })
-        map.addLayer({
+        }, LAYER_CIRCLES)
+        addLayerOrdered(map, {
           id: LAYER_LABELS,
           type: 'symbol',
           source: SOURCE_STATIONS,
@@ -119,7 +120,7 @@ export function MetroLayer() {
             'text-opacity': 0.9,
           },
           minzoom: 12.4,
-        })
+        }, LAYER_LABELS)
       })
       .catch(() => { /* fail silently — non-critical overlay */ })
 

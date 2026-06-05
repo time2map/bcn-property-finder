@@ -63,9 +63,9 @@ describe('ExportAreasLayer', () => {
   it('adds source + fill, line and label layers on mount', () => {
     renderWithMap()
     expect(mockMap.addSource).toHaveBeenCalledWith('export-areas', expect.objectContaining({ type: 'geojson' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'export-areas-fill', type: 'fill' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'export-areas-line', type: 'line' }))
-    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'export-areas-label', type: 'symbol' }))
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'export-areas-fill', type: 'fill' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'export-areas-line', type: 'line' }), undefined)
+    expect(mockMap.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: 'export-areas-label', type: 'symbol' }), undefined)
   })
 
   it('does nothing when map is null', () => {

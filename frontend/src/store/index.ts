@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { MultiPolygon, Polygon } from 'geojson'
+import { ALL_LANDMARK_IDS } from '../services/cityCore/landmarks'
 
 export interface AppState {
   workplace: [number, number] | null
@@ -20,6 +21,9 @@ export interface AppState {
   idealistaUrls: string[]
   // Whether the export area zones are shown on the map (user can toggle while links stay).
   idealistaZonesVisible: boolean
+  // City Core Access layer — feature 021
+  cityCoreVisible: boolean
+  enabledLandmarkIds: readonly string[]
   // Area boundaries layer (barris / districts / municipalities) — feature 020
   barrioBoundariesVisible: boolean
   // Idealista price heatmap layer — feature 019
@@ -40,6 +44,8 @@ export interface AppState {
   setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
   clearIdealistaAreas: () => void
   setIdealistaZonesVisible: (visible: boolean) => void
+  setCityCoreVisible: (visible: boolean) => void
+  setEnabledLandmarkIds: (ids: readonly string[]) => void
   setBarrioBoundariesVisible: (visible: boolean) => void
   setIdealistaPricesVisible: (visible: boolean) => void
   setIdealistaPriceRange: (range: [number, number]) => void
@@ -72,6 +78,8 @@ const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
 const LIVABILITY_VISIBLE_KEY = 'bcn_livability_visible'
 const LIVABILITY_NOISE_KEY = 'bcn_livability_consider_noise'
 const BARRIO_BOUNDARIES_VISIBLE_KEY = 'bcn_barrio_boundaries_visible'
+const CITY_CORE_VISIBLE_KEY = 'bcn_city_core_visible'
+const CITY_CORE_LANDMARKS_KEY = 'bcn_city_core_landmarks'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -130,6 +138,16 @@ export const useStore = create<AppState>((set) => {
     noiseLayerVisible: loadNoiseLayerVisible(),
     livabilityVisible: loadBoolKey(LIVABILITY_VISIBLE_KEY),
     livabilityConsiderNoise: loadBoolKey(LIVABILITY_NOISE_KEY),
+    cityCoreVisible: loadBoolKey(CITY_CORE_VISIBLE_KEY),
+    enabledLandmarkIds: (() => {
+      try {
+        const raw = localStorage.getItem(CITY_CORE_LANDMARKS_KEY)
+        if (!raw) return ALL_LANDMARK_IDS
+        const parsed = JSON.parse(raw) as unknown
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[]
+      } catch { /* ignore */ }
+      return ALL_LANDMARK_IDS
+    })(),
     barrioBoundariesVisible: (() => {
       // default ON: show boundaries unless user has explicitly turned them off
       const v = localStorage.getItem(BARRIO_BOUNDARIES_VISIBLE_KEY)
@@ -174,6 +192,14 @@ export const useStore = create<AppState>((set) => {
     idealistaPriceRange: [200_000, 600_000],
     idealistaPriceBounds: null,
     idealistaPricesMode: 'dots',
+    setCityCoreVisible: (visible) => {
+      try { localStorage.setItem(CITY_CORE_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
+      set({ cityCoreVisible: visible })
+    },
+    setEnabledLandmarkIds: (ids) => {
+      try { localStorage.setItem(CITY_CORE_LANDMARKS_KEY, JSON.stringify(ids)) } catch { /* ignore */ }
+      set({ enabledLandmarkIds: ids })
+    },
     setBarrioBoundariesVisible: (visible) => {
       try { localStorage.setItem(BARRIO_BOUNDARIES_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
       set({ barrioBoundariesVisible: visible })

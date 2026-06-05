@@ -3,6 +3,7 @@ import type maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { usePinsStore } from '../../store/pinsStore'
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
+import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'pin-accuracy'
 const FILL_LAYER = 'pin-accuracy-fill'
@@ -34,7 +35,7 @@ export function PinAccuracyLayer() {
       data: buildData(pins),
     })
 
-    map.addLayer({
+    addLayerOrdered(map, {
       id: FILL_LAYER,
       type: 'fill',
       source: SOURCE_ID,
@@ -42,9 +43,9 @@ export function PinAccuracyLayer() {
         'fill-color': '#228be6',
         'fill-opacity': 0.12,
       },
-    })
+    }, FILL_LAYER)
 
-    map.addLayer({
+    addLayerOrdered(map, {
       id: LINE_LAYER,
       type: 'line',
       source: SOURCE_ID,
@@ -54,7 +55,7 @@ export function PinAccuracyLayer() {
         'line-opacity': 0.5,
         'line-dasharray': [4, 3],
       },
-    })
+    }, LINE_LAYER)
 
     return () => {
       if (map.getLayer(LINE_LAYER)) map.removeLayer(LINE_LAYER)
