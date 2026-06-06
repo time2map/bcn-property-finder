@@ -21,7 +21,7 @@ vi.mock('../../services/livability/livabilityData', async (orig) => {
   return { ...actual, loadLivabilityGrid: vi.fn() }
 })
 
-import { LivabilityLayer, SOURCE_ID, LAYER_ID } from './LivabilityLayer'
+import { PoiAccessLayer, SOURCE_ID, LAYER_ID } from './PoiAccessLayer'
 import { loadLivabilityGrid } from '../../services/livability/livabilityData'
 
 function cell(props: LivabilityCellProps): Feature<Polygon, LivabilityCellProps> {
@@ -57,8 +57,6 @@ function makeFakeMap() {
     on: vi.fn(),
     off: vi.fn(),
     getCanvas: () => ({ style: {} as Record<string, string> }),
-    _sources: sources,
-    _layers: layers,
   }
 }
 
@@ -67,20 +65,20 @@ type FakeMap = ReturnType<typeof makeFakeMap>
 function renderLayer(map: FakeMap | null) {
   return render(
     <MapContext.Provider value={map as unknown as maplibregl.Map}>
-      <LivabilityLayer />
+      <PoiAccessLayer />
     </MapContext.Provider>,
   )
 }
 
-describe('LivabilityLayer', () => {
+describe('PoiAccessLayer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
-    useStore.setState({ livabilityVisible: false, livabilityConsiderNoise: false })
+    useStore.setState({ poiAccessVisible: false })
     vi.mocked(loadLivabilityGrid).mockResolvedValue(GRID)
   })
   afterEach(() => {
-    useStore.setState({ livabilityVisible: false, livabilityConsiderNoise: false })
+    useStore.setState({ poiAccessVisible: false })
   })
 
   it('renders nothing (null)', () => {
@@ -94,31 +92,22 @@ describe('LivabilityLayer', () => {
   })
 
   it('loads the grid and adds source + fill layer when enabled', async () => {
-    useStore.setState({ livabilityVisible: true })
+    useStore.setState({ poiAccessVisible: true })
     const map = makeFakeMap()
     await act(async () => { renderLayer(map) })
 
     expect(map.getLayer(LAYER_ID)).toBeDefined()
     expect(map.getSource(SOURCE_ID)).toBeDefined()
-    // baked index = walkability only (considerNoise off) = 80
-    const data = map.getSource(SOURCE_ID)!.data as LivabilityGrid & {
-      features: { properties: { index: number } }[]
-    }
-    expect(data.features[0].properties.index).toBe(80)
+    const data = map.getSource(SOURCE_ID)!.data as LivabilityGrid
+    expect(data.features[0].properties.walk).toBe(80)
   })
 
-  it('refreshes data via setData when "consider noise" toggles', async () => {
-    useStore.setState({ livabilityVisible: true })
+  it('hides the layer when visibility is toggled off', async () => {
+    useStore.setState({ poiAccessVisible: true })
     const map = makeFakeMap()
     await act(async () => { renderLayer(map) })
-    expect(map.getSource(SOURCE_ID)).toBeDefined()
 
-    act(() => useStore.setState({ livabilityConsiderNoise: true }))
-
-    const source = map.getSource(SOURCE_ID)!
-    expect(source.setData).toHaveBeenCalled()
-    const data = source.data as { features: { properties: { index: number } }[] }
-    // composite (80*3 + noiseScore(45)*2)/5 = 88
-    expect(data.features[0].properties.index).toBe(88)
+    act(() => useStore.setState({ poiAccessVisible: false }))
+    expect(map.setLayoutProperty).toHaveBeenCalledWith(LAYER_ID, 'visibility', 'none')
   })
 })

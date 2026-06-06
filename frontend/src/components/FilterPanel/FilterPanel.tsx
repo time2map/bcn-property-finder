@@ -4,7 +4,8 @@ import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { ExclusionControls } from './ExclusionControls'
-import { LivabilityControls } from './LivabilityControls'
+import { PoiAccessControls } from './PoiAccessControls'
+import { CompositeControls } from './CompositeControls'
 import { CityCorAccessControls } from './CityCorAccessControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 
@@ -151,7 +152,10 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           <NoiseLegend />
 
           <Divider />
-          <LivabilityControls />
+          <PoiAccessControls />
+
+          <Divider />
+          <CompositeControls />
 
           <Divider />
           <CityCorAccessControls />

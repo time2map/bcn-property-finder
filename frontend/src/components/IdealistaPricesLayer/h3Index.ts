@@ -1,6 +1,6 @@
 import { latLngToCell, cellToBoundary } from 'h3-js'
 
-const H3_RESOLUTION = 8
+const H3_RESOLUTION = 9
 
 export interface H3Cell {
   h3Index: string

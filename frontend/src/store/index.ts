@@ -2,6 +2,20 @@ import { create } from 'zustand'
 import type { MultiPolygon, Polygon } from 'geojson'
 import { ALL_LANDMARK_IDS } from '../services/cityCore/landmarks'
 
+export interface CompositeWeights {
+  poiAccess: number
+  noise: number
+  cityCore: number
+  price: number
+}
+
+export const DEFAULT_COMPOSITE_WEIGHTS: CompositeWeights = {
+  poiAccess: 7,
+  noise: 8,
+  cityCore: 8,
+  price: 8,
+}
+
 export interface AppState {
   workplace: [number, number] | null
   minutes: number
@@ -9,9 +23,8 @@ export interface AppState {
   mapCenter: [number, number]
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
-  // Livability index layer (H3 grid) — feature 017
-  livabilityVisible: boolean
-  livabilityConsiderNoise: boolean
+  // POI Access layer (H3 grid, formerly "Livability") — feature 022
+  poiAccessVisible: boolean
   mapAttribution: string
   // Index of the export area being hovered (in panel or on map), for cross-highlighting. null = none.
   hoveredAreaIndex: number | null
@@ -31,14 +44,16 @@ export interface AppState {
   idealistaPriceRange: [number, number]
   idealistaPriceBounds: [number, number] | null
   idealistaPricesMode: 'dots' | 'index'
+  // Composite Index layer — feature 022
+  compositeVisible: boolean
+  compositeWeights: CompositeWeights
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setZoom: (zoom: number) => void
   setMapCenter: (center: [number, number]) => void
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
-  setLivabilityVisible: (visible: boolean) => void
-  setLivabilityConsiderNoise: (consider: boolean) => void
+  setPoiAccessVisible: (visible: boolean) => void
   setMapAttribution: (attribution: string) => void
   setHoveredAreaIndex: (index: number | null) => void
   setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
@@ -51,6 +66,8 @@ export interface AppState {
   setIdealistaPriceRange: (range: [number, number]) => void
   setIdealistaPriceBounds: (bounds: [number, number]) => void
   setIdealistaPricesMode: (mode: 'dots' | 'index') => void
+  setCompositeVisible: (visible: boolean) => void
+  setCompositeWeights: (weights: CompositeWeights) => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -75,11 +92,12 @@ function readIsochroneCache(workplace: [number, number], minutes: number): Polyg
 const DEFAULT_ZOOM = 12
 const WORKPLACE_KEY = 'bcn_workplace'
 const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
-const LIVABILITY_VISIBLE_KEY = 'bcn_livability_visible'
-const LIVABILITY_NOISE_KEY = 'bcn_livability_consider_noise'
+const POI_ACCESS_VISIBLE_KEY = 'bcn_poi_access_visible'
 const BARRIO_BOUNDARIES_VISIBLE_KEY = 'bcn_barrio_boundaries_visible'
 const CITY_CORE_VISIBLE_KEY = 'bcn_city_core_visible'
 const CITY_CORE_LANDMARKS_KEY = 'bcn_city_core_landmarks'
+const COMPOSITE_VISIBLE_KEY = 'bcn_composite_visible'
+const COMPOSITE_WEIGHTS_KEY = 'bcn_composite_weights'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -125,6 +143,22 @@ function loadBoolKey(key: string): boolean {
   }
 }
 
+function loadCompositeWeights(): CompositeWeights {
+  try {
+    const raw = localStorage.getItem(COMPOSITE_WEIGHTS_KEY)
+    if (!raw) return DEFAULT_COMPOSITE_WEIGHTS
+    const parsed = JSON.parse(raw) as Partial<CompositeWeights>
+    return {
+      poiAccess: parsed.poiAccess ?? DEFAULT_COMPOSITE_WEIGHTS.poiAccess,
+      noise: parsed.noise ?? DEFAULT_COMPOSITE_WEIGHTS.noise,
+      cityCore: parsed.cityCore ?? DEFAULT_COMPOSITE_WEIGHTS.cityCore,
+      price: parsed.price ?? DEFAULT_COMPOSITE_WEIGHTS.price,
+    }
+  } catch {
+    return DEFAULT_COMPOSITE_WEIGHTS
+  }
+}
+
 export const useStore = create<AppState>((set) => {
   const { minutes, zoom, mapCenter } = readUrlParams()
   const workplace = readWorkplaceFromStorage()
@@ -136,8 +170,7 @@ export const useStore = create<AppState>((set) => {
     // Restored synchronously from localStorage — no flash of empty state on reload
     resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
     noiseLayerVisible: loadNoiseLayerVisible(),
-    livabilityVisible: loadBoolKey(LIVABILITY_VISIBLE_KEY),
-    livabilityConsiderNoise: loadBoolKey(LIVABILITY_NOISE_KEY),
+    poiAccessVisible: loadBoolKey(POI_ACCESS_VISIBLE_KEY),
     cityCoreVisible: loadBoolKey(CITY_CORE_VISIBLE_KEY),
     enabledLandmarkIds: (() => {
       try {
@@ -168,13 +201,9 @@ export const useStore = create<AppState>((set) => {
       try { localStorage.setItem(NOISE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
       set({ noiseLayerVisible: visible })
     },
-    setLivabilityVisible: (visible) => {
-      try { localStorage.setItem(LIVABILITY_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
-      set({ livabilityVisible: visible })
-    },
-    setLivabilityConsiderNoise: (consider) => {
-      try { localStorage.setItem(LIVABILITY_NOISE_KEY, String(consider)) } catch { /* ignore */ }
-      set({ livabilityConsiderNoise: consider })
+    setPoiAccessVisible: (visible) => {
+      try { localStorage.setItem(POI_ACCESS_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
+      set({ poiAccessVisible: visible })
     },
     mapAttribution: '',
     setMapAttribution: (mapAttribution) => set({ mapAttribution }),
@@ -208,5 +237,15 @@ export const useStore = create<AppState>((set) => {
     setIdealistaPriceRange: (idealistaPriceRange) => set({ idealistaPriceRange }),
     setIdealistaPriceBounds: (idealistaPriceBounds) => set({ idealistaPriceBounds }),
     setIdealistaPricesMode: (idealistaPricesMode) => set({ idealistaPricesMode }),
+    compositeVisible: loadBoolKey(COMPOSITE_VISIBLE_KEY),
+    compositeWeights: loadCompositeWeights(),
+    setCompositeVisible: (visible) => {
+      try { localStorage.setItem(COMPOSITE_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
+      set({ compositeVisible: visible })
+    },
+    setCompositeWeights: (weights) => {
+      try { localStorage.setItem(COMPOSITE_WEIGHTS_KEY, JSON.stringify(weights)) } catch { /* ignore */ }
+      set({ compositeWeights: weights })
+    },
   }
 })

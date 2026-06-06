@@ -5,6 +5,7 @@ import { useStore } from '../../store'
 import { PRICE_RAMP, buildPriceColorExpression, buildIconImageExpression } from './priceColors'
 import { aggregateToH3, h3CellsToGeoJSON } from './h3Index'
 import { addLayerOrdered } from '../Map/layerOrder'
+import { loadIdealistaFeatures } from '../../services/idealista/idealistaRawData'
 
 const DOTS_SOURCE = 'idealista-prices-dots'
 const DOTS_LAYER = 'idealista-prices-dots'
@@ -175,11 +176,10 @@ export function IdealistaPricesLayer() {
     }, HEX_OUTLINE_LAYER)
 
     // Load data for H3 aggregation + bounds detection
-    fetch(GEOJSON_URL)
-      .then((r) => r.json())
-      .then((fc: GeoJSON.FeatureCollection<GeoJSON.Point>) => {
-        setRawFeatures(fc.features)
-        const prices = fc.features.map((f) => f.properties?.price as number).filter((p) => p > 0)
+    loadIdealistaFeatures()
+      .then((features) => {
+        setRawFeatures(features)
+        const prices = features.map((f) => f.properties?.price as number).filter((p) => p > 0)
         if (prices.length) setBounds([Math.min(...prices), Math.max(...prices)])
       })
       .catch(console.error)

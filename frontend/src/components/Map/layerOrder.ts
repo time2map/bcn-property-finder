@@ -10,7 +10,9 @@ export const LAYER_Z_ORDER: readonly string[] = [
   'city-core-fill',
   'city-core-shapes-fill',
   'city-core-shapes-line',
-  'livability-fill',
+  'poi-access-fill',
+  'composite-fill',
+  'composite-gap-outline',
   'noise-overlay',
   // Exclusion zones
   'exclusion-fill',

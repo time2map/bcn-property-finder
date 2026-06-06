@@ -10,7 +10,8 @@ import { FgcLayer } from '../FgcLayer/FgcLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
-import { LivabilityLayer } from '../LivabilityLayer/LivabilityLayer'
+import { PoiAccessLayer } from '../PoiAccessLayer/PoiAccessLayer'
+import { CompositeLayer } from '../CompositeLayer/CompositeLayer'
 import { CityCorAccessLayer } from '../CityCorAccessLayer/CityCorAccessLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
@@ -137,7 +138,8 @@ export function Map() {
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {/* Layer z-order: first rendered = bottom of stack */}
       <CityCorAccessLayer />
-      <LivabilityLayer />
+      <PoiAccessLayer />
+      <CompositeLayer />
       <NoiseLayer />
       <ExclusionLayer />
       <ExclusionDraw />

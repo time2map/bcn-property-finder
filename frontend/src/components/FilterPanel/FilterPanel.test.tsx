@@ -25,6 +25,14 @@ vi.mock('./CityCorAccessControls', () => ({
   CityCorAccessControls: () => <div data-testid="city-core-access-controls" />,
 }))
 
+vi.mock('./PoiAccessControls', () => ({
+  PoiAccessControls: () => <div data-testid="poi-access-controls" />,
+}))
+
+vi.mock('./CompositeControls', () => ({
+  CompositeControls: () => <div data-testid="composite-controls" />,
+}))
+
 vi.mock('../ExportButton/ExportButton', () => ({
   ExportButton: () => <button>Export</button>,
 }))
