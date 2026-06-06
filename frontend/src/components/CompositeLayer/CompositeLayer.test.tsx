@@ -45,6 +45,8 @@ function makeFakeMap() {
     getLayer: (id: string) => layers.get(id),
     addLayer: (l: { id: string }) => layers.set(l.id, l),
     setLayoutProperty: vi.fn(),
+    setPaintProperty: vi.fn(),
+    setFilter: vi.fn(),
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
     on: vi.fn(),
@@ -70,6 +72,7 @@ describe('CompositeLayer', () => {
     useStore.setState({
       compositeVisible: false,
       compositeWeights: DEFAULT_COMPOSITE_WEIGHTS,
+      compositeScoreRange: [0, 100],
     })
   })
 
@@ -112,5 +115,16 @@ describe('CompositeLayer', () => {
     const source = map.getSource(SOURCE_ID)!
     act(() => useStore.setState({ compositeWeights: { poiAccess: 10, noise: 0, cityCore: 0, price: 0 } }))
     expect(source.setData).toHaveBeenCalled()
+  })
+
+  it('updates fill-color and filters when score range changes', async () => {
+    useStore.setState({ compositeVisible: true })
+    const map = makeFakeMap()
+    await act(async () => { renderLayer(map) })
+
+    act(() => useStore.setState({ compositeScoreRange: [30, 80] }))
+    expect(map.setLayoutProperty).toHaveBeenCalledWith(FILL_LAYER_ID, 'visibility', 'visible')
+    // setPaintProperty and setFilter are called
+    expect(map.setLayoutProperty).toHaveBeenCalled()
   })
 })

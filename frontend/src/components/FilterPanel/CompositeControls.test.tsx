@@ -18,6 +18,7 @@ describe('CompositeControls', () => {
     useStore.setState({
       compositeVisible: false,
       compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS },
+      compositeScoreRange: [0, 100],
       idealistaPriceRange: [200_000, 600_000],
     })
   })
@@ -68,5 +69,12 @@ describe('CompositeControls', () => {
     })
     renderControls()
     expect(screen.queryByText(/Price score:/)).toBeNull()
+  })
+
+  it('shows score range slider when layer is enabled', () => {
+    useStore.setState({ compositeVisible: true })
+    renderControls()
+    expect(screen.getByText('Score range')).toBeTruthy()
+    expect(screen.getByLabelText('Score range filter')).toBeTruthy()
   })
 })

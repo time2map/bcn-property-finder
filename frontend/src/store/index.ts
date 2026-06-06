@@ -10,10 +10,10 @@ export interface CompositeWeights {
 }
 
 export const DEFAULT_COMPOSITE_WEIGHTS: CompositeWeights = {
-  poiAccess: 7,
-  noise: 8,
+  poiAccess: 6,
+  noise: 7,
   cityCore: 8,
-  price: 8,
+  price: 10,
 }
 
 export interface AppState {
@@ -47,6 +47,7 @@ export interface AppState {
   // Composite Index layer — feature 022
   compositeVisible: boolean
   compositeWeights: CompositeWeights
+  compositeScoreRange: [number, number]
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setZoom: (zoom: number) => void
@@ -68,6 +69,7 @@ export interface AppState {
   setIdealistaPricesMode: (mode: 'dots' | 'index') => void
   setCompositeVisible: (visible: boolean) => void
   setCompositeWeights: (weights: CompositeWeights) => void
+  setCompositeScoreRange: (range: [number, number]) => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -98,6 +100,7 @@ const CITY_CORE_VISIBLE_KEY = 'bcn_city_core_visible'
 const CITY_CORE_LANDMARKS_KEY = 'bcn_city_core_landmarks'
 const COMPOSITE_VISIBLE_KEY = 'bcn_composite_visible'
 const COMPOSITE_WEIGHTS_KEY = 'bcn_composite_weights'
+const COMPOSITE_SCORE_RANGE_KEY = 'bcn_composite_score_range'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -239,6 +242,15 @@ export const useStore = create<AppState>((set) => {
     setIdealistaPricesMode: (idealistaPricesMode) => set({ idealistaPricesMode }),
     compositeVisible: loadBoolKey(COMPOSITE_VISIBLE_KEY),
     compositeWeights: loadCompositeWeights(),
+    compositeScoreRange: (() => {
+      try {
+        const raw = localStorage.getItem(COMPOSITE_SCORE_RANGE_KEY)
+        if (!raw) return [0, 100] as [number, number]
+        const parsed = JSON.parse(raw) as unknown
+        if (Array.isArray(parsed) && parsed.length === 2) return parsed as [number, number]
+      } catch { /* ignore */ }
+      return [0, 100] as [number, number]
+    })(),
     setCompositeVisible: (visible) => {
       try { localStorage.setItem(COMPOSITE_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
       set({ compositeVisible: visible })
@@ -246,6 +258,10 @@ export const useStore = create<AppState>((set) => {
     setCompositeWeights: (weights) => {
       try { localStorage.setItem(COMPOSITE_WEIGHTS_KEY, JSON.stringify(weights)) } catch { /* ignore */ }
       set({ compositeWeights: weights })
+    },
+    setCompositeScoreRange: (range) => {
+      try { localStorage.setItem(COMPOSITE_SCORE_RANGE_KEY, JSON.stringify(range)) } catch { /* ignore */ }
+      set({ compositeScoreRange: range })
     },
   }
 })

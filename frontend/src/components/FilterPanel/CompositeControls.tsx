@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Checkbox, Group, Slider, Stack, Switch, Text } from '@mantine/core'
+import { Checkbox, Group, RangeSlider, Slider, Stack, Switch, Text } from '@mantine/core'
 import { useStore, DEFAULT_COMPOSITE_WEIGHTS, type CompositeWeights } from '../../store'
 import { CompositeLegend } from '../CompositeLayer/CompositeLegend'
 
@@ -8,6 +8,14 @@ const COMPONENTS: { id: keyof CompositeWeights; label: string }[] = [
   { id: 'noise', label: 'Noise' },
   { id: 'cityCore', label: 'City Core Access' },
   { id: 'price', label: 'Idealista Price' },
+]
+
+const SCORE_MARKS = [
+  { value: 0, label: '0' },
+  { value: 25, label: '25' },
+  { value: 50, label: '50' },
+  { value: 75, label: '75' },
+  { value: 100, label: '100' },
 ]
 
 interface ComponentRowProps {
@@ -66,6 +74,8 @@ export function CompositeControls() {
   const weights = useStore((s) => s.compositeWeights)
   const setWeights = useStore((s) => s.setCompositeWeights)
   const priceRange = useStore((s) => s.idealistaPriceRange)
+  const scoreRange = useStore((s) => s.compositeScoreRange)
+  const setScoreRange = useStore((s) => s.setCompositeScoreRange)
 
   function setWeight(id: keyof CompositeWeights, value: number) {
     setWeights({ ...weights, [id]: value })
@@ -93,12 +103,30 @@ export function CompositeControls() {
               onChange={setWeight}
             />
           ))}
+
           {weights.price > 0 && (
             <Text size="xs" c="dimmed">
               Price score: {fmt(priceRange[0])} – {fmt(priceRange[1])}
             </Text>
           )}
-          <CompositeLegend />
+
+          <Stack gap={4}>
+            <Text size="xs" c="dimmed">Score range</Text>
+            <RangeSlider
+              min={0}
+              max={100}
+              step={5}
+              size="xs"
+              value={scoreRange}
+              onChange={(v) => setScoreRange(v as [number, number])}
+              marks={SCORE_MARKS}
+              aria-label="Score range filter"
+              style={{ '--slider-color': '#4CAF50' } as React.CSSProperties}
+              styles={{ markLabel: { fontSize: 9, marginTop: 4 } }}
+            />
+          </Stack>
+
+          <CompositeLegend scoreRange={scoreRange} />
           <Text size="xs" c="dimmed">Black outline = missing data</Text>
         </Stack>
       )}

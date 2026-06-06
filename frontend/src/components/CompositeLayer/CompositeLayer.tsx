@@ -4,14 +4,12 @@ import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { loadBundles, loadPriceMap, type CellBundle } from '../../services/composite/compositeData'
 import { computeComposite } from '../../services/composite/compositeScore'
-import { buildScoreFillColor } from './scoreRamp'
+import { buildScoreFillColorForRange } from './scoreRamp'
 import { addLayerOrdered } from '../Map/layerOrder'
 
 export const SOURCE_ID = 'composite-h3'
 export const FILL_LAYER_ID = 'composite-fill'
 export const GAP_LAYER_ID = 'composite-gap-outline'
-
-const FILL_COLOR = buildScoreFillColor('score')
 
 interface ScoredFeature {
   type: 'Feature'
@@ -42,12 +40,28 @@ function buildGeoJSON(
   return { type: 'FeatureCollection', features }
 }
 
+function scoreRangeFilter(min: number, max: number): maplibregl.FilterSpecification {
+  return ['all',
+    ['>=', ['get', 'score'], min],
+    ['<=', ['get', 'score'], max],
+  ] as maplibregl.FilterSpecification
+}
+
+function gapFilter(min: number, max: number): maplibregl.FilterSpecification {
+  return ['all',
+    ['==', ['get', 'hasGap'], true],
+    ['>=', ['get', 'score'], min],
+    ['<=', ['get', 'score'], max],
+  ] as maplibregl.FilterSpecification
+}
+
 export function CompositeLayer() {
   const map = useContext(MapContext)
   const visible = useStore((s) => s.compositeVisible)
   const weights = useStore((s) => s.compositeWeights)
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
   const priceRange = useStore((s) => s.idealistaPriceRange)
+  const scoreRange = useStore((s) => s.compositeScoreRange)
 
   const bundlesRef = useRef<CellBundle[] | null>(null)
   const priceMapRef = useRef<Map<string, number> | null>(null)
@@ -68,7 +82,7 @@ export function CompositeLayer() {
     return () => { cancelled = true }
   }, [visible])
 
-  // Add/update MapLibre source + layers whenever any input changes.
+  // Add/update MapLibre source + layers whenever scores need recomputing.
   useEffect(() => {
     if (!map || !bundlesRef.current || !priceMapRef.current) return
     const data = buildGeoJSON(
@@ -83,15 +97,17 @@ export function CompositeLayer() {
     if (source) {
       source.setData(data)
     } else {
+      const [sMin, sMax] = scoreRange
       map.addSource(SOURCE_ID, { type: 'geojson', data })
 
       addLayerOrdered(map, {
         id: FILL_LAYER_ID,
         type: 'fill',
         source: SOURCE_ID,
+        filter: scoreRangeFilter(sMin, sMax),
         layout: { visibility: visible ? 'visible' : 'none' },
         paint: {
-          'fill-color': FILL_COLOR,
+          'fill-color': buildScoreFillColorForRange(sMin, sMax, 'score'),
           'fill-opacity': 0.6,
         },
       }, FILL_LAYER_ID)
@@ -100,13 +116,26 @@ export function CompositeLayer() {
         id: GAP_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
-        filter: ['==', ['get', 'hasGap'], true] as maplibregl.FilterSpecification,
+        filter: gapFilter(sMin, sMax),
         layout: { visibility: visible ? 'visible' : 'none' },
         paint: { 'line-color': '#000', 'line-width': 1.5, 'line-opacity': 0.7 },
       }, GAP_LAYER_ID)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, dataLoaded, weights, enabledLandmarkIds, priceRange])
+
+  // Update fill-color expression + filters when score range changes.
+  useEffect(() => {
+    if (!map || !map.getLayer(FILL_LAYER_ID)) return
+    const [sMin, sMax] = scoreRange
+    map.setPaintProperty(
+      FILL_LAYER_ID,
+      'fill-color',
+      buildScoreFillColorForRange(sMin, sMax, 'score'),
+    )
+    map.setFilter(FILL_LAYER_ID, scoreRangeFilter(sMin, sMax))
+    map.setFilter(GAP_LAYER_ID, gapFilter(sMin, sMax))
+  }, [map, scoreRange, dataLoaded])
 
   // Visibility toggle without removing layers.
   useEffect(() => {
