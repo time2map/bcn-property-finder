@@ -60,37 +60,33 @@ describe('HexDetailCard', () => {
   it('shows composite score when hex is selected', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
-    expect(screen.getByText('Hex Details')).toBeInTheDocument()
-    expect(screen.getByText('Composite score')).toBeInTheDocument()
+    expect(screen.getByText('Composite')).toBeInTheDocument()
   })
 
   it('shows POI Access section', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
-    expect(screen.getByText(/POI Access/i)).toBeInTheDocument()
-    expect(screen.getByText('Walkability score')).toBeInTheDocument()
+    expect(screen.getByText(/Walkability/i)).toBeInTheDocument()
   })
 
   it('shows noise score and lden value', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
     expect(screen.getByText(/Noise/i)).toBeInTheDocument()
-    expect(screen.getByText('Lden')).toBeInTheDocument()
-    expect(screen.getByText('53 dB')).toBeInTheDocument()
+    expect(screen.getByText(/Lden 53 dB/i)).toBeInTheDocument()
   })
 
   it('shows city core section with nearest landmarks', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
     expect(screen.getByText(/City Core/i)).toBeInTheDocument()
-    // eixample = 2 min is the nearest enabled landmark
     expect(screen.getByText('2 min')).toBeInTheDocument()
   })
 
   it('shows INCASOL price when weight > 0', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
-    expect(screen.getByText(/INCASOL/i)).toBeInTheDocument()
+    expect(screen.getByText(/Sale price/i)).toBeInTheDocument()
     expect(screen.getByText(/4,200/)).toBeInTheDocument()
   })
 

@@ -24,19 +24,12 @@ function lerpColor(c1: string, c2: string, t: number): string {
   return `#${r}${g}${b}`
 }
 
-/** Maps score to a color using the same remapped ramp as the composite layer on the map. */
+/** Color for composite score — remapped to current score range, matching the map. */
 function scoreColorForRange(score: number, min: number, max: number): string {
   const ramp = SCORE_RAMP
-  if (max <= min) {
-    // fallback: full 0-100 scale
-    for (let i = ramp.length - 1; i >= 0; i--) {
-      if (score >= ramp[i].stop) return ramp[i].color
-    }
-    return ramp[0].color
-  }
-  // Remap: min → ramp[0], max → ramp[last], same as buildScoreFillColorForRange
+  if (max <= min) return scoreColor(score)
   const span = max - min
-  const stops = ramp.map((s, i) => ({ val: min + span * (i / (ramp.length - 1)), color: s.color }))
+  const stops = ramp.map((s, i) => ({ color: s.color, val: min + span * (i / (ramp.length - 1)) }))
   const t = Math.max(0, Math.min(1, (score - min) / span))
   const idx = t * (ramp.length - 1)
   const lo = Math.floor(idx)
@@ -45,25 +38,45 @@ function scoreColorForRange(score: number, min: number, max: number): string {
   return lerpColor(stops[lo].color, stops[hi].color, idx - lo)
 }
 
-function Row({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
+/** Color for sub-scores — always full 0–100 scale. */
+function scoreColor(score: number): string {
+  for (let i = SCORE_RAMP.length - 1; i >= 0; i--) {
+    if (score >= SCORE_RAMP[i].stop) return SCORE_RAMP[i].color
+  }
+  return SCORE_RAMP[0].color
+}
+
+function ScoreBar({ score, color }: { score: number | null; color: string }) {
   return (
-    <Group justify="space-between" gap="xs" wrap="nowrap">
-      <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>{label}</Text>
-      <Text size="xs" c={muted ? 'dimmed' : undefined} fw={muted ? undefined : 500} ta="right">
-        {value}
+    <Group gap={8} align="center" wrap="nowrap">
+      <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#eee', overflow: 'hidden', minWidth: 50 }}>
+        {score !== null && (
+          <div style={{ height: '100%', width: `${score}%`, background: color }} />
+        )}
+      </div>
+      <Text size="xs" fw={600} style={{ color: score !== null ? color : '#aaa', minWidth: 48, textAlign: 'right' }}>
+        {score !== null ? `${score} / 100` : '— / 100'}
       </Text>
     </Group>
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <Stack gap={4}>
-      <Text size="xs" fw={600} tt="uppercase" c="dimmed" style={{ letterSpacing: '0.04em' }}>
-        {title}
-      </Text>
+    <Text size="xs" fw={600} tt="uppercase" c="dimmed" style={{ letterSpacing: '0.05em' }}>
       {children}
-    </Stack>
+    </Text>
+  )
+}
+
+function LandmarkRow({ name, minutes }: { name: string; minutes: number }) {
+  return (
+    <Group justify="space-between" gap="xs" wrap="nowrap">
+      <Text size="xs" c="dimmed" style={{ flexShrink: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {name}
+      </Text>
+      <Text size="xs" fw={500} style={{ flexShrink: 0 }}>{Math.round(minutes)} min</Text>
+    </Group>
   )
 }
 
@@ -99,7 +112,7 @@ export function HexDetailCard() {
     bounds,
   )
 
-  // Top-3 nearest enabled landmarks (lowest walking minutes)
+  // All enabled landmarks sorted nearest first
   const cityCoreLandmarks = enabledLandmarkIds
     .map((id) => {
       const props = bundle.cityCoreProps as Record<string, number | null | string>
@@ -109,119 +122,136 @@ export function HexDetailCard() {
     })
     .filter((e): e is { id: string; name: string; minutes: number } => e.minutes !== null)
     .sort((a, b) => a.minutes - b.minutes)
-    .slice(0, 3)
+
+  const compositeColor = scoreColorForRange(score, sMin, sMax)
+  const barPct = sMax > sMin ? Math.max(0, Math.min(100, ((score - sMin) / (sMax - sMin)) * 100)) : score
 
   const fmtNum = (n: number) =>
     new Intl.NumberFormat('en-ES', { maximumFractionDigits: 0 }).format(n)
 
   return (
     <div className="hex-detail-overlay">
-      <Paper shadow="md" p="md" radius="md" w={256} style={{ maxHeight: 'calc(100vh - 96px)', overflowY: 'auto' }}>
+      <Paper shadow="md" p="md" radius="md" w={264} style={{ maxHeight: 'calc(100vh - 96px)', overflowY: 'auto' }}>
         <Stack gap="sm">
-          <Group justify="space-between" align="center">
-            <Text fw={600} size="sm">Hex Details</Text>
+
+          {/* Composite — main focus */}
+          <Group justify="space-between" align="flex-start">
+            <Stack gap={2}>
+              <Text size="xs" c="dimmed">Composite</Text>
+              <Text fw={800} lh={1} style={{ fontSize: 28, color: compositeColor }}>
+                {score}
+                <Text component="span" size="sm" c="dimmed" fw={400}> / 100</Text>
+              </Text>
+            </Stack>
             <ActionIcon
               size="xs"
               variant="subtle"
               color="gray"
               onClick={() => setSelectedHexH3(null)}
               aria-label="Close hex detail card"
+              mt={2}
             >
               ×
             </ActionIcon>
           </Group>
-
-          {/* Composite score bar */}
-          <Stack gap={4}>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">Composite score</Text>
-              <Text size="sm" fw={700} style={{ color: scoreColorForRange(score, sMin, sMax) }}>{score}</Text>
-            </Group>
-            <div style={{ height: 6, borderRadius: 3, background: '#eee', overflow: 'hidden' }}>
-              <div
-                style={{
-                  height: '100%',
-                  width: `${sMax > sMin ? ((score - sMin) / (sMax - sMin)) * 100 : score}%`,
-                  background: scoreColorForRange(score, sMin, sMax),
-                  transition: 'width 0.3s ease',
-                }}
-              />
-            </div>
-          </Stack>
+          <div style={{ height: 8, borderRadius: 4, background: '#eee', overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '100%',
+                width: `${barPct}%`,
+                background: compositeColor,
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
 
           <Divider />
 
-          <Section title="POI Access">
-            <Row label="Walkability score" value={`${components.poiAccess}`} />
-          </Section>
+          {/* POI Access */}
+          <Stack gap={4}>
+            <SectionTitle>Walkability</SectionTitle>
+            <ScoreBar score={components.poiAccess} color={scoreColor(components.poiAccess)} />
+          </Stack>
 
+          {/* Noise */}
           {weights.noise > 0 && (
             <>
               <Divider />
-              <Section title="Noise">
-                <Row
-                  label="Score"
-                  value={components.noise !== null ? `${components.noise}` : '—'}
-                  muted={components.noise === null}
+              <Stack gap={4}>
+                <SectionTitle>Noise</SectionTitle>
+                <ScoreBar
+                  score={components.noise}
+                  color={components.noise !== null ? scoreColor(components.noise) : '#aaa'}
                 />
                 {bundle.lden !== null && (
-                  <Row label="Lden" value={`${bundle.lden} dB`} />
+                  <Text size="xs" c="dimmed">Lden {bundle.lden} dB</Text>
                 )}
-              </Section>
+              </Stack>
             </>
           )}
 
+          {/* City Core */}
           {weights.cityCore > 0 && (
             <>
               <Divider />
-              <Section title="City Core Access">
-                <Row label="Score" value={`${components.cityCore}`} />
+              <Stack gap={4}>
+                <SectionTitle>City Core Access</SectionTitle>
+                <ScoreBar score={components.cityCore} color={scoreColor(components.cityCore)} />
                 {cityCoreLandmarks.map((e) => (
-                  <Row key={e.id} label={e.name} value={`${Math.round(e.minutes)} min`} />
+                  <LandmarkRow key={e.id} name={e.name} minutes={e.minutes} />
                 ))}
-              </Section>
+              </Stack>
             </>
           )}
 
+          {/* Sale price (Generalitat official data) */}
           {weights.openPrice > 0 && (
             <>
               <Divider />
-              <Section title="INCASOL Price">
+              <Stack gap={4}>
+                <SectionTitle>Sale price</SectionTitle>
                 {bundle.saleEurM2 !== null ? (
                   <>
-                    <Row label="Sale price" value={`${fmtNum(bundle.saleEurM2)} €/m²`} />
-                    <Row
-                      label="Score"
-                      value={components.openPrice !== null ? `${components.openPrice}` : '—'}
-                      muted={components.openPrice === null}
+                    <Text size="sm" fw={700}>
+                      {fmtNum(bundle.saleEurM2)} €/m²
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Avg. transaction price, Generalitat official data
+                    </Text>
+                    <ScoreBar
+                      score={components.openPrice}
+                      color={components.openPrice !== null ? scoreColor(components.openPrice) : '#aaa'}
                     />
                   </>
                 ) : (
-                  <Row label="Sale price" value="—" muted />
+                  <Text size="xs" c="dimmed">No data for this area</Text>
                 )}
-              </Section>
+              </Stack>
             </>
           )}
 
+          {/* Idealista listing price */}
           {weights.price > 0 && (
             <>
               <Divider />
-              <Section title="Idealista Price">
+              <Stack gap={4}>
+                <SectionTitle>Listing price</SectionTitle>
                 {medianPrice !== null ? (
                   <>
-                    <Row label="Median listing" value={`${fmtNum(medianPrice)} €`} />
-                    <Row
-                      label="Score"
-                      value={components.price !== null ? `${components.price}` : '—'}
-                      muted={components.price === null}
+                    <Text size="sm" fw={700}>{fmtNum(medianPrice)} €</Text>
+                    <Text size="xs" c="dimmed">Median Idealista listing in this hex</Text>
+                    <ScoreBar
+                      score={components.price}
+                      color={components.price !== null ? scoreColor(components.price) : '#aaa'}
                     />
                   </>
                 ) : (
-                  <Row label="Median listing" value="—" muted />
+                  <Text size="xs" c="dimmed">No listings in this hex</Text>
                 )}
-              </Section>
+              </Stack>
             </>
           )}
+
         </Stack>
       </Paper>
     </div>
