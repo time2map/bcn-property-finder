@@ -21,14 +21,6 @@ vi.mock('../IdealistaPricesLayer/IdealistaPricesControls', () => ({
   IdealistaPricesControls: () => <div data-testid="idealista-prices-controls" />,
 }))
 
-vi.mock('./CityCorAccessControls', () => ({
-  CityCorAccessControls: () => <div data-testid="city-core-access-controls" />,
-}))
-
-vi.mock('./PoiAccessControls', () => ({
-  PoiAccessControls: () => <div data-testid="poi-access-controls" />,
-}))
-
 vi.mock('./CompositeControls', () => ({
   CompositeControls: () => <div data-testid="composite-controls" />,
 }))
@@ -74,8 +66,8 @@ describe('FilterPanel', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('renders noise switch', () => {
+  it('renders noise areas switch', () => {
     render(<MantineProvider><FilterPanel /></MantineProvider>)
-    expect(screen.getByLabelText('Noise')).toBeTruthy()
+    expect(screen.getByLabelText('Noise areas')).toBeTruthy()
   })
 })

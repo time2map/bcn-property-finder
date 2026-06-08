@@ -10,16 +10,14 @@ import { FgcLayer } from '../FgcLayer/FgcLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
-import { PoiAccessLayer } from '../PoiAccessLayer/PoiAccessLayer'
 import { CompositeLayer } from '../CompositeLayer/CompositeLayer'
-import { CityCorAccessLayer } from '../CityCorAccessLayer/CityCorAccessLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
 import { ExclusionLayer } from '../ExclusionLayer/ExclusionLayer'
 import { ExclusionDraw } from '../ExclusionDraw/ExclusionDraw'
 import { ExportAreasLayer } from '../ExportAreasLayer/ExportAreasLayer'
 import { IdealistaPricesLayer } from '../IdealistaPricesLayer/IdealistaPricesLayer'
-import { BarrioBoundariesLayer } from '../BarrioBoundariesLayer/BarrioBoundariesLayer'
+import { LandmarksLayer } from '../LandmarksLayer/LandmarksLayer'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
@@ -137,13 +135,11 @@ export function Map() {
     <MapContext.Provider value={mapInstance}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {/* Layer z-order: first rendered = bottom of stack */}
-      <CityCorAccessLayer />
-      <PoiAccessLayer />
       <CompositeLayer />
+      <LandmarksLayer />
       <NoiseLayer />
       <ExclusionLayer />
       <ExclusionDraw />
-      <BarrioBoundariesLayer />
       <ExportAreasLayer />
       <IdealistaPricesLayer />
       <IsochroneLayer />

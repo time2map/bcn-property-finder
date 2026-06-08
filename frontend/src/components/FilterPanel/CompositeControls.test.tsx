@@ -1,8 +1,26 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import React from 'react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
 import { CompositeControls } from './CompositeControls'
 import { useStore, DEFAULT_COMPOSITE_WEIGHTS } from '../../store'
+
+vi.mock('@mantine/core', async () => {
+  const actual = await vi.importActual<typeof import('@mantine/core')>('@mantine/core')
+  return {
+    ...actual,
+    Modal: ({ opened, onClose, title, children }: {
+      opened: boolean; onClose: () => void; title: React.ReactNode; children: React.ReactNode
+    }) =>
+      opened ? (
+        <div role="dialog">
+          <div>{title}</div>
+          <button aria-label="Close" onClick={onClose} />
+          {children}
+        </div>
+      ) : null,
+  }
+})
 
 function renderControls() {
   return render(
@@ -20,6 +38,8 @@ describe('CompositeControls', () => {
       compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS },
       compositeScoreRange: [0, 100],
       idealistaPriceRange: [200_000, 600_000],
+      idealistaPriceBounds: null,
+      enabledLandmarkIds: ['sagrada', 'barceloneta'],
     })
   })
 
@@ -37,44 +57,49 @@ describe('CompositeControls', () => {
     expect(screen.getByText('Idealista Price')).toBeTruthy()
   })
 
-  it('enables the layer and shows components on toggle', () => {
+  it('enables the layer on toggle', () => {
     renderControls()
     fireEvent.click(screen.getByLabelText('Composite Index'))
     expect(useStore.getState().compositeVisible).toBe(true)
-    expect(screen.getByText('POI Access')).toBeTruthy()
   })
 
-  it('disabling a component checkbox sets its weight to 0', () => {
+  it('disabling a component sets its weight to 0', () => {
     useStore.setState({ compositeVisible: true })
     renderControls()
-    const noiseCheckbox = screen.getByLabelText('Enable Noise')
-    expect(noiseCheckbox).toBeTruthy()
-    fireEvent.click(noiseCheckbox)
+    fireEvent.click(screen.getByLabelText('Enable Noise'))
     expect(useStore.getState().compositeWeights.noise).toBe(0)
   })
 
-  it('shows price range note when price weight is > 0', () => {
-    useStore.setState({
-      compositeVisible: true,
-      compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS, price: 8 },
-    })
-    renderControls()
-    expect(screen.getByText(/Price score:/)).toBeTruthy()
-  })
-
-  it('hides price range note when price weight is 0', () => {
-    useStore.setState({
-      compositeVisible: true,
-      compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS, price: 0 },
-    })
-    renderControls()
-    expect(screen.queryByText(/Price score:/)).toBeNull()
-  })
-
-  it('shows score range slider when layer is enabled', () => {
+  it('shows score range slider when visible', () => {
     useStore.setState({ compositeVisible: true })
     renderControls()
     expect(screen.getByText('Score range')).toBeTruthy()
     expect(screen.getByLabelText('Score range filter')).toBeTruthy()
+  })
+
+  it('shows gear button for City Core when enabled', () => {
+    useStore.setState({ compositeVisible: true })
+    renderControls()
+    expect(screen.getByLabelText('Configure City Core Access')).toBeTruthy()
+  })
+
+  it('shows gear button for Idealista Price when enabled', () => {
+    useStore.setState({ compositeVisible: true })
+    renderControls()
+    expect(screen.getByLabelText('Configure Idealista Price')).toBeTruthy()
+  })
+
+  it('opens price modal on gear click', () => {
+    useStore.setState({ compositeVisible: true })
+    renderControls()
+    fireEvent.click(screen.getByLabelText('Configure Idealista Price'))
+    expect(screen.getByText('Idealista Price range')).toBeTruthy()
+  })
+
+  it('opens city core modal on gear click', () => {
+    useStore.setState({ compositeVisible: true })
+    renderControls()
+    fireEvent.click(screen.getByLabelText('Configure City Core Access'))
+    expect(screen.getByText('City Core landmarks')).toBeTruthy()
   })
 })

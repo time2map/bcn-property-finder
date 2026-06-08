@@ -23,27 +23,17 @@ export interface AppState {
   mapCenter: [number, number]
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
-  // POI Access layer (H3 grid, formerly "Livability") — feature 022
-  poiAccessVisible: boolean
   mapAttribution: string
-  // Index of the export area being hovered (in panel or on map), for cross-highlighting. null = none.
   hoveredAreaIndex: number | null
-  // Idealista export areas — computed on demand (button click), not reactively.
-  // Both arrays are parallel (same length).
   idealistaAreas: Polygon[]
   idealistaUrls: string[]
-  // Whether the export area zones are shown on the map (user can toggle while links stay).
   idealistaZonesVisible: boolean
-  // City Core Access layer — feature 021
-  cityCoreVisible: boolean
+  // Landmark selection for city core component inside composite — feature 021/022
   enabledLandmarkIds: readonly string[]
-  // Area boundaries layer (barris / districts / municipalities) — feature 020
-  barrioBoundariesVisible: boolean
-  // Idealista price heatmap layer — feature 019
+  // Idealista price dots layer — feature 019
   idealistaPricesVisible: boolean
   idealistaPriceRange: [number, number]
   idealistaPriceBounds: [number, number] | null
-  idealistaPricesMode: 'dots' | 'index'
   // Composite Index layer — feature 022
   compositeVisible: boolean
   compositeWeights: CompositeWeights
@@ -54,19 +44,15 @@ export interface AppState {
   setMapCenter: (center: [number, number]) => void
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
-  setPoiAccessVisible: (visible: boolean) => void
   setMapAttribution: (attribution: string) => void
   setHoveredAreaIndex: (index: number | null) => void
   setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
   clearIdealistaAreas: () => void
   setIdealistaZonesVisible: (visible: boolean) => void
-  setCityCoreVisible: (visible: boolean) => void
   setEnabledLandmarkIds: (ids: readonly string[]) => void
-  setBarrioBoundariesVisible: (visible: boolean) => void
   setIdealistaPricesVisible: (visible: boolean) => void
   setIdealistaPriceRange: (range: [number, number]) => void
   setIdealistaPriceBounds: (bounds: [number, number]) => void
-  setIdealistaPricesMode: (mode: 'dots' | 'index') => void
   setCompositeVisible: (visible: boolean) => void
   setCompositeWeights: (weights: CompositeWeights) => void
   setCompositeScoreRange: (range: [number, number]) => void
@@ -94,9 +80,6 @@ function readIsochroneCache(workplace: [number, number], minutes: number): Polyg
 const DEFAULT_ZOOM = 12
 const WORKPLACE_KEY = 'bcn_workplace'
 const NOISE_LAYER_KEY = 'bcn_noise_layer_visible'
-const POI_ACCESS_VISIBLE_KEY = 'bcn_poi_access_visible'
-const BARRIO_BOUNDARIES_VISIBLE_KEY = 'bcn_barrio_boundaries_visible'
-const CITY_CORE_VISIBLE_KEY = 'bcn_city_core_visible'
 const CITY_CORE_LANDMARKS_KEY = 'bcn_city_core_landmarks'
 const COMPOSITE_VISIBLE_KEY = 'bcn_composite_visible'
 const COMPOSITE_WEIGHTS_KEY = 'bcn_composite_weights'
@@ -130,22 +113,6 @@ export function readUrlParams(): Pick<AppState, 'minutes' | 'zoom' | 'mapCenter'
   }
 }
 
-function loadNoiseLayerVisible(): boolean {
-  try {
-    return localStorage.getItem(NOISE_LAYER_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-function loadBoolKey(key: string): boolean {
-  try {
-    return localStorage.getItem(key) === 'true'
-  } catch {
-    return false
-  }
-}
-
 function loadCompositeWeights(): CompositeWeights {
   try {
     const raw = localStorage.getItem(COMPOSITE_WEIGHTS_KEY)
@@ -162,6 +129,14 @@ function loadCompositeWeights(): CompositeWeights {
   }
 }
 
+function loadBoolKey(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export const useStore = create<AppState>((set) => {
   const { minutes, zoom, mapCenter } = readUrlParams()
   const workplace = readWorkplaceFromStorage()
@@ -170,11 +145,8 @@ export const useStore = create<AppState>((set) => {
     minutes,
     zoom,
     mapCenter,
-    // Restored synchronously from localStorage — no flash of empty state on reload
     resultPolygon: workplace ? readIsochroneCache(workplace, minutes) : null,
-    noiseLayerVisible: loadNoiseLayerVisible(),
-    poiAccessVisible: loadBoolKey(POI_ACCESS_VISIBLE_KEY),
-    cityCoreVisible: loadBoolKey(CITY_CORE_VISIBLE_KEY),
+    noiseLayerVisible: loadBoolKey(NOISE_LAYER_KEY),
     enabledLandmarkIds: (() => {
       try {
         const raw = localStorage.getItem(CITY_CORE_LANDMARKS_KEY)
@@ -183,11 +155,6 @@ export const useStore = create<AppState>((set) => {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[]
       } catch { /* ignore */ }
       return ALL_LANDMARK_IDS
-    })(),
-    barrioBoundariesVisible: (() => {
-      // default ON: show boundaries unless user has explicitly turned them off
-      const v = localStorage.getItem(BARRIO_BOUNDARIES_VISIBLE_KEY)
-      return v === null ? true : v === 'true'
     })(),
     setWorkplace: (workplace) => {
       try {
@@ -204,10 +171,6 @@ export const useStore = create<AppState>((set) => {
       try { localStorage.setItem(NOISE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
       set({ noiseLayerVisible: visible })
     },
-    setPoiAccessVisible: (visible) => {
-      try { localStorage.setItem(POI_ACCESS_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
-      set({ poiAccessVisible: visible })
-    },
     mapAttribution: '',
     setMapAttribution: (mapAttribution) => set({ mapAttribution }),
     hoveredAreaIndex: null,
@@ -220,26 +183,16 @@ export const useStore = create<AppState>((set) => {
     clearIdealistaAreas: () =>
       set({ idealistaAreas: [], idealistaUrls: [], hoveredAreaIndex: null }),
     setIdealistaZonesVisible: (idealistaZonesVisible) => set({ idealistaZonesVisible }),
-    idealistaPricesVisible: false,
-    idealistaPriceRange: [200_000, 600_000],
-    idealistaPriceBounds: null,
-    idealistaPricesMode: 'dots',
-    setCityCoreVisible: (visible) => {
-      try { localStorage.setItem(CITY_CORE_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
-      set({ cityCoreVisible: visible })
-    },
     setEnabledLandmarkIds: (ids) => {
       try { localStorage.setItem(CITY_CORE_LANDMARKS_KEY, JSON.stringify(ids)) } catch { /* ignore */ }
       set({ enabledLandmarkIds: ids })
     },
-    setBarrioBoundariesVisible: (visible) => {
-      try { localStorage.setItem(BARRIO_BOUNDARIES_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
-      set({ barrioBoundariesVisible: visible })
-    },
+    idealistaPricesVisible: false,
+    idealistaPriceRange: [200_000, 600_000],
+    idealistaPriceBounds: null,
     setIdealistaPricesVisible: (idealistaPricesVisible) => set({ idealistaPricesVisible }),
     setIdealistaPriceRange: (idealistaPriceRange) => set({ idealistaPriceRange }),
     setIdealistaPriceBounds: (idealistaPriceBounds) => set({ idealistaPriceBounds }),
-    setIdealistaPricesMode: (idealistaPricesMode) => set({ idealistaPricesMode }),
     compositeVisible: loadBoolKey(COMPOSITE_VISIBLE_KEY),
     compositeWeights: loadCompositeWeights(),
     compositeScoreRange: (() => {

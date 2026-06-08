@@ -58,31 +58,84 @@ price_score(cell) = clamp(
 
 ---
 
+## Panel redesign (v2 — implemented after initial feature)
+
+The standalone layers were simplified to reduce panel clutter. The composite index became the
+primary analysis tool.
+
+### Changes
+
+| Before | After |
+|--------|-------|
+| Area Boundaries layer (always-on toggle) | **Removed** — cluttered and redundant with base tiles |
+| Idealista Prices — dots + H3 hex mode | **Dots only** — hex view available by enabling composite with price only |
+| POI Access standalone layer | **Removed** — accessible via composite with only poiAccess weight > 0 |
+| City Core Access standalone layer | **Removed** — accessible via composite; gear modal replaces the checklist |
+| Noise label | Renamed **"Noise Areas"** |
+| Price range in Idealista Prices section | Moved **inside composite** → ⚙ gear next to Idealista Price row |
+| Landmark checklist in FilterPanel | Moved **inside composite** → ⚙ gear next to City Core Access row |
+
+### Resulting FilterPanel structure
+
+```
+Commute from work   [slider]
+─────────────────
+Idealista Prices    [toggle]
+─────────────────
+Noise Areas         [toggle]
+─────────────────
+Composite Index     [toggle]
+  [✓] POI Access    ████████  8
+  [✓] Noise         ███████░  7
+  [✓] City Core ⚙   ████████  8   ← gear → landmark modal
+  [✓] Price      ⚙  ████████  10  ← gear → price range modal
+  Score range  [===========]
+  [legend]
+```
+
+### Deleted components
+
+- `components/BarrioBoundariesLayer/`
+- `components/PoiAccessLayer/`
+- `components/CityCorAccessLayer/`
+- `components/FilterPanel/PoiAccessControls.tsx`
+- `components/FilterPanel/CityCorAccessControls.tsx`
+- `components/LivabilityLayer/`
+
+### Added components
+
+- `components/LandmarksLayer/LandmarksLayer.tsx` — renders MapLibre markers for enabled landmarks
+  when composite is visible and `cityCore` weight > 0. Replaces the marker logic that was in `CityCorAccessLayer`.
+
+### Removed store keys
+
+`barrioBoundariesVisible`, `cityCoreVisible`, `poiAccessVisible`, `idealistaPricesMode`
+
+---
+
 ## Renamed / restructured layers
 
 ### POI Access (formerly Livability)
 
-- The current `LivabilityLayer` is **renamed** to `PoiAccessLayer`.
-- Displays the raw `walk` score (0–100) as a choropleth — no noise, no composite.
-- Replaces the old "Consider noise" toggle (noise moves into composite).
-- Store keys renamed: `livabilityVisible` → `poiAccessVisible`.
-- File: `components/PoiAccessLayer/` (new directory, file moved from `LivabilityLayer/`).
+- `LivabilityLayer` **deleted** (composite replaces it entirely).
+- Raw walk score still usable: enable Composite, set only `poiAccess` weight > 0.
 
-### Noise (existing layer, no changes)
+### Noise (existing layer, unchanged)
 
 - `NoiseLayer` (PMTiles visual) stays unchanged.
-- Noise is available as a **composite input** via the `lden` field already in `livability-h3.geojson`.
+- Noise is available as a composite input via the `lden` field in `livability-h3.geojson`.
 
-### City Core Access (existing layer, no changes)
+### City Core Access (absorbed into composite)
 
-- `CityCorAccessLayer` stays as a standalone layer.
-- Composite reads the same `cellIndex` the layer already computes — no duplication.
+- Standalone `CityCorAccessLayer` **deleted**.
+- Landmark checklist moved to ⚙ gear modal inside `CompositeControls`.
+- `LandmarksLayer` shows landmark pins on the map when the component is active.
 
-### Idealista Prices (partial change)
+### Idealista Prices (simplified)
 
-- `IdealistaPricesLayer` stays unchanged for dots/hex display.
-- One-line fix: change `H3_RESOLUTION` in `h3Index.ts` from **8 → 9** (aligns cells with the composite grid).
-- Composite service reads the same in-browser aggregated map — no additional fetch.
+- `IdealistaPricesLayer` is **dots-only** — hex mode removed.
+- H3 resolution fixed: `h3Index.ts` `H3_RESOLUTION = 9` (was 8).
+- Price range slider moved to ⚙ gear modal inside `CompositeControls`.
 
 ---
 
@@ -243,17 +296,16 @@ CompositeLayer ──→ computeComposite(bundle, weights, priceRange)
 
 ## Definition of Done
 
-- [ ] `PoiAccessLayer` replaces `LivabilityLayer` — same behaviour, renamed everywhere (store, UI, tests).
-- [ ] `IdealistaPricesLayer` uses H3 res-9.
-- [ ] `compositeScore.ts` — unit tests: weighted formula, missing data rule, price normalisation edge cases.
-- [ ] `compositeData.ts` — unit tests: join logic, null handling.
-- [ ] `CompositeLayer` — integration test: renders on toggle, repaints on weight change.
-- [ ] `CompositeControls` — unit tests: checkbox toggle, slider, weight reset/restore.
-- [ ] `npm test` — all green (existing tests must pass; no regressions on renamed store keys).
-- [ ] `npm run lint` — no errors.
-- [ ] `npm run typecheck` — no errors.
-- [ ] Manual via `npm run dev`:
-  - Enable Composite with default weights → H3 choropleth visible.
-  - Toggle Price component → cells without listings get black outline.
-  - Adjust price filter → composite repaints reactively.
-  - POI Access layer still works as standalone after rename.
+- [x] `LivabilityLayer` deleted; composite fully replaces it.
+- [x] `IdealistaPricesLayer` dots-only; H3 res-9.
+- [x] `compositeScore.ts` — unit tests: weighted formula, missing data rule, price normalisation,
+      component breakdown (`components` field).
+- [x] `compositeData.ts` — unit tests: join logic, null handling.
+- [x] `CompositeLayer` — integration test: renders on toggle, repaints on weight change.
+- [x] `CompositeControls` — unit tests: checkbox toggle, slider, weight reset/restore, gear modals.
+- [x] `LandmarksLayer` — renders pins for enabled landmarks when composite is active with cityCore weight > 0.
+- [x] Hover tooltip shows composite score + per-component breakdown (active components only).
+- [x] Score range filter: RangeSlider hides cells outside range; legend remaps colour scale.
+- [x] `npm test` — all green (476 tests, 49 files).
+- [x] `npm run lint` — no errors.
+- [x] `npm run typecheck` — no errors.

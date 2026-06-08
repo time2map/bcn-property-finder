@@ -3,10 +3,7 @@ import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Text } from '@mant
 import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
-import { ExclusionControls } from './ExclusionControls'
-import { PoiAccessControls } from './PoiAccessControls'
 import { CompositeControls } from './CompositeControls'
-import { CityCorAccessControls } from './CityCorAccessControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 
 const TIME_MARKS = [
@@ -84,7 +81,6 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
   const {
     minutes, setMinutes,
     noiseLayerVisible, setNoiseLayerVisible,
-    barrioBoundariesVisible, setBarrioBoundariesVisible,
     mapAttribution,
   } = useStore()
   const [isoModalOpen, setIsoModalOpen] = useState(false)
@@ -127,24 +123,12 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
 
           <ExportButton isLoading={isLoading} />
 
-          {/* Layer toggles ordered top→bottom (matching map z-order: top layer first) */}
           <Divider />
           <IdealistaPricesControls />
 
           <Divider />
           <Switch
-            label="Area boundaries"
-            size="sm"
-            checked={barrioBoundariesVisible}
-            onChange={(e) => setBarrioBoundariesVisible(e.currentTarget.checked)}
-          />
-
-          <Divider />
-          <ExclusionControls />
-
-          <Divider />
-          <Switch
-            label="Noise"
+            label="Noise areas"
             size="sm"
             checked={noiseLayerVisible}
             onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
@@ -152,13 +136,7 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
           <NoiseLegend />
 
           <Divider />
-          <PoiAccessControls />
-
-          <Divider />
           <CompositeControls />
-
-          <Divider />
-          <CityCorAccessControls />
 
           {mapAttribution && (
             <>

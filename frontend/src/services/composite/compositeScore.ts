@@ -38,12 +38,30 @@ export function priceScore(
  * it contributes 0 to the numerator while its weight still counts in the denominator.
  * hasGap is set true so the cell can be rendered with a black outline.
  */
+export interface ComponentScores {
+  poiAccess: number
+  noise: number | null
+  cityCore: number
+  price: number | null
+}
+
 export function computeComposite(
   bundle: CellBundle,
   weights: CompositeWeights,
   enabledLandmarkIds: readonly string[],
   priceRange: [number, number],
-): { score: number; hasGap: boolean } {
+): { score: number; hasGap: boolean; components: ComponentScores } {
+  const noiseVal = bundle.lden !== null ? noiseScore(bundle.lden) : null
+  const cityVal = cellCityCoreIndex(bundle.cityCoreProps, enabledLandmarkIds)
+  const priceVal = bundle.medianPrice !== null ? priceScore(bundle.medianPrice, priceRange) : null
+
+  const components: ComponentScores = {
+    poiAccess: bundle.walk,
+    noise: noiseVal,
+    cityCore: cityVal,
+    price: priceVal,
+  }
+
   let weightedSum = 0
   let totalWeight = 0
   let hasGap = false
@@ -54,29 +72,28 @@ export function computeComposite(
   }
 
   if (weights.noise > 0) {
-    if (bundle.lden === null) {
+    if (noiseVal === null) {
       hasGap = true
     } else {
-      weightedSum += noiseScore(bundle.lden) * weights.noise
+      weightedSum += noiseVal * weights.noise
     }
     totalWeight += weights.noise
   }
 
   if (weights.cityCore > 0) {
-    const score = cellCityCoreIndex(bundle.cityCoreProps, enabledLandmarkIds)
-    weightedSum += score * weights.cityCore
+    weightedSum += cityVal * weights.cityCore
     totalWeight += weights.cityCore
   }
 
   if (weights.price > 0) {
-    if (bundle.medianPrice === null) {
+    if (priceVal === null) {
       hasGap = true
     } else {
-      weightedSum += priceScore(bundle.medianPrice, priceRange) * weights.price
+      weightedSum += priceVal * weights.price
     }
     totalWeight += weights.price
   }
 
   const score = totalWeight === 0 ? 0 : Math.round(weightedSum / totalWeight)
-  return { score, hasGap }
+  return { score, hasGap, components }
 }

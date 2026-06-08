@@ -8,6 +8,10 @@
 4. **BarrioBoundaries layer** — always-on by default; shows barri / district / municipality outlines as thin red lines with small text labels; toggled via Switch "Area boundaries".
 5. **Right-click context menu** on any barri zone → "Open on Idealista ↗" — uses `buildIdealistaUrl` with the user's saved filter base URL from `idealistaBaseUrlStore`.
 
+> **Note (panel redesign):** `BarrioBoundariesLayer` was **removed** in the panel redesign (feature 022 v2).
+> The layer was visually cluttered and the same neighbourhood context is available via the map base tiles.
+> The `BarrioBoundariesLayer` component and its store key (`barrioBoundariesVisible`) have been deleted.
+
 ---
 
 ## UX details

@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { loadBundles, loadPriceMap, type CellBundle } from '../../services/composite/compositeData'
-import { computeComposite } from '../../services/composite/compositeScore'
+import { computeComposite, type CompositeWeights } from '../../services/composite/compositeScore'
 import { buildScoreFillColorForRange } from './scoreRamp'
 import { addLayerOrdered } from '../Map/layerOrder'
 
@@ -14,7 +14,15 @@ export const GAP_LAYER_ID = 'composite-gap-outline'
 interface ScoredFeature {
   type: 'Feature'
   geometry: GeoJSON.Polygon
-  properties: { h3: string; score: number; hasGap: boolean }
+  properties: {
+    h3: string
+    score: number
+    hasGap: boolean
+    poiScore: number
+    noiseScore: number | null
+    cityScore: number
+    priceScore: number | null
+  }
 }
 
 function buildGeoJSON(
@@ -25,7 +33,7 @@ function buildGeoJSON(
   priceRange: [number, number],
 ): GeoJSON.FeatureCollection {
   const features: ScoredFeature[] = bundles.map((b) => {
-    const { score, hasGap } = computeComposite(
+    const { score, hasGap, components } = computeComposite(
       { ...b, medianPrice: priceMap.get(b.h3) ?? null },
       weights,
       enabledLandmarkIds,
@@ -34,7 +42,15 @@ function buildGeoJSON(
     return {
       type: 'Feature',
       geometry: b.geometry,
-      properties: { h3: b.h3, score, hasGap },
+      properties: {
+        h3: b.h3,
+        score,
+        hasGap,
+        poiScore: components.poiAccess,
+        noiseScore: components.noise,
+        cityScore: components.cityCore,
+        priceScore: components.price,
+      },
     }
   })
   return { type: 'FeatureCollection', features }
@@ -55,6 +71,31 @@ function gapFilter(min: number, max: number): maplibregl.FilterSpecification {
   ] as maplibregl.FilterSpecification
 }
 
+function formatScore(v: number | null): string {
+  return v === null ? '—' : String(v)
+}
+
+function buildBreakdownHTML(
+  props: Record<string, unknown>,
+  weights: CompositeWeights,
+): string {
+  const rows: string[] = []
+  const row = (label: string, val: string) =>
+    `<tr><td style="padding-right:8px;color:#888">${label}</td><td style="text-align:right">${val}</td></tr>`
+
+  if (weights.poiAccess > 0)
+    rows.push(row('POI Access', formatScore(props.poiScore as number)))
+  if (weights.noise > 0)
+    rows.push(row('Noise', formatScore(props.noiseScore as number | null)))
+  if (weights.cityCore > 0)
+    rows.push(row('City Core', formatScore(props.cityScore as number)))
+  if (weights.price > 0)
+    rows.push(row('Price', formatScore(props.priceScore as number | null)))
+
+  if (rows.length === 0) return ''
+  return `<table style="width:100%;border-collapse:collapse;margin-top:4px">${rows.join('')}</table>`
+}
+
 export function CompositeLayer() {
   const map = useContext(MapContext)
   const visible = useStore((s) => s.compositeVisible)
@@ -65,7 +106,10 @@ export function CompositeLayer() {
 
   const bundlesRef = useRef<CellBundle[] | null>(null)
   const priceMapRef = useRef<Map<string, number> | null>(null)
+  const weightsRef = useRef<CompositeWeights>(weights)
   const [dataLoaded, setDataLoaded] = useState(false)
+
+  useEffect(() => { weightsRef.current = weights }, [weights])
 
   // Lazy-load both data sources the first time the layer is enabled.
   useEffect(() => {
@@ -155,14 +199,16 @@ export function CompositeLayer() {
       const props = e.features?.[0]?.properties
       if (!props) return
       map.getCanvas().style.cursor = 'pointer'
+      const breakdown = buildBreakdownHTML(props, weightsRef.current)
       const gapNote = props.hasGap
-        ? '<br/><span style="color:#888;font-size:10px">⬤ Missing data for some components</span>'
+        ? '<div style="color:#aaa;font-size:10px;margin-top:4px">⬤ Missing data for some components</div>'
         : ''
       popup
         .setLngLat(e.lngLat)
         .setHTML(
-          `<div style="font-size:11px;line-height:1.4">
-             <strong>Composite Score ${props.score}</strong>${gapNote}
+          `<div style="font-size:11px;line-height:1.5;min-width:130px">
+             <strong>Composite: ${props.score}</strong>
+             ${breakdown}${gapNote}
            </div>`,
         )
         .addTo(map)

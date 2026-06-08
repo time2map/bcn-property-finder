@@ -241,3 +241,12 @@ editing becomes a power-user feature, a `VITE_CITY_CORE_LANDMARKS` override can 
 - [x] Manual via `npm run dev`: toggle on → hex grid colours by access (830 cells in viewport);
       layer confirmed in MapLibre (`city-core-fill` + `city-core-h3`); uncheck a landmark →
       live recalc verified (index 28 for 9 landmarks, index=60 for single landmark).
+
+---
+
+> **Note (panel redesign — feature 022 v2):** The standalone `CityCorAccessLayer` and
+> `CityCorAccessControls` were **removed**. City Core Access now lives exclusively as a
+> weighted component inside the **Composite Index**. The ⚙ gear icon next to "City Core Access"
+> in `CompositeControls` opens a modal with the landmark checklist.
+> A lightweight `LandmarksLayer` replaces the old marker rendering — it shows pins for enabled
+> landmarks whenever the Composite layer is visible and `cityCore` weight > 0.

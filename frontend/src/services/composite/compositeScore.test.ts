@@ -131,4 +131,33 @@ describe('computeComposite', () => {
     const { score } = computeComposite(bundle, EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE)
     expect(score).toBe(100)
   })
+
+  it('returns components breakdown with correct sub-scores', () => {
+    const bundle = makeBundle({ walk: 75, lden: 60, medianPrice: 400_000 })
+    const { components } = computeComposite(bundle, EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE)
+    expect(components.poiAccess).toBe(75)
+    expect(components.noise).toBe(50) // noiseScore(60) = 50
+    expect(components.price).toBe(50) // midpoint of 200k-600k
+    expect(typeof components.cityCore).toBe('number')
+  })
+
+  it('components.noise is null when lden is null', () => {
+    const { components } = computeComposite(
+      makeBundle({ lden: null }),
+      EQUAL_WEIGHTS,
+      ALL_ENABLED,
+      PRICE_RANGE,
+    )
+    expect(components.noise).toBeNull()
+  })
+
+  it('components.price is null when medianPrice is null', () => {
+    const { components } = computeComposite(
+      makeBundle({ medianPrice: null }),
+      EQUAL_WEIGHTS,
+      ALL_ENABLED,
+      PRICE_RANGE,
+    )
+    expect(components.price).toBeNull()
+  })
 })
