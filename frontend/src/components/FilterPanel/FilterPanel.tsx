@@ -5,6 +5,7 @@ import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { CompositeControls } from './CompositeControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
+import { ExclusionControls } from './ExclusionControls'
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -125,6 +126,9 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
 
           <Divider />
           <IdealistaPricesControls />
+
+          <Divider />
+          <ExclusionControls />
 
           <Divider />
           <Switch
