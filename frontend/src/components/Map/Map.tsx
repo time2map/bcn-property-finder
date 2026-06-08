@@ -18,6 +18,7 @@ import { ExclusionDraw } from '../ExclusionDraw/ExclusionDraw'
 import { ExportAreasLayer } from '../ExportAreasLayer/ExportAreasLayer'
 import { IdealistaPricesLayer } from '../IdealistaPricesLayer/IdealistaPricesLayer'
 import { LandmarksLayer } from '../LandmarksLayer/LandmarksLayer'
+import { MapContextMenu } from './MapContextMenu'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 
 const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
@@ -149,6 +150,7 @@ export function Map() {
       <PinAccuracyLayer />
       <PinLayer />
       <WalkabilityLayer />
+      <MapContextMenu />
     </MapContext.Provider>
   )
 }
