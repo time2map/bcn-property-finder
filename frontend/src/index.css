@@ -16,6 +16,20 @@ html, body, #root {
   height: 100%;
 }
 
+/* Hex detail card — positioned in the top-right of .map-pane (#025) */
+.hex-detail-overlay {
+  position: absolute;
+  top: 16px;
+  right: 56px; /* clear MapLibre nav controls (~40px wide) */
+  z-index: 20;
+  animation: hexCardSlideIn 0.18s ease;
+}
+
+@keyframes hexCardSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 /* City Core Access — landmark pin markers on the map */
 .city-core-landmark {
   display: flex;

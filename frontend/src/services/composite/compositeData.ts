@@ -14,6 +14,13 @@ export interface CellBundle {
   saleEurM2: number | null
 }
 
+/** Populated after loadBundles() resolves — keyed by h3 index for O(1) card lookups. */
+export const hexBundleMap = new Map<string, CellBundle>()
+/** Populated after loadPriceMap() resolves — Idealista median price per h3. */
+export const hexPriceMap = new Map<string, number>()
+/** Populated after loadOpenPriceMeta() resolves — INCASOL normalisation bounds. */
+export let hexOpenPriceBounds: OpenPriceBounds | null = null
+
 const EMPTY_CITY_CORE: Omit<CityCoreCellProps, 'h3'> = {
   sagrada: null, placa_cat: null, barceloneta: null, barri_gotic: null,
   pg_gracia: null, arc_triomf: null, montjuic: null, placa_espanya: null,
@@ -31,7 +38,7 @@ export function loadBundles(): Promise<CellBundle[]> {
       for (const f of cityCoreGrid.features) {
         cityCoreMap.set(f.properties.h3, f.properties)
       }
-      return livGrid.features.map((f) => ({
+      const bundles = livGrid.features.map((f) => ({
         h3: f.properties.h3,
         geometry: f.geometry,
         walk: f.properties.walk,
@@ -42,6 +49,9 @@ export function loadBundles(): Promise<CellBundle[]> {
           ...EMPTY_CITY_CORE,
         },
       }))
+      hexBundleMap.clear()
+      for (const b of bundles) hexBundleMap.set(b.h3, b)
+      return bundles
     })
     .catch((err) => {
       bundleCache = null
@@ -64,6 +74,7 @@ export function loadPriceMap(): Promise<Map<string, number>> {
       const map = new Map<string, number>()
       for (const cell of cells) {
         map.set(cell.h3Index, cell.medianPrice)
+        hexPriceMap.set(cell.h3Index, cell.medianPrice)
       }
       return map
     })
@@ -81,7 +92,11 @@ export function loadOpenPriceMeta(): Promise<OpenPriceBounds> {
   if (openPriceMetaCache) return openPriceMetaCache
   openPriceMetaCache = fetch('/data/open-price-meta.json')
     .then((r) => r.json() as Promise<{ sale_p5: number; sale_p95: number }>)
-    .then((d) => ({ p5: d.sale_p5, p95: d.sale_p95 }))
+    .then((d) => {
+      const bounds = { p5: d.sale_p5, p95: d.sale_p95 }
+      hexOpenPriceBounds = bounds
+      return bounds
+    })
     .catch((err) => {
       openPriceMetaCache = null
       throw err
@@ -93,4 +108,7 @@ export function resetCompositeCaches(): void {
   bundleCache = null
   priceMapCache = null
   openPriceMetaCache = null
+  hexBundleMap.clear()
+  hexPriceMap.clear()
+  hexOpenPriceBounds = null
 }

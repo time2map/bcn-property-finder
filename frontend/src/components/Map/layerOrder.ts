@@ -13,6 +13,7 @@ export const LAYER_Z_ORDER: readonly string[] = [
   'poi-access-fill',
   'composite-fill',
   'composite-gap-outline',
+  'composite-hover-outline',
   'noise-overlay',
   // Exclusion zones
   'exclusion-fill',

@@ -10,6 +10,7 @@ import { addLayerOrdered } from '../Map/layerOrder'
 export const SOURCE_ID = 'composite-h3'
 export const FILL_LAYER_ID = 'composite-fill'
 export const GAP_LAYER_ID = 'composite-gap-outline'
+export const HOVER_LAYER_ID = 'composite-hover-outline'
 
 interface ScoredFeature {
   type: 'Feature'
@@ -109,6 +110,7 @@ export function CompositeLayer() {
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
   const priceRange = useStore((s) => s.idealistaPriceRange)
   const scoreRange = useStore((s) => s.compositeScoreRange)
+  const setSelectedHexH3 = useStore((s) => s.setSelectedHexH3)
 
   const bundlesRef = useRef<CellBundle[] | null>(null)
   const priceMapRef = useRef<Map<string, number> | null>(null)
@@ -173,6 +175,15 @@ export function CompositeLayer() {
         layout: { visibility: visible ? 'visible' : 'none' },
         paint: { 'line-color': '#000', 'line-width': 1.5, 'line-opacity': 0.7 },
       }, GAP_LAYER_ID)
+
+      addLayerOrdered(map, {
+        id: HOVER_LAYER_ID,
+        type: 'line',
+        source: SOURCE_ID,
+        filter: ['==', ['get', 'h3'], ''] as maplibregl.FilterSpecification,
+        layout: { visibility: visible ? 'visible' : 'none' },
+        paint: { 'line-color': '#ffffff', 'line-width': 2, 'line-opacity': 0.9 },
+      }, HOVER_LAYER_ID)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, dataLoaded, weights, enabledLandmarkIds, priceRange])
@@ -196,9 +207,11 @@ export function CompositeLayer() {
     const vis = visible ? 'visible' : 'none'
     map.setLayoutProperty(FILL_LAYER_ID, 'visibility', vis)
     map.setLayoutProperty(GAP_LAYER_ID, 'visibility', vis)
-  }, [map, visible, dataLoaded])
+    if (map.getLayer(HOVER_LAYER_ID)) map.setLayoutProperty(HOVER_LAYER_ID, 'visibility', vis)
+    if (!visible) setSelectedHexH3(null)
+  }, [map, visible, dataLoaded, setSelectedHexH3])
 
-  // Hover tooltip.
+  // Hover tooltip + border highlight.
   useEffect(() => {
     if (!map) return
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 })
@@ -208,6 +221,9 @@ export function CompositeLayer() {
       const props = e.features?.[0]?.properties
       if (!props) return
       map.getCanvas().style.cursor = 'pointer'
+      if (map.getLayer(HOVER_LAYER_ID)) {
+        map.setFilter(HOVER_LAYER_ID, ['==', ['get', 'h3'], props.h3] as maplibregl.FilterSpecification)
+      }
       const breakdown = buildBreakdownHTML(props, weightsRef.current)
       const gapNote = props.hasGap
         ? '<div style="color:#aaa;font-size:10px;margin-top:4px">⬤ Missing data for some components</div>'
@@ -225,6 +241,9 @@ export function CompositeLayer() {
     function onLeave() {
       if (!map) return
       map.getCanvas().style.cursor = ''
+      if (map.getLayer(HOVER_LAYER_ID)) {
+        map.setFilter(HOVER_LAYER_ID, ['==', ['get', 'h3'], ''] as maplibregl.FilterSpecification)
+      }
       popup.remove()
     }
 
@@ -237,10 +256,25 @@ export function CompositeLayer() {
     }
   }, [map])
 
+  // Click handler — open detail card.
+  useEffect(() => {
+    if (!map) return
+    function onClick(e: maplibregl.MapLayerMouseEvent) {
+      const h3 = e.features?.[0]?.properties?.h3 as string | undefined
+      if (!h3) return
+      useStore.getState().setSelectedHexH3(
+        useStore.getState().selectedHexH3 === h3 ? null : h3
+      )
+    }
+    map.on('click', FILL_LAYER_ID, onClick)
+    return () => { map.off('click', FILL_LAYER_ID, onClick) }
+  }, [map])
+
   // Tear down on unmount.
   useEffect(() => {
     return () => {
       if (!map) return
+      if (map.getLayer(HOVER_LAYER_ID)) map.removeLayer(HOVER_LAYER_ID)
       if (map.getLayer(GAP_LAYER_ID)) map.removeLayer(GAP_LAYER_ID)
       if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID)
       if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)

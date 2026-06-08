@@ -40,6 +40,8 @@ export interface AppState {
   compositeVisible: boolean
   compositeWeights: CompositeWeights
   compositeScoreRange: [number, number]
+  // Hex detail card — feature 025
+  selectedHexH3: string | null
   setWorkplace: (wp: [number, number] | null) => void
   setMinutes: (minutes: number) => void
   setZoom: (zoom: number) => void
@@ -58,6 +60,7 @@ export interface AppState {
   setCompositeVisible: (visible: boolean) => void
   setCompositeWeights: (weights: CompositeWeights) => void
   setCompositeScoreRange: (range: [number, number]) => void
+  setSelectedHexH3: (h3: string | null) => void
 }
 
 function isValidMinutes(n: number): boolean {
@@ -219,5 +222,7 @@ export const useStore = create<AppState>((set) => {
       try { localStorage.setItem(COMPOSITE_SCORE_RANGE_KEY, JSON.stringify(range)) } catch { /* ignore */ }
       set({ compositeScoreRange: range })
     },
+    selectedHexH3: null,
+    setSelectedHexH3: (selectedHexH3) => set({ selectedHexH3 }),
   }
 })
