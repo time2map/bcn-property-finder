@@ -10,11 +10,39 @@ import { computeComposite } from '../../services/composite/compositeScore'
 import { LANDMARKS } from '../../services/cityCore/landmarks'
 import { SCORE_RAMP } from '../CompositeLayer/scoreRamp'
 
-function scoreColor(score: number): string {
-  for (let i = SCORE_RAMP.length - 1; i >= 0; i--) {
-    if (score >= SCORE_RAMP[i].stop) return SCORE_RAMP[i].color
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function lerpColor(c1: string, c2: string, t: number): string {
+  const [r1, g1, b1] = hexToRgb(c1)
+  const [r2, g2, b2] = hexToRgb(c2)
+  const r = Math.round(r1 + (r2 - r1) * t).toString(16).padStart(2, '0')
+  const g = Math.round(g1 + (g2 - g1) * t).toString(16).padStart(2, '0')
+  const b = Math.round(b1 + (b2 - b1) * t).toString(16).padStart(2, '0')
+  return `#${r}${g}${b}`
+}
+
+/** Maps score to a color using the same remapped ramp as the composite layer on the map. */
+function scoreColorForRange(score: number, min: number, max: number): string {
+  const ramp = SCORE_RAMP
+  if (max <= min) {
+    // fallback: full 0-100 scale
+    for (let i = ramp.length - 1; i >= 0; i--) {
+      if (score >= ramp[i].stop) return ramp[i].color
+    }
+    return ramp[0].color
   }
-  return SCORE_RAMP[0].color
+  // Remap: min → ramp[0], max → ramp[last], same as buildScoreFillColorForRange
+  const span = max - min
+  const stops = ramp.map((s, i) => ({ val: min + span * (i / (ramp.length - 1)), color: s.color }))
+  const t = Math.max(0, Math.min(1, (score - min) / span))
+  const idx = t * (ramp.length - 1)
+  const lo = Math.floor(idx)
+  const hi = Math.min(Math.ceil(idx), ramp.length - 1)
+  if (lo === hi) return stops[lo].color
+  return lerpColor(stops[lo].color, stops[hi].color, idx - lo)
 }
 
 function Row({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
@@ -45,6 +73,7 @@ export function HexDetailCard() {
   const weights = useStore((s) => s.compositeWeights)
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
   const priceRange = useStore((s) => s.idealistaPriceRange)
+  const scoreRange = useStore((s) => s.compositeScoreRange)
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -61,6 +90,7 @@ export function HexDetailCard() {
 
   const medianPrice = hexPriceMap.get(selectedHexH3) ?? null
   const bounds = hexOpenPriceBounds ?? { p5: 0, p95: 0 }
+  const [sMin, sMax] = scoreRange
   const { score, components } = computeComposite(
     { ...bundle, medianPrice },
     weights,
@@ -105,14 +135,14 @@ export function HexDetailCard() {
           <Stack gap={4}>
             <Group justify="space-between">
               <Text size="xs" c="dimmed">Composite score</Text>
-              <Text size="sm" fw={700} style={{ color: scoreColor(score) }}>{score}</Text>
+              <Text size="sm" fw={700} style={{ color: scoreColorForRange(score, sMin, sMax) }}>{score}</Text>
             </Group>
             <div style={{ height: 6, borderRadius: 3, background: '#eee', overflow: 'hidden' }}>
               <div
                 style={{
                   height: '100%',
-                  width: `${score}%`,
-                  background: scoreColor(score),
+                  width: `${sMax > sMin ? ((score - sMin) / (sMax - sMin)) * 100 : score}%`,
+                  background: scoreColorForRange(score, sMin, sMax),
                   transition: 'width 0.3s ease',
                 }}
               />
