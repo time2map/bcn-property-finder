@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { computeComposite, priceScore, type CellBundle, type CompositeWeights } from './compositeScore'
+import { computeComposite, openPriceScore, priceScore, type CellBundle, type CompositeWeights, type OpenPriceBounds } from './compositeScore'
 import { ALL_LANDMARK_IDS } from '../cityCore/landmarks'
 
 const ALL_ENABLED = ALL_LANDMARK_IDS
+
+const DEFAULT_OPEN_PRICE_BOUNDS: OpenPriceBounds = { p5: 2000, p95: 6000 }
 
 function makeBundle(overrides: Partial<CellBundle> = {}): CellBundle {
   return {
@@ -15,13 +17,40 @@ function makeBundle(overrides: Partial<CellBundle> = {}): CellBundle {
       pg_gracia: 8, arc_triomf: 18, montjuic: 25, placa_espanya: 22,
       glories: 28, poblenou: 35, parc_guell: 55, eixample: 0, waterfront: 40,
     },
+    saleEurM2: null,
     medianPrice: 400_000,
     ...overrides,
   }
 }
 
-const EQUAL_WEIGHTS: CompositeWeights = { poiAccess: 1, noise: 1, cityCore: 1, price: 1 }
+const EQUAL_WEIGHTS: CompositeWeights = { poiAccess: 1, noise: 1, cityCore: 1, openPrice: 0, price: 1 }
 const PRICE_RANGE: [number, number] = [200_000, 600_000]
+
+describe('openPriceScore', () => {
+  it('scores p5 price as 100 (cheapest)', () => {
+    expect(openPriceScore(2000, { p5: 2000, p95: 6000 })).toBe(100)
+  })
+
+  it('scores p95 price as 0 (most expensive)', () => {
+    expect(openPriceScore(6000, { p5: 2000, p95: 6000 })).toBe(0)
+  })
+
+  it('scores midpoint as 50', () => {
+    expect(openPriceScore(4000, { p5: 2000, p95: 6000 })).toBe(50)
+  })
+
+  it('clamps below p5 to 100', () => {
+    expect(openPriceScore(1000, { p5: 2000, p95: 6000 })).toBe(100)
+  })
+
+  it('clamps above p95 to 0', () => {
+    expect(openPriceScore(8000, { p5: 2000, p95: 6000 })).toBe(0)
+  })
+
+  it('returns 50 when p5 === p95', () => {
+    expect(openPriceScore(3000, { p5: 3000, p95: 3000 })).toBe(50)
+  })
+})
 
 describe('priceScore', () => {
   it('scores min_price as 100 (cheapest)', () => {
@@ -53,9 +82,10 @@ describe('computeComposite', () => {
   it('returns score 0 and no gap when all weights are 0', () => {
     const result = computeComposite(
       makeBundle(),
-      { poiAccess: 0, noise: 0, cityCore: 0, price: 0 },
+      { poiAccess: 0, noise: 0, cityCore: 0, openPrice: 0, price: 0 },
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(result.score).toBe(0)
     expect(result.hasGap).toBe(false)
@@ -65,9 +95,10 @@ describe('computeComposite', () => {
     const bundle = makeBundle({ walk: 70 })
     const { score, hasGap } = computeComposite(
       bundle,
-      { poiAccess: 5, noise: 0, cityCore: 0, price: 0 },
+      { poiAccess: 5, noise: 0, cityCore: 0, openPrice: 0, price: 0 },
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(score).toBe(70)
     expect(hasGap).toBe(false)
@@ -77,9 +108,10 @@ describe('computeComposite', () => {
     const bundle = makeBundle({ lden: null })
     const { hasGap, score } = computeComposite(
       bundle,
-      { poiAccess: 0, noise: 5, cityCore: 0, price: 0 },
+      { poiAccess: 0, noise: 5, cityCore: 0, openPrice: 0, price: 0 },
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(hasGap).toBe(true)
     // lden null → 0 contribution, denominator still 5 → score = 0
@@ -90,9 +122,22 @@ describe('computeComposite', () => {
     const bundle = makeBundle({ medianPrice: null })
     const { hasGap } = computeComposite(
       bundle,
-      { poiAccess: 0, noise: 0, cityCore: 0, price: 5 },
+      { poiAccess: 0, noise: 0, cityCore: 0, openPrice: 0, price: 5 },
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
+    )
+    expect(hasGap).toBe(true)
+  })
+
+  it('marks hasGap when openPrice weight > 0 and saleEurM2 is null', () => {
+    const bundle = makeBundle({ saleEurM2: null })
+    const { hasGap } = computeComposite(
+      bundle,
+      { poiAccess: 0, noise: 0, cityCore: 0, openPrice: 5, price: 0 },
+      ALL_ENABLED,
+      PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(hasGap).toBe(true)
   })
@@ -101,9 +146,22 @@ describe('computeComposite', () => {
     const bundle = makeBundle({ lden: null })
     const { hasGap } = computeComposite(
       bundle,
-      { poiAccess: 5, noise: 0, cityCore: 0, price: 0 },
+      { poiAccess: 5, noise: 0, cityCore: 0, openPrice: 0, price: 0 },
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
+    )
+    expect(hasGap).toBe(false)
+  })
+
+  it('does not mark hasGap when openPrice weight is 0 even if saleEurM2 is null', () => {
+    const bundle = makeBundle({ saleEurM2: null })
+    const { hasGap } = computeComposite(
+      bundle,
+      { poiAccess: 5, noise: 0, cityCore: 0, openPrice: 0, price: 0 },
+      ALL_ENABLED,
+      PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(hasGap).toBe(false)
   })
@@ -111,7 +169,7 @@ describe('computeComposite', () => {
   it('computes weighted average correctly with equal weights', () => {
     // walk=80, noise from lden=50 → noiseScore=(75-50)/(75-45)*100=83, price=400k→50, cityCore≈varies
     // Just check it's in 0-100 range
-    const { score } = computeComposite(makeBundle(), EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE)
+    const { score } = computeComposite(makeBundle(), EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE, DEFAULT_OPEN_PRICE_BOUNDS)
     expect(score).toBeGreaterThanOrEqual(0)
     expect(score).toBeLessThanOrEqual(100)
   })
@@ -128,13 +186,13 @@ describe('computeComposite', () => {
         glories: 0, poblenou: 0, parc_guell: 0, eixample: 0, waterfront: 0,
       },
     })
-    const { score } = computeComposite(bundle, EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE)
+    const { score } = computeComposite(bundle, EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE, DEFAULT_OPEN_PRICE_BOUNDS)
     expect(score).toBe(100)
   })
 
   it('returns components breakdown with correct sub-scores', () => {
     const bundle = makeBundle({ walk: 75, lden: 60, medianPrice: 400_000 })
-    const { components } = computeComposite(bundle, EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE)
+    const { components } = computeComposite(bundle, EQUAL_WEIGHTS, ALL_ENABLED, PRICE_RANGE, DEFAULT_OPEN_PRICE_BOUNDS)
     expect(components.poiAccess).toBe(75)
     expect(components.noise).toBe(50) // noiseScore(60) = 50
     expect(components.price).toBe(50) // midpoint of 200k-600k
@@ -147,6 +205,7 @@ describe('computeComposite', () => {
       EQUAL_WEIGHTS,
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(components.noise).toBeNull()
   })
@@ -157,7 +216,30 @@ describe('computeComposite', () => {
       EQUAL_WEIGHTS,
       ALL_ENABLED,
       PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
     )
     expect(components.price).toBeNull()
+  })
+
+  it('components.openPrice is null when saleEurM2 is null', () => {
+    const { components } = computeComposite(
+      makeBundle({ saleEurM2: null }),
+      { ...EQUAL_WEIGHTS, openPrice: 1 },
+      ALL_ENABLED,
+      PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
+    )
+    expect(components.openPrice).toBeNull()
+  })
+
+  it('components.openPrice is computed when saleEurM2 is set', () => {
+    const { components } = computeComposite(
+      makeBundle({ saleEurM2: 4000 }), // midpoint of p5=2000, p95=6000 → score 50
+      { ...EQUAL_WEIGHTS, openPrice: 1 },
+      ALL_ENABLED,
+      PRICE_RANGE,
+      DEFAULT_OPEN_PRICE_BOUNDS,
+    )
+    expect(components.openPrice).toBe(50)
   })
 })

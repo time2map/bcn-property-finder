@@ -54,7 +54,8 @@ describe('CompositeControls', () => {
     expect(screen.getByText('POI Access')).toBeTruthy()
     expect(screen.getByText('Noise')).toBeTruthy()
     expect(screen.getByText('City Core Access')).toBeTruthy()
-    expect(screen.getByText('Idealista Price')).toBeTruthy()
+    expect(screen.getByText('Market Price')).toBeTruthy()
+    expect(screen.getByText('Price (Idealista)')).toBeTruthy()
   })
 
   it('enables the layer on toggle', () => {
@@ -83,16 +84,28 @@ describe('CompositeControls', () => {
     expect(screen.getByLabelText('Configure City Core Access')).toBeTruthy()
   })
 
-  it('shows gear button for Idealista Price when enabled', () => {
+  it('shows gear button for Price (Idealista) when enabled', () => {
+    useStore.setState({
+      compositeVisible: true,
+      compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS, price: 5 },
+    })
+    renderControls()
+    expect(screen.getByLabelText('Configure Price (Idealista)')).toBeTruthy()
+  })
+
+  it('does not show gear button for Market Price', () => {
     useStore.setState({ compositeVisible: true })
     renderControls()
-    expect(screen.getByLabelText('Configure Idealista Price')).toBeTruthy()
+    expect(screen.queryByLabelText('Configure Market Price')).toBeNull()
   })
 
   it('opens price modal on gear click', () => {
-    useStore.setState({ compositeVisible: true })
+    useStore.setState({
+      compositeVisible: true,
+      compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS, price: 5 },
+    })
     renderControls()
-    fireEvent.click(screen.getByLabelText('Configure Idealista Price'))
+    fireEvent.click(screen.getByLabelText('Configure Price (Idealista)'))
     expect(screen.getByText('Idealista Price range')).toBeTruthy()
   })
 

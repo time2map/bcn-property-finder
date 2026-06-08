@@ -6,6 +6,7 @@ export interface CompositeWeights {
   poiAccess: number
   noise: number
   cityCore: number
+  openPrice: number
   price: number
 }
 
@@ -13,7 +14,8 @@ export const DEFAULT_COMPOSITE_WEIGHTS: CompositeWeights = {
   poiAccess: 6,
   noise: 7,
   cityCore: 8,
-  price: 10,
+  openPrice: 10,
+  price: 0,
 }
 
 export interface AppState {
@@ -122,6 +124,7 @@ function loadCompositeWeights(): CompositeWeights {
       poiAccess: parsed.poiAccess ?? DEFAULT_COMPOSITE_WEIGHTS.poiAccess,
       noise: parsed.noise ?? DEFAULT_COMPOSITE_WEIGHTS.noise,
       cityCore: parsed.cityCore ?? DEFAULT_COMPOSITE_WEIGHTS.cityCore,
+      openPrice: parsed.openPrice ?? DEFAULT_COMPOSITE_WEIGHTS.openPrice,
       price: parsed.price ?? DEFAULT_COMPOSITE_WEIGHTS.price,
     }
   } catch {

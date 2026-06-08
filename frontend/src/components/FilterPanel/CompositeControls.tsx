@@ -199,7 +199,9 @@ export function CompositeControls() {
             <ComponentRow id="cityCore" label="City Core Access"
               weight={weights.cityCore} onChange={setWeight}
               onGear={() => setCityModalOpen(true)} />
-            <ComponentRow id="price" label="Idealista Price"
+            <ComponentRow id="openPrice" label="Market Price"
+              weight={weights.openPrice} onChange={setWeight} />
+            <ComponentRow id="price" label="Price (Idealista)"
               weight={weights.price} onChange={setWeight}
               onGear={() => setPriceModalOpen(true)} />
 

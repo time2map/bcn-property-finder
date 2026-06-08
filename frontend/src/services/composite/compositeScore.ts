@@ -6,6 +6,7 @@ export interface CompositeWeights {
   poiAccess: number
   noise: number
   cityCore: number
+  openPrice: number
   price: number
 }
 
@@ -14,13 +15,31 @@ export interface CellBundle {
   walk: number
   lden: number | null
   cityCoreProps: CityCoreCellProps
+  saleEurM2: number | null
   medianPrice: number | null
 }
 
+export interface OpenPriceBounds {
+  p5: number
+  p95: number
+}
+
 /**
- * Normalises a median price to a 0–100 score relative to the user's price filter range.
+ * Normalises INCASOL sale price (EUR/m²) to 0–100 using dataset p5/p95 bounds.
  * Lower price → higher score (cheaper is better).
- * Cells below min_price score 100; cells above max_price score 0.
+ */
+export function openPriceScore(
+  saleEurM2: number,
+  bounds: OpenPriceBounds,
+): number {
+  const { p5, p95 } = bounds
+  if (p95 === p5) return 50
+  return Math.max(0, Math.min(100, Math.round(((p95 - saleEurM2) / (p95 - p5)) * 100)))
+}
+
+/**
+ * Normalises an Idealista median price to 0–100 relative to the user's price filter range.
+ * Lower price → higher score (cheaper is better).
  */
 export function priceScore(
   medianPrice: number,
@@ -42,6 +61,7 @@ export interface ComponentScores {
   poiAccess: number
   noise: number | null
   cityCore: number
+  openPrice: number | null
   price: number | null
 }
 
@@ -50,15 +70,20 @@ export function computeComposite(
   weights: CompositeWeights,
   enabledLandmarkIds: readonly string[],
   priceRange: [number, number],
+  openPriceBounds: OpenPriceBounds,
 ): { score: number; hasGap: boolean; components: ComponentScores } {
   const noiseVal = bundle.lden !== null ? noiseScore(bundle.lden) : null
   const cityVal = cellCityCoreIndex(bundle.cityCoreProps, enabledLandmarkIds)
+  const openPriceVal = bundle.saleEurM2 !== null
+    ? openPriceScore(bundle.saleEurM2, openPriceBounds)
+    : null
   const priceVal = bundle.medianPrice !== null ? priceScore(bundle.medianPrice, priceRange) : null
 
   const components: ComponentScores = {
     poiAccess: bundle.walk,
     noise: noiseVal,
     cityCore: cityVal,
+    openPrice: openPriceVal,
     price: priceVal,
   }
 
@@ -83,6 +108,15 @@ export function computeComposite(
   if (weights.cityCore > 0) {
     weightedSum += cityVal * weights.cityCore
     totalWeight += weights.cityCore
+  }
+
+  if (weights.openPrice > 0) {
+    if (openPriceVal === null) {
+      hasGap = true
+    } else {
+      weightedSum += openPriceVal * weights.openPrice
+    }
+    totalWeight += weights.openPrice
   }
 
   if (weights.price > 0) {

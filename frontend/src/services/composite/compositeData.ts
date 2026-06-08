@@ -3,6 +3,7 @@ import { loadLivabilityGrid } from '../livability/livabilityData'
 import { loadCityCoreGrid, type CityCoreCellProps } from '../cityCore/cityCoreData'
 import { loadIdealistaFeatures } from '../idealista/idealistaRawData'
 import { aggregateToH3 } from '../../components/IdealistaPricesLayer/h3Index'
+import type { OpenPriceBounds } from './compositeScore'
 
 export interface CellBundle {
   h3: string
@@ -10,6 +11,7 @@ export interface CellBundle {
   walk: number
   lden: number | null
   cityCoreProps: CityCoreCellProps
+  saleEurM2: number | null
 }
 
 const EMPTY_CITY_CORE: Omit<CityCoreCellProps, 'h3'> = {
@@ -34,6 +36,7 @@ export function loadBundles(): Promise<CellBundle[]> {
         geometry: f.geometry,
         walk: f.properties.walk,
         lden: f.properties.lden,
+        saleEurM2: f.properties.sale_eur_m2 ?? null,
         cityCoreProps: cityCoreMap.get(f.properties.h3) ?? {
           h3: f.properties.h3,
           ...EMPTY_CITY_CORE,
@@ -71,7 +74,23 @@ export function loadPriceMap(): Promise<Map<string, number>> {
   return priceMapCache
 }
 
+let openPriceMetaCache: Promise<OpenPriceBounds> | null = null
+
+/** Loads precomputed p5/p95 normalisation bounds for INCASOL open price data. */
+export function loadOpenPriceMeta(): Promise<OpenPriceBounds> {
+  if (openPriceMetaCache) return openPriceMetaCache
+  openPriceMetaCache = fetch('/data/open-price-meta.json')
+    .then((r) => r.json() as Promise<{ sale_p5: number; sale_p95: number }>)
+    .then((d) => ({ p5: d.sale_p5, p95: d.sale_p95 }))
+    .catch((err) => {
+      openPriceMetaCache = null
+      throw err
+    })
+  return openPriceMetaCache
+}
+
 export function resetCompositeCaches(): void {
   bundleCache = null
   priceMapCache = null
+  openPriceMetaCache = null
 }

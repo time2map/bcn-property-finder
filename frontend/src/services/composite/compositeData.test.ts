@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { loadBundles, loadPriceMap, resetCompositeCaches } from './compositeData'
+import { loadBundles, loadPriceMap, loadOpenPriceMeta, resetCompositeCaches } from './compositeData'
 
 vi.mock('../livability/livabilityData', () => ({
   loadLivabilityGrid: vi.fn().mockResolvedValue({
@@ -8,12 +8,12 @@ vi.mock('../livability/livabilityData', () => ({
       {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
-        properties: { h3: 'aaa', walk: 75, lden: 55 },
+        properties: { h3: 'aaa', walk: 75, lden: 55, sale_eur_m2: 3500 },
       },
       {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[1, 0], [2, 0], [2, 1], [1, 0]]] },
-        properties: { h3: 'bbb', walk: 50, lden: null },
+        properties: { h3: 'bbb', walk: 50, lden: null, sale_eur_m2: null },
       },
     ],
   }),
@@ -69,6 +69,18 @@ describe('loadBundles', () => {
     expect(aaa.cityCoreProps.sagrada).toBe(10)
   })
 
+  it('reads saleEurM2 from sale_eur_m2 property', async () => {
+    const bundles = await loadBundles()
+    const aaa = bundles.find((b) => b.h3 === 'aaa')!
+    expect(aaa.saleEurM2).toBe(3500)
+  })
+
+  it('sets saleEurM2 to null when sale_eur_m2 is missing', async () => {
+    const bundles = await loadBundles()
+    const bbb = bundles.find((b) => b.h3 === 'bbb')!
+    expect(bbb.saleEurM2).toBeNull()
+  })
+
   it('uses empty city core props for cells without a city core entry', async () => {
     const bundles = await loadBundles()
     const bbb = bundles.find((b) => b.h3 === 'bbb')!
@@ -96,6 +108,27 @@ describe('loadPriceMap', () => {
   it('caches the result on second call', async () => {
     const a = await loadPriceMap()
     const b = await loadPriceMap()
+    expect(a).toBe(b)
+  })
+})
+
+describe('loadOpenPriceMeta', () => {
+  beforeEach(() => {
+    resetCompositeCaches()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ sale_p5: 2088, sale_p95: 5816 }),
+    }))
+  })
+
+  it('fetches and maps p5/p95 from open-price-meta.json', async () => {
+    const meta = await loadOpenPriceMeta()
+    expect(meta.p5).toBe(2088)
+    expect(meta.p95).toBe(5816)
+  })
+
+  it('caches the result on second call', async () => {
+    const a = await loadOpenPriceMeta()
+    const b = await loadOpenPriceMeta()
     expect(a).toBe(b)
   })
 })

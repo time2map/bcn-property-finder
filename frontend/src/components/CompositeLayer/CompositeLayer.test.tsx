@@ -22,6 +22,7 @@ vi.mock('../../services/composite/compositeData', () => ({
       geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
       walk: 80,
       lden: 50,
+      saleEurM2: 3500,
       cityCoreProps: {
         h3: 'aaa',
         sagrada: 10, placa_cat: 5, barceloneta: 20, barri_gotic: 15,
@@ -31,6 +32,7 @@ vi.mock('../../services/composite/compositeData', () => ({
     },
   ]),
   loadPriceMap: vi.fn().mockResolvedValue(new Map([['aaa', 400_000]])),
+  loadOpenPriceMeta: vi.fn().mockResolvedValue({ p5: 2088, p95: 5816 }),
 }))
 
 import { CompositeLayer, SOURCE_ID, FILL_LAYER_ID, GAP_LAYER_ID } from './CompositeLayer'
@@ -113,7 +115,7 @@ describe('CompositeLayer', () => {
     await act(async () => { renderLayer(map) })
 
     const source = map.getSource(SOURCE_ID)!
-    act(() => useStore.setState({ compositeWeights: { poiAccess: 10, noise: 0, cityCore: 0, price: 0 } }))
+    act(() => useStore.setState({ compositeWeights: { poiAccess: 10, noise: 0, cityCore: 0, openPrice: 0, price: 0 } }))
     expect(source.setData).toHaveBeenCalled()
   })
 
