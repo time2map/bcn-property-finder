@@ -21,13 +21,31 @@ import { LandmarksLayer } from '../LandmarksLayer/LandmarksLayer'
 import { MapContextMenu } from './MapContextMenu'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 
-const STYLE_URL = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
+const PRIMARY_STYLE = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
+const FALLBACK_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+
+async function resolveStyleUrl(): Promise<string> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    const res = await fetch(PRIMARY_STYLE, { signal: controller.signal })
+    clearTimeout(timeout)
+    return res.ok ? PRIMARY_STYLE : FALLBACK_STYLE
+  } catch {
+    return FALLBACK_STYLE
+  }
+}
 
 export function Map() {
   const containerRef = useRef<HTMLDivElement>(null)
   const markerRef = useRef<maplibregl.Marker | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null)
+  const [styleUrl, setStyleUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    resolveStyleUrl().then(setStyleUrl)
+  }, [])
 
   const { workplace, zoom, mapCenter, setWorkplace, setZoom, setMapCenter, setMapAttribution } = useStore()
   const { isAddingPin, setIsAddingPin, addPin } = usePinsStore()
@@ -49,10 +67,10 @@ export function Map() {
 
   // Init map
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current || !styleUrl) return
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: STYLE_URL,
+      style: styleUrl,
       center: mapCenterRef.current,
       zoom: zoomRef.current,
       attributionControl: false,
@@ -74,7 +92,7 @@ export function Map() {
       setMapCenter([lng, lat])
     })
     map.on('zoomend', () => setZoom(map.getZoom()))
-    map.on('load', () => {
+    map.once('style.load', () => {
       mapRef.current = map
       setMapInstance(map)
       const texts = Object.values(map.getStyle().sources)
@@ -87,7 +105,7 @@ export function Map() {
       mapRef.current = null
       map.remove()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [styleUrl]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep the canvas in sync when the map pane resizes (split divider drag,
   // panel collapse, mobile Map/Compare toggle, window resize).
