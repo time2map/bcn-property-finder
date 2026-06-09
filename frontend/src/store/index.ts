@@ -7,7 +7,6 @@ export interface CompositeWeights {
   noise: number
   cityCore: number
   openPrice: number
-  price: number
 }
 
 export const DEFAULT_COMPOSITE_WEIGHTS: CompositeWeights = {
@@ -15,7 +14,6 @@ export const DEFAULT_COMPOSITE_WEIGHTS: CompositeWeights = {
   noise: 7,
   cityCore: 8,
   openPrice: 10,
-  price: 0,
 }
 
 export interface AppState {
@@ -128,7 +126,6 @@ function loadCompositeWeights(): CompositeWeights {
       noise: parsed.noise ?? DEFAULT_COMPOSITE_WEIGHTS.noise,
       cityCore: parsed.cityCore ?? DEFAULT_COMPOSITE_WEIGHTS.cityCore,
       openPrice: parsed.openPrice ?? DEFAULT_COMPOSITE_WEIGHTS.openPrice,
-      price: parsed.price ?? DEFAULT_COMPOSITE_WEIGHTS.price,
     }
   } catch {
     return DEFAULT_COMPOSITE_WEIGHTS
@@ -194,7 +191,7 @@ export const useStore = create<AppState>((set) => {
       set({ enabledLandmarkIds: ids })
     },
     idealistaPricesVisible: false,
-    idealistaPriceRange: [200_000, 600_000],
+    idealistaPriceRange: [300_000, 1_000_000],
     idealistaPriceBounds: null,
     setIdealistaPricesVisible: (idealistaPricesVisible) => set({ idealistaPricesVisible }),
     setIdealistaPriceRange: (idealistaPriceRange) => set({ idealistaPriceRange }),

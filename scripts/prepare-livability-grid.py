@@ -290,9 +290,11 @@ def main():
                 contrib = math.exp(-d / WALK_DECAY_M)
                 for c in cats:
                     access[c] += contrib
+            sub_scores: dict[str, int] = {}
             weighted = 0.0
             for cid, (_pred, s, w) in CATEGORIES.items():
                 sub = 1 - math.exp(-access[cid] / s)
+                sub_scores[cid] = round(sub * 100)
                 weighted += sub * w
             walk = round(weighted / TOTAL_WEIGHT * 100)
             lden = lden_at(noise, lng, lat)
@@ -302,7 +304,12 @@ def main():
             ring.append(ring[0])
             features.append({
                 "type": "Feature",
-                "properties": {"h3": cell, "walk": walk, "lden": lden},
+                "properties": {
+                    "h3": cell,
+                    "walk": walk,
+                    "lden": lden,
+                    **{f"walk_{cid}": sub_scores[cid] for cid in CATEGORIES},
+                },
                 "geometry": {"type": "Polygon", "coordinates": [ring]},
             })
             if (n + 1) % 1000 == 0:

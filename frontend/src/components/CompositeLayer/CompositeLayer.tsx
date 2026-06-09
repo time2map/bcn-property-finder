@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
-import { loadBundles, loadPriceMap, loadOpenPriceMeta, type CellBundle } from '../../services/composite/compositeData'
+import { loadBundles, loadOpenPriceMeta, type CellBundle } from '../../services/composite/compositeData'
 import { computeComposite, type CompositeWeights, type OpenPriceBounds } from '../../services/composite/compositeScore'
 import { buildScoreFillColorForRange } from './scoreRamp'
 import { addLayerOrdered } from '../Map/layerOrder'
@@ -23,24 +23,20 @@ interface ScoredFeature {
     noiseScore: number | null
     cityScore: number
     openPriceScore: number | null
-    priceScore: number | null
   }
 }
 
 function buildGeoJSON(
   bundles: CellBundle[],
-  priceMap: Map<string, number>,
   openPriceBounds: OpenPriceBounds,
   weights: ReturnType<typeof useStore.getState>['compositeWeights'],
   enabledLandmarkIds: readonly string[],
-  priceRange: [number, number],
 ): GeoJSON.FeatureCollection {
   const features: ScoredFeature[] = bundles.map((b) => {
     const { score, hasGap, components } = computeComposite(
-      { ...b, medianPrice: priceMap.get(b.h3) ?? null },
+      b,
       weights,
       enabledLandmarkIds,
-      priceRange,
       openPriceBounds,
     )
     return {
@@ -54,7 +50,6 @@ function buildGeoJSON(
         noiseScore: components.noise,
         cityScore: components.cityCore,
         openPriceScore: components.openPrice,
-        priceScore: components.price,
       },
     }
   })
@@ -76,8 +71,8 @@ function gapFilter(min: number, max: number): maplibregl.FilterSpecification {
   ] as maplibregl.FilterSpecification
 }
 
-function formatScore(v: number | null): string {
-  return v === null ? '—' : String(v)
+function formatScore(v: number | null | undefined): string {
+  return v == null ? '—' : String(v)
 }
 
 function buildBreakdownHTML(
@@ -89,15 +84,13 @@ function buildBreakdownHTML(
     `<tr><td style="padding-right:8px;color:#888">${label}</td><td style="text-align:right">${val}</td></tr>`
 
   if (weights.poiAccess > 0)
-    rows.push(row('POI Access', formatScore(props.poiScore as number)))
+    rows.push(row('Walkability', formatScore(props.poiScore as number)))
   if (weights.noise > 0)
     rows.push(row('Noise', formatScore(props.noiseScore as number | null)))
   if (weights.cityCore > 0)
     rows.push(row('City Core', formatScore(props.cityScore as number)))
   if (weights.openPrice > 0)
     rows.push(row('Market Price', formatScore(props.openPriceScore as number | null)))
-  if (weights.price > 0)
-    rows.push(row('Price (Idealista)', formatScore(props.priceScore as number | null)))
 
   if (rows.length === 0) return ''
   return `<table style="width:100%;border-collapse:collapse;margin-top:4px">${rows.join('')}</table>`
@@ -108,12 +101,10 @@ export function CompositeLayer() {
   const visible = useStore((s) => s.compositeVisible)
   const weights = useStore((s) => s.compositeWeights)
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
-  const priceRange = useStore((s) => s.idealistaPriceRange)
   const scoreRange = useStore((s) => s.compositeScoreRange)
   const setSelectedHexH3 = useStore((s) => s.setSelectedHexH3)
 
   const bundlesRef = useRef<CellBundle[] | null>(null)
-  const priceMapRef = useRef<Map<string, number> | null>(null)
   const openPriceMetaRef = useRef<OpenPriceBounds | null>(null)
   const weightsRef = useRef<CompositeWeights>(weights)
   const [dataLoaded, setDataLoaded] = useState(false)
@@ -124,11 +115,10 @@ export function CompositeLayer() {
   useEffect(() => {
     if (!visible || bundlesRef.current) return
     let cancelled = false
-    Promise.all([loadBundles(), loadPriceMap(), loadOpenPriceMeta()])
-      .then(([bundles, priceMap, openPriceMeta]) => {
+    Promise.all([loadBundles(), loadOpenPriceMeta()])
+      .then(([bundles, openPriceMeta]) => {
         if (cancelled) return
         bundlesRef.current = bundles
-        priceMapRef.current = priceMap
         openPriceMetaRef.current = openPriceMeta
         setDataLoaded(true)
       })
@@ -138,14 +128,12 @@ export function CompositeLayer() {
 
   // Add/update MapLibre source + layers whenever scores need recomputing.
   useEffect(() => {
-    if (!map || !bundlesRef.current || !priceMapRef.current || !openPriceMetaRef.current) return
+    if (!map || !bundlesRef.current || !openPriceMetaRef.current) return
     const data = buildGeoJSON(
       bundlesRef.current,
-      priceMapRef.current,
       openPriceMetaRef.current,
       weights,
       enabledLandmarkIds,
-      priceRange,
     )
 
     const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined
@@ -186,7 +174,7 @@ export function CompositeLayer() {
       }, HOVER_LAYER_ID)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, dataLoaded, weights, enabledLandmarkIds, priceRange])
+  }, [map, dataLoaded, weights, enabledLandmarkIds])
 
   // Update fill-color expression + filters when score range changes.
   useEffect(() => {
@@ -232,7 +220,7 @@ export function CompositeLayer() {
         .setLngLat(e.lngLat)
         .setHTML(
           `<div style="font-size:11px;line-height:1.5;min-width:130px">
-             <strong>Composite: ${props.score}</strong>
+             <strong>Livability: ${props.score}</strong>
              ${breakdown}${gapNote}
            </div>`,
         )

@@ -12,6 +12,8 @@ export interface CellBundle {
   lden: number | null
   cityCoreProps: CityCoreCellProps
   saleEurM2: number | null
+  /** Per-category walkability sub-scores 0–100; present after pipeline v2+. */
+  walkCategories?: Record<string, number>
 }
 
 /** Populated after loadBundles() resolves — keyed by h3 index for O(1) card lookups. */
@@ -38,17 +40,24 @@ export function loadBundles(): Promise<CellBundle[]> {
       for (const f of cityCoreGrid.features) {
         cityCoreMap.set(f.properties.h3, f.properties)
       }
-      const bundles = livGrid.features.map((f) => ({
-        h3: f.properties.h3,
-        geometry: f.geometry,
-        walk: f.properties.walk,
-        lden: f.properties.lden,
-        saleEurM2: f.properties.sale_eur_m2 ?? null,
-        cityCoreProps: cityCoreMap.get(f.properties.h3) ?? {
-          h3: f.properties.h3,
-          ...EMPTY_CITY_CORE,
-        },
-      }))
+      const CAT_IDS = ['supermarket', 'pharmacy', 'park', 'school', 'kindergarten', 'clinic', 'metro', 'cafe', 'restaurant', 'beach'] as const
+      const bundles = livGrid.features.map((f) => {
+        const p = f.properties
+        const walkCategories: Record<string, number> = {}
+        for (const cid of CAT_IDS) {
+          const val = p[`walk_${cid}` as keyof typeof p]
+          if (typeof val === 'number') walkCategories[cid] = val
+        }
+        return {
+          h3: p.h3,
+          geometry: f.geometry,
+          walk: p.walk,
+          lden: p.lden,
+          saleEurM2: (p as Record<string, unknown>).sale_eur_m2 as number ?? null,
+          cityCoreProps: cityCoreMap.get(p.h3) ?? { h3: p.h3, ...EMPTY_CITY_CORE },
+          walkCategories: Object.keys(walkCategories).length > 0 ? walkCategories : undefined,
+        }
+      })
       hexBundleMap.clear()
       for (const b of bundles) hexBundleMap.set(b.h3, b)
       return bundles

@@ -1,15 +1,8 @@
 import { useState } from 'react'
-import { Checkbox, Group, Modal, RangeSlider, Slider, Stack, Switch, Text } from '@mantine/core'
+import { ActionIcon, Checkbox, Group, Modal, RangeSlider, Slider, Stack, Switch, Text } from '@mantine/core'
 import { useStore, DEFAULT_COMPOSITE_WEIGHTS, type CompositeWeights } from '../../store'
 import { LANDMARKS, ALL_LANDMARK_IDS } from '../../services/cityCore/landmarks'
 import { CompositeLegend } from '../CompositeLayer/CompositeLegend'
-
-const STEP = 25_000
-
-function formatPrice(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M€`
-  return `${Math.round(v / 1_000)}k€`
-}
 
 const SCORE_MARKS = [
   { value: 0, label: '0' },
@@ -93,6 +86,59 @@ function ComponentRow({ id, label, weight, onChange, onGear }: ComponentRowProps
   )
 }
 
+function InfoModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
+  return (
+    <Modal opened={opened} onClose={onClose} title="About Livability Index" size="md">
+      <Stack gap={12} pb={8}>
+        <Text size="sm">
+          The Livability Index is a weighted average of up to 5 components. Each component is
+          normalised to 0–100 before combining. Adjust weights to reflect your priorities.
+        </Text>
+
+        <Stack gap={6}>
+          <Text size="sm" fw={600}>Walkability</Text>
+          <Text size="xs" c="dimmed">
+            Scores how well-served a location is by 10 everyday services: supermarket, pharmacy,
+            park, school, kindergarten, clinic, metro, café, restaurant, beach. For each category,
+            an exponential distance-decay score is computed from the cell centroid
+            (decay half-distance ~400 m, max radius 1 500 m). The final walkability is the weighted
+            mean across all 10 categories, normalised to 0–100.
+          </Text>
+        </Stack>
+
+        <Stack gap={6}>
+          <Text size="sm" fw={600}>Noise</Text>
+          <Text size="xs" c="dimmed">
+            Based on Lden (day-evening-night equivalent level, dB) from Barcelona's 2022 strategic
+            noise map. Formula: score = clamp((75 − Lden) / 30 × 100, 0, 100).
+            Very quiet (≤ 45 dB) → 100 · WHO recommended (53 dB) → 73 · EU action level (55 dB) →
+            67 · highly noisy (≥ 75 dB) → 0.
+          </Text>
+        </Stack>
+
+        <Stack gap={6}>
+          <Text size="sm" fw={600}>City Core Access</Text>
+          <Text size="xs" c="dimmed">
+            Average walking-minute score across your selected landmarks (Sagrada Família, Plaça
+            Catalunya…). Per-landmark score: ≤ 15 min → 100, 30 min → 75, 45 min → 50,
+            90 min → 25, &gt; 90 min → 0. Use the gear icon to pick which landmarks count.
+          </Text>
+        </Stack>
+
+        <Stack gap={6}>
+          <Text size="sm" fw={600}>Market Price (Generalitat)</Text>
+          <Text size="xs" c="dimmed">
+            Official average transaction price €/m² per neighbourhood (Generalitat de Catalunya
+            open data). Normalised with dataset p5/p95 bounds — cheaper relative to the city
+            distribution → higher score.
+          </Text>
+        </Stack>
+
+      </Stack>
+    </Modal>
+  )
+}
+
 export function CompositeControls() {
   const visible = useStore((s) => s.compositeVisible)
   const setVisible = useStore((s) => s.setCompositeVisible)
@@ -100,17 +146,11 @@ export function CompositeControls() {
   const setWeights = useStore((s) => s.setCompositeWeights)
   const scoreRange = useStore((s) => s.compositeScoreRange)
   const setScoreRange = useStore((s) => s.setCompositeScoreRange)
-  const priceRange = useStore((s) => s.idealistaPriceRange)
-  const setRange = useStore((s) => s.setIdealistaPriceRange)
-  const bounds = useStore((s) => s.idealistaPriceBounds)
   const enabledIds = useStore((s) => s.enabledLandmarkIds)
   const setEnabledIds = useStore((s) => s.setEnabledLandmarkIds)
 
-  const [priceModalOpen, setPriceModalOpen] = useState(false)
   const [cityModalOpen, setCityModalOpen] = useState(false)
-
-  const sliderMin = bounds ? Math.floor(bounds[0] / STEP) * STEP : 200_000
-  const sliderMax = bounds ? Math.ceil(bounds[1] / STEP) * STEP : 600_000
+  const [infoModalOpen, setInfoModalOpen] = useState(false)
 
   function setWeight(id: keyof CompositeWeights, value: number) {
     setWeights({ ...weights, [id]: value })
@@ -127,32 +167,7 @@ export function CompositeControls() {
 
   return (
     <>
-      <Modal
-        opened={priceModalOpen}
-        onClose={() => setPriceModalOpen(false)}
-        title="Idealista Price range"
-        size="sm"
-      >
-        <Stack gap={12} pb={8}>
-          <Text size="xs" c="dimmed">
-            {formatPrice(priceRange[0])} – {formatPrice(priceRange[1])}
-          </Text>
-          <RangeSlider
-            min={sliderMin}
-            max={sliderMax}
-            step={STEP}
-            value={priceRange}
-            onChange={(v) => setRange(v as [number, number])}
-            label={formatPrice}
-            minRange={STEP * 2}
-            style={{ '--slider-color': '#9970ab' } as React.CSSProperties}
-            styles={{ thumb: { borderColor: '#9970ab' } }}
-          />
-          <Text size="xs" c="dimmed" mt={8}>
-            Score: cheapest (≤ min) → 100, most expensive (≥ max) → 0
-          </Text>
-        </Stack>
-      </Modal>
+      <InfoModal opened={infoModalOpen} onClose={() => setInfoModalOpen(false)} />
 
       <Modal
         opened={cityModalOpen}
@@ -184,15 +199,27 @@ export function CompositeControls() {
       </Modal>
 
       <Stack gap={8}>
-        <Switch
-          label="Composite Index"
-          size="sm"
-          checked={visible}
-          onChange={(e) => setVisible(e.currentTarget.checked)}
-        />
+        <Group gap={4} wrap="nowrap" align="center">
+          <Switch
+            label="Livability Index"
+            size="sm"
+            checked={visible}
+            onChange={(e) => setVisible(e.currentTarget.checked)}
+            style={{ flex: 1 }}
+          />
+          <ActionIcon
+            size={16}
+            variant="subtle"
+            color="gray"
+            onClick={() => setInfoModalOpen(true)}
+            aria-label="About Livability Index"
+          >
+            ℹ
+          </ActionIcon>
+        </Group>
         {visible && (
           <Stack gap={10} pl={28}>
-            <ComponentRow id="poiAccess" label="POI Access"
+            <ComponentRow id="poiAccess" label="Walkability"
               weight={weights.poiAccess} onChange={setWeight} />
             <ComponentRow id="noise" label="Noise"
               weight={weights.noise} onChange={setWeight} />
@@ -201,9 +228,6 @@ export function CompositeControls() {
               onGear={() => setCityModalOpen(true)} />
             <ComponentRow id="openPrice" label="Market Price"
               weight={weights.openPrice} onChange={setWeight} />
-            <ComponentRow id="price" label="Price (Idealista)"
-              weight={weights.price} onChange={setWeight}
-              onGear={() => setPriceModalOpen(true)} />
 
             <Stack gap={4}>
               <Text size="xs" c="dimmed">Score range</Text>

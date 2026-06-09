@@ -22,7 +22,6 @@ const { TEST_BUNDLE } = vi.hoisted(() => ({
 
 vi.mock('../../services/composite/compositeData', () => ({
   hexBundleMap: new Map([['abc123', TEST_BUNDLE]]),
-  hexPriceMap: new Map([['abc123', 420_000]]),
   get hexOpenPriceBounds() { return { p5: 2000, p95: 6000 } },
 }))
 
@@ -42,7 +41,6 @@ describe('HexDetailCard', () => {
       selectedHexH3: null,
       compositeWeights: DEFAULT_COMPOSITE_WEIGHTS,
       enabledLandmarkIds: ['sagrada', 'placa_cat', 'pg_gracia', 'eixample'],
-      idealistaPriceRange: [200_000, 600_000],
     })
   })
 
@@ -57,13 +55,13 @@ describe('HexDetailCard', () => {
     expect(screen.queryByText('Hex Details')).not.toBeInTheDocument()
   })
 
-  it('shows composite score when hex is selected', () => {
+  it('shows livability score when hex is selected', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
-    expect(screen.getByText('Composite')).toBeInTheDocument()
+    expect(screen.getByText('Livability')).toBeInTheDocument()
   })
 
-  it('shows POI Access section', () => {
+  it('shows Walkability section', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
     expect(screen.getByText(/Walkability/i)).toBeInTheDocument()
@@ -83,21 +81,11 @@ describe('HexDetailCard', () => {
     expect(screen.getByText('2 min')).toBeInTheDocument()
   })
 
-  it('shows INCASOL price when weight > 0', () => {
+  it('shows INCASOL price when openPrice weight > 0', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
     expect(screen.getByText(/Sale price/i)).toBeInTheDocument()
     expect(screen.getByText(/4,200/)).toBeInTheDocument()
-  })
-
-  it('shows Idealista price when weight > 0 is set', () => {
-    useStore.setState({
-      selectedHexH3: 'abc123',
-      compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS, price: 5 },
-    })
-    renderCard()
-    expect(screen.getByText(/Idealista/i)).toBeInTheDocument()
-    expect(screen.getByText(/420,000/)).toBeInTheDocument()
   })
 
   it('hides Noise section when noise weight is 0', () => {

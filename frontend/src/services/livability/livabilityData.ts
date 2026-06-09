@@ -8,6 +8,17 @@ export interface LivabilityCellProps {
   h3: string
   walk: number // walkability index 0–100
   lden: number | null // representative Lden (dB) or null when no noise data
+  // Per-category walkability sub-scores 0–100 (present after pipeline v2+)
+  walk_supermarket?: number
+  walk_pharmacy?: number
+  walk_park?: number
+  walk_school?: number
+  walk_kindergarten?: number
+  walk_clinic?: number
+  walk_metro?: number
+  walk_cafe?: number
+  walk_restaurant?: number
+  walk_beach?: number
 }
 
 /** Same props plus the computed index for the current "consider noise" setting. */

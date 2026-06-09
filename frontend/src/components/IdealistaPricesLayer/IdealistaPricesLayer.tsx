@@ -139,11 +139,15 @@ export function IdealistaPricesLayer() {
       paint: { 'text-color': '#1a1a1a' },
     }, LABEL_LAYER)
 
-    // Bounds detection
+    // Bounds detection — use p10/p90 to avoid extreme outliers skewing the slider
     loadIdealistaFeatures()
       .then((features) => {
         const prices = features.map((f) => f.properties?.price as number).filter((p) => p > 0)
-        if (prices.length) setBounds([Math.min(...prices), Math.max(...prices)])
+        if (!prices.length) return
+        const sorted = [...prices].sort((a, b) => a - b)
+        const p10 = sorted[Math.floor(sorted.length * 0.1)]
+        const p90 = sorted[Math.floor(sorted.length * 0.9)]
+        setBounds([p10, p90])
       })
       .catch(console.error)
 

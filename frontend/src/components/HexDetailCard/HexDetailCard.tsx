@@ -3,11 +3,11 @@ import { ActionIcon, Divider, Group, Paper, Stack, Text } from '@mantine/core'
 import { useStore } from '../../store'
 import {
   hexBundleMap,
-  hexPriceMap,
   hexOpenPriceBounds,
 } from '../../services/composite/compositeData'
 import { computeComposite } from '../../services/composite/compositeScore'
 import { LANDMARKS } from '../../services/cityCore/landmarks'
+import { SERVICE_CATEGORIES } from '../../services/walkability/serviceCategories'
 import { SCORE_RAMP } from '../CompositeLayer/scoreRamp'
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -80,12 +80,23 @@ function LandmarkRow({ name, minutes }: { name: string; minutes: number }) {
   )
 }
 
+/** Small colour-coded label for noise level relative to reference thresholds. */
+function NoiseLabel({ lden }: { lden: number }) {
+  let label: string
+  let color: string
+  if (lden < 45) { label = 'very quiet'; color = '#1a9850' }
+  else if (lden < 53) { label = 'quiet'; color = '#91cf60' }
+  else if (lden < 55) { label = 'near WHO limit (53 dB)'; color = '#fee08b' }
+  else if (lden < 65) { label = 'above EU action level (55 dB)'; color = '#fc8d59' }
+  else { label = 'highly noisy'; color = '#d73027' }
+  return <Text size="xs" style={{ color }}>{label}</Text>
+}
+
 export function HexDetailCard() {
   const selectedHexH3 = useStore((s) => s.selectedHexH3)
   const setSelectedHexH3 = useStore((s) => s.setSelectedHexH3)
   const weights = useStore((s) => s.compositeWeights)
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
-  const priceRange = useStore((s) => s.idealistaPriceRange)
   const scoreRange = useStore((s) => s.compositeScoreRange)
 
   useEffect(() => {
@@ -101,14 +112,12 @@ export function HexDetailCard() {
   const bundle = hexBundleMap.get(selectedHexH3)
   if (!bundle) return null
 
-  const medianPrice = hexPriceMap.get(selectedHexH3) ?? null
   const bounds = hexOpenPriceBounds ?? { p5: 0, p95: 0 }
   const [sMin, sMax] = scoreRange
   const { score, components } = computeComposite(
-    { ...bundle, medianPrice },
+    bundle,
     weights,
     enabledLandmarkIds,
-    priceRange,
     bounds,
   )
 
@@ -134,10 +143,10 @@ export function HexDetailCard() {
       <Paper shadow="md" p="md" radius="md" w={264} style={{ maxHeight: 'calc(100vh - 96px)', overflowY: 'auto' }}>
         <Stack gap="sm">
 
-          {/* Composite — main focus */}
+          {/* Livability — main focus */}
           <Group justify="space-between" align="flex-start">
             <Stack gap={2}>
-              <Text size="xs" c="dimmed">Composite</Text>
+              <Text size="xs" c="dimmed">Livability</Text>
               <Text fw={800} lh={1} style={{ fontSize: 28, color: compositeColor }}>
                 {score}
                 <Text component="span" size="sm" c="dimmed" fw={400}> / 100</Text>
@@ -167,10 +176,30 @@ export function HexDetailCard() {
 
           <Divider />
 
-          {/* POI Access */}
+          {/* Walkability */}
           <Stack gap={4}>
             <SectionTitle>Walkability</SectionTitle>
             <ScoreBar score={components.poiAccess} color={scoreColor(components.poiAccess)} />
+            {bundle.walkCategories && (
+              <Stack gap={3} mt={2}>
+                {SERVICE_CATEGORIES.map((cat) => {
+                  const catScore = bundle.walkCategories![cat.id]
+                  if (catScore === undefined) return null
+                  return (
+                    <Group key={cat.id} gap={4} wrap="nowrap" align="center">
+                      <Text style={{ fontSize: 11, width: 16, lineHeight: 1 }}>{cat.emoji}</Text>
+                      <Text size="xs" c="dimmed" style={{ flex: 1, fontSize: 10 }}>{cat.label}</Text>
+                      <div style={{ width: 48, height: 3, borderRadius: 2, background: '#eee', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${catScore}%`, background: scoreColor(catScore) }} />
+                      </div>
+                      <Text style={{ fontSize: 10, fontWeight: 600, minWidth: 20, textAlign: 'right', color: scoreColor(catScore) }}>
+                        {catScore}
+                      </Text>
+                    </Group>
+                  )
+                })}
+              </Stack>
+            )}
           </Stack>
 
           {/* Noise */}
@@ -184,8 +213,14 @@ export function HexDetailCard() {
                   color={components.noise !== null ? scoreColor(components.noise) : '#aaa'}
                 />
                 {bundle.lden !== null && (
-                  <Text size="xs" c="dimmed">Lden {bundle.lden} dB</Text>
+                  <Group gap={6} align="center">
+                    <Text size="xs" c="dimmed">Lden {bundle.lden} dB</Text>
+                    <NoiseLabel lden={bundle.lden} />
+                  </Group>
                 )}
+                <Text size="xs" c="dimmed" style={{ fontSize: 10, opacity: 0.7 }}>
+                  WHO: &lt; 53 dB · EU action: 55 dB · harmful: ≥ 65 dB
+                </Text>
               </Stack>
             </>
           )}
@@ -230,27 +265,6 @@ export function HexDetailCard() {
             </>
           )}
 
-          {/* Idealista listing price */}
-          {weights.price > 0 && (
-            <>
-              <Divider />
-              <Stack gap={4}>
-                <SectionTitle>Listing price</SectionTitle>
-                {medianPrice !== null ? (
-                  <>
-                    <Text size="sm" fw={700}>{fmtNum(medianPrice)} €</Text>
-                    <Text size="xs" c="dimmed">Median Idealista listing in this hex</Text>
-                    <ScoreBar
-                      score={components.price}
-                      color={components.price !== null ? scoreColor(components.price) : '#aaa'}
-                    />
-                  </>
-                ) : (
-                  <Text size="xs" c="dimmed">No listings in this hex</Text>
-                )}
-              </Stack>
-            </>
-          )}
 
         </Stack>
       </Paper>
