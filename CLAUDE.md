@@ -5,6 +5,7 @@
 - `docs/PROJECT_BRIEF.md` — product goals, MVP scope, filter logic
 - `docs/ARCHITECTURE.md` — repository structure, key modules, external services
 - `docs/DESIGN.md` — design rules
+- `docs/FEATURE_FLAGS.md` — feature flags (what's gated, what's public)
 ## Stack
 
 - **Frontend:** React + Vite + TypeScript, MapLibre GL JS

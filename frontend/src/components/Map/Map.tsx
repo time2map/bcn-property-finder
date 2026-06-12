@@ -20,6 +20,7 @@ import { IdealistaPricesLayer } from '../IdealistaPricesLayer/IdealistaPricesLay
 import { LandmarksLayer } from '../LandmarksLayer/LandmarksLayer'
 import { MapContextMenu } from './MapContextMenu'
 import { useExclusionsStore } from '../../store/exclusionsStore'
+import { features } from '../../features'
 
 const PRIMARY_STYLE = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
 const FALLBACK_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
@@ -77,13 +78,11 @@ export function Map() {
     })
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
     map.on('click', (e) => {
-      // While drawing an exclusion zone, terra-draw owns map clicks.
-      if (drawingModeRef.current) return
-      if (isAddingPinRef.current) {
+      if (features.exclusions && drawingModeRef.current) return
+      if (features.pins && isAddingPinRef.current) {
         addPinRef.current([e.lngLat.lng, e.lngLat.lat])
         setIsAddingPin(false)
-      } else if (!workplaceRef.current) {
-        // Only set workplace via click when it hasn't been placed yet
+      } else if (features.isochrone && !workplaceRef.current) {
         setWorkplace([e.lngLat.lng, e.lngLat.lat])
       }
     })
@@ -119,12 +118,14 @@ export function Map() {
 
   // Crosshair cursor in "add pin" mode
   useEffect(() => {
+    if (!features.pins) return
     const canvas = mapRef.current?.getCanvas()
     if (canvas) canvas.style.cursor = isAddingPin ? 'crosshair' : ''
   }, [isAddingPin])
 
   // Esc cancels "add pin" mode
   useEffect(() => {
+    if (!features.pins) return
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsAddingPin(false)
     }
@@ -134,6 +135,7 @@ export function Map() {
 
   // Sync workplace marker (draggable)
   useEffect(() => {
+    if (!features.isochrone) return
     if (!mapInstance) return
     markerRef.current?.remove()
     if (!workplace) return
@@ -157,17 +159,17 @@ export function Map() {
       <CompositeLayer />
       <LandmarksLayer />
       <NoiseLayer />
-      <ExclusionLayer />
-      <ExclusionDraw />
-      <ExportAreasLayer />
-      <IdealistaPricesLayer />
-      <IsochroneLayer />
+      {features.exclusions && <ExclusionLayer />}
+      {features.exclusions && <ExclusionDraw />}
+      {features.isochrone && <ExportAreasLayer />}
+      {features.idealistaPrices && <IdealistaPricesLayer />}
+      {features.isochrone && <IsochroneLayer />}
       <MetroLayer />
       <FgcLayer />
       <PoiLayer />
-      <PinAccuracyLayer />
-      <PinLayer />
-      <WalkabilityLayer />
+      {features.pins && <PinAccuracyLayer />}
+      {features.pins && <PinLayer />}
+      {features.pins && <WalkabilityLayer />}
       <MapContextMenu />
     </MapContext.Provider>
   )

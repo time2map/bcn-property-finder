@@ -6,6 +6,7 @@ import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { CompositeControls } from './CompositeControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 import { ExclusionControls } from './ExclusionControls'
+import { features } from '../../features'
 
 const TIME_MARKS = [
   { value: 15, label: '15m' },
@@ -94,43 +95,55 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
       w={260}
       style={{ maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}
     >
-      <IsochroneInfoModal opened={isoModalOpen} onClose={() => setIsoModalOpen(false)} />
+      {features.isochrone && <IsochroneInfoModal opened={isoModalOpen} onClose={() => setIsoModalOpen(false)} />}
       <Stack gap="md">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Text fw={500} size="sm">Commute from work</Text>
-            <button
-              className="noise-legend__info-btn"
-              onClick={() => setIsoModalOpen(true)}
-              aria-label="About the commute zone"
-              title="About the commute zone"
-            >
-              ⓘ
-            </button>
-          </div>
+          {features.isochrone && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Text fw={500} size="sm">Commute from work</Text>
+                <button
+                  className="noise-legend__info-btn"
+                  onClick={() => setIsoModalOpen(true)}
+                  aria-label="About the commute zone"
+                  title="About the commute zone"
+                >
+                  ⓘ
+                </button>
+              </div>
 
-          <div style={{ paddingBottom: 20 }}>
-            <Text size="xs" c="dimmed" mb={6}>Travel time by public transport: {minutes} min</Text>
-            <Slider
-              min={15}
-              max={120}
-              step={5}
-              value={minutes}
-              onChange={setMinutes}
-              marks={TIME_MARKS}
-              style={{ '--slider-color': '#F06965' } as React.CSSProperties}
-              styles={{ markLabel: { fontSize: 10, marginTop: 6 } }}
-            />
-          </div>
+              <div style={{ paddingBottom: 20 }}>
+                <Text size="xs" c="dimmed" mb={6}>Travel time by public transport: {minutes} min</Text>
+                <Slider
+                  min={15}
+                  max={120}
+                  step={5}
+                  value={minutes}
+                  onChange={setMinutes}
+                  marks={TIME_MARKS}
+                  style={{ '--slider-color': '#F06965' } as React.CSSProperties}
+                  styles={{ markLabel: { fontSize: 10, marginTop: 6 } }}
+                />
+              </div>
 
-          <ExportButton isLoading={isLoading} />
+              <ExportButton isLoading={isLoading} />
+              <Divider />
+            </>
+          )}
 
-          <Divider />
-          <IdealistaPricesControls />
+          {features.idealistaPrices && (
+            <>
+              <IdealistaPricesControls />
+              <Divider />
+            </>
+          )}
 
-          <Divider />
-          <ExclusionControls />
+          {features.exclusions && (
+            <>
+              <ExclusionControls />
+              <Divider />
+            </>
+          )}
 
-          <Divider />
           <Switch
             label="Noise areas"
             size="sm"

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MultiPolygon, Polygon } from 'geojson'
 import { useStore, isochroneCacheKey } from '../store'
 import { fetchOtpIsochrone } from '../services/otp'
+import { features } from '../features'
 
 function writeCache(key: string, polygon: Polygon | MultiPolygon): void {
   try {
@@ -17,6 +18,7 @@ export function useIsochrone(onError?: (err: Error) => void) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    if (!features.isochrone) return
     if (!workplace) return
 
     const key = isochroneCacheKey(workplace, minutes)

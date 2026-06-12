@@ -11,6 +11,7 @@ import { usePinsStore } from './store/pinsStore'
 import { useUrlState } from './hooks/useUrlState'
 import { useIsochrone } from './hooks/useIsochrone'
 import { usePinAnalytics } from './hooks/usePinAnalytics'
+import { features } from './features'
 import './index.css'
 
 export function App() {
@@ -45,9 +46,13 @@ export function App() {
 
   const mapPane = (
     <div className="map-pane">
-      <ScreenshotDropZone onError={showError}>
+      {features.screenshot ? (
+        <ScreenshotDropZone onError={showError}>
+          <Map />
+        </ScreenshotDropZone>
+      ) : (
         <Map />
-      </ScreenshotDropZone>
+      )}
       {!isMobile && (
         <div className="panel-desktop">
           <FilterPanel isLoading={isLoading} />
@@ -62,7 +67,7 @@ export function App() {
       <div className="app">
         {mapPane}
 
-        {mobileView === 'compare' && pinCount > 0 && (
+        {features.pins && mobileView === 'compare' && pinCount > 0 && (
           <div className="mobile-compare">
             <ComparePane fullScreen />
           </div>
@@ -87,7 +92,7 @@ export function App() {
           <FilterPanel isLoading={isLoading} />
         </Drawer>
 
-        {pinCount > 0 && (
+        {features.pins && pinCount > 0 && (
           <SegmentedControl
             className="mobile-view-toggle"
             value={mobileView}
@@ -99,7 +104,7 @@ export function App() {
           />
         )}
 
-        {mobileView === 'map' && <AddPinButton onError={showError} />}
+        {features.pins && mobileView === 'map' && <AddPinButton onError={showError} />}
 
         {errorNotification}
       </div>
@@ -108,11 +113,13 @@ export function App() {
 
   return (
     <div className="app">
-      <div className="app-split">
-        <ComparePane />
-        {mapPane}
-      </div>
-      <AddPinButton onError={showError} />
+      {features.pins ? (
+        <div className="app-split">
+          <ComparePane />
+          {mapPane}
+        </div>
+      ) : mapPane}
+      {features.pins && <AddPinButton onError={showError} />}
       {errorNotification}
     </div>
   )
