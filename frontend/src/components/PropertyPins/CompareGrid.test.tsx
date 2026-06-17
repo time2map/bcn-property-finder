@@ -1,6 +1,7 @@
 import React from 'react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MantineProvider } from '@mantine/core'
 import { ComparePane } from './ComparePane'
 import { usePinsStore } from '../../store/pinsStore'
@@ -150,11 +151,12 @@ describe('CompareGrid (via ComparePane)', () => {
   })
 
   it('removes a listing URL via the options menu', async () => {
+    const user = userEvent.setup()
     const updatePin = vi.fn()
     usePinsStore.setState({ pins: [makePin('a', { url: 'https://old.com' })], selectedPinId: null, isAddingPin: false, updatePin } as never)
     renderPane()
-    fireEvent.click(screen.getByLabelText('Listing options'))
-    fireEvent.click(await screen.findByText('Remove'))
+    await user.click(screen.getByLabelText('Listing options'))
+    await user.click(await screen.findByText('Remove'))
     expect(updatePin).toHaveBeenCalledWith('a', { url: undefined })
   })
 

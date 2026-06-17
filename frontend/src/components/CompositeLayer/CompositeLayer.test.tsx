@@ -12,7 +12,7 @@ const mockPopup = {
 }
 
 vi.mock('maplibre-gl', () => ({
-  default: { Popup: vi.fn(() => mockPopup) },
+  default: { Popup: vi.fn(function () { return mockPopup }) },
 }))
 
 vi.mock('../../services/composite/compositeData', () => ({

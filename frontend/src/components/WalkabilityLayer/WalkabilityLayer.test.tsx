@@ -13,7 +13,7 @@ const mockMarker = {
 
 vi.mock('maplibre-gl', () => ({
   default: {
-    Marker: vi.fn(() => mockMarker),
+    Marker: vi.fn(function () { return mockMarker }),
   },
 }))
 

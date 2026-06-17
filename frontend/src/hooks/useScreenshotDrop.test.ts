@@ -16,30 +16,32 @@ vi.mock('./usePinAnalytics', () => ({
   calcAnalytics: vi.fn(),
 }))
 vi.mock('../services/parser/IdealistaHTMLParser', () => ({
-  IdealistaHTMLParser: vi.fn().mockImplementation(() => ({
-    parse: vi.fn().mockReturnValue({
-      id: '12345',
-      url: 'https://www.idealista.com/en/inmueble/12345/',
-      price: 350000,
-      areaSqm: 70,
-      bedrooms: 2,
-      bathrooms: 1,
-      street: 'Carrer de Test',
-      neighborhood: 'Eixample',
-      city: 'Barcelona',
-      floor: '3rd floor exterior',
-      hasLift: true,
-      yearBuilt: 2000,
-      orientation: ['South'],
-      condition: 'Good condition',
-      amenities: ['Air conditioning'],
-      basicFeatures: [],
-      description: 'Nice apartment',
-      energyConsumption: null,
-      energyCO2: null,
-      photos: ['https://img.idealista.com/photo1.jpg'],
-    }),
-  })),
+  IdealistaHTMLParser: vi.fn().mockImplementation(function () {
+    return {
+      parse: vi.fn().mockReturnValue({
+        id: '12345',
+        url: 'https://www.idealista.com/en/inmueble/12345/',
+        price: 350000,
+        areaSqm: 70,
+        bedrooms: 2,
+        bathrooms: 1,
+        street: 'Carrer de Test',
+        neighborhood: 'Eixample',
+        city: 'Barcelona',
+        floor: '3rd floor exterior',
+        hasLift: true,
+        yearBuilt: 2000,
+        orientation: ['South'],
+        condition: 'Good condition',
+        amenities: ['Air conditioning'],
+        basicFeatures: [],
+        description: 'Nice apartment',
+        energyConsumption: null,
+        energyCO2: null,
+        photos: ['https://img.idealista.com/photo1.jpg'],
+      }),
+    }
+  }),
   buildPinComment: vi.fn().mockReturnValue('Carrer de Test, Eixample\n\nNice apartment'),
 }))
 vi.mock('../components/Map/MapContext', () => ({

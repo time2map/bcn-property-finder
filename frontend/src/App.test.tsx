@@ -31,18 +31,14 @@ vi.mock('@mantine/core', async () => {
 
 vi.mock('maplibre-gl', () => ({
   default: {
-    Map: vi.fn(() => ({
-      addControl: vi.fn(),
-      on: vi.fn(),
-      remove: vi.fn(),
-    })),
-    NavigationControl: vi.fn(),
-    AttributionControl: vi.fn(),
-    Marker: vi.fn(() => ({
-      setLngLat: vi.fn().mockReturnThis(),
-      addTo: vi.fn().mockReturnThis(),
-      remove: vi.fn(),
-    })),
+    Map: vi.fn(function () {
+      return { addControl: vi.fn(), on: vi.fn(), remove: vi.fn() }
+    }),
+    NavigationControl: vi.fn(function () { return {} }),
+    AttributionControl: vi.fn(function () { return {} }),
+    Marker: vi.fn(function () {
+      return { setLngLat: vi.fn().mockReturnThis(), addTo: vi.fn().mockReturnThis(), remove: vi.fn() }
+    }),
   },
 }))
 

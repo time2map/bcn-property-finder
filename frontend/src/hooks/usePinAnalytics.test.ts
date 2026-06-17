@@ -66,6 +66,7 @@ describe('calcAnalytics', () => {
 
 describe('usePinAnalytics', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.spyOn(otp, 'fetchOtpDuration').mockResolvedValue(600)
     useStore.setState({ workplace: null, minutes: 60, resultPolygon: null })
     usePinsStore.setState({ pins: [], selectedPinId: null, isAddingPin: false })

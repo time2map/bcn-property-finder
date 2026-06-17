@@ -7,19 +7,17 @@ const MOCK_ENV = {
 
 function mockSdk(text: string) {
   vi.doMock('@anthropic-ai/sdk', () => ({
-    default: vi.fn().mockImplementation(() => ({
-      messages: {
-        create: vi.fn().mockResolvedValue({ content: [{ type: 'text', text }] }),
-      },
-    })),
+    default: vi.fn().mockImplementation(function () {
+      return { messages: { create: vi.fn().mockResolvedValue({ content: [{ type: 'text', text }] }) } }
+    }),
   }))
 }
 
 function mockSdkError() {
   vi.doMock('@anthropic-ai/sdk', () => ({
-    default: vi.fn().mockImplementation(() => ({
-      messages: { create: vi.fn().mockRejectedValue(new Error('API error')) },
-    })),
+    default: vi.fn().mockImplementation(function () {
+      return { messages: { create: vi.fn().mockRejectedValue(new Error('API error')) } }
+    }),
   }))
 }
 

@@ -4,8 +4,8 @@ import { MantineProvider } from '@mantine/core'
 import { useStore } from '../../store'
 import { DEFAULT_COMPOSITE_WEIGHTS } from '../../store'
 
-const { TEST_BUNDLE } = vi.hoisted(() => ({
-  TEST_BUNDLE: {
+vi.mock('../../services/composite/compositeData', () => {
+  const bundle = {
     h3: 'abc123',
     geometry: { type: 'Polygon' as const, coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
     walk: 72,
@@ -17,13 +17,12 @@ const { TEST_BUNDLE } = vi.hoisted(() => ({
       pg_gracia: 6, arc_triomf: 11, montjuic: 22, placa_espanya: 20,
       glories: 28, poblenou: 35, parc_guell: 45, eixample: 2, waterfront: 40,
     },
-  },
-}))
-
-vi.mock('../../services/composite/compositeData', () => ({
-  hexBundleMap: new Map([['abc123', TEST_BUNDLE]]),
-  get hexOpenPriceBounds() { return { p5: 2000, p95: 6000 } },
-}))
+  }
+  return {
+    hexBundleMap: new Map([['abc123', bundle]]),
+    get hexOpenPriceBounds() { return { p5: 2000, p95: 6000 } },
+  }
+})
 
 import { HexDetailCard } from './HexDetailCard'
 
@@ -85,7 +84,7 @@ describe('HexDetailCard', () => {
     useStore.setState({ selectedHexH3: 'abc123' })
     renderCard()
     expect(screen.getByText(/Sale price/i)).toBeInTheDocument()
-    expect(screen.getByText(/4,200/)).toBeInTheDocument()
+    expect(document.body.textContent).toMatch(/4[.,]200/)
   })
 
   it('hides Noise section when noise weight is 0', () => {
