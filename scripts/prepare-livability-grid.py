@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-Build the static H3 livability grid for feature 017.
+Build the static H3 livability grid.
 
 For every H3 cell covering Barcelona + AMB (from frontend/public/data/areas.geojson) compute:
-  - walk : walkability index 0-100 (how many of 10 service categories have a POI within 1200 m
-           of the cell centroid — same methodology as the per-pin walkability score, feature 010)
-  - lden : representative noise level (dB) at the cell centroid, or null (feature 009)
+  - walk        : walkability index 0-100 (feature 010)
+  - lden        : area-average noise level (dB) sampled across H3 child cells (feature 009)
+  - sale_eur_m2 : open market sale price €/m² — barri level, muni fallback (INCASOL data)
+  - sale_src    : 'barri' | 'muni' | null
 
-Output: frontend/public/data/livability-h3.geojson  (one hexagon polygon per cell).
-
-Walkability/noise are workplace-INDEPENDENT, so the whole grid is precomputed here and served as
-static data — no backend, no per-cell runtime computation.
+Outputs:
+  frontend/public/data/livability-h3.geojson   — one hexagon polygon per cell
+  frontend/public/data/open-price-meta.json    — p5/p95 bounds for price normalisation
 
 Requirements:
-  brew install gdal tippecanoe          # ogr2ogr (already used by the other scripts)
-  pip install h3 shapely
+  brew install gdal
+  pip install h3 shapely geopandas numpy
 
 Usage:
   LIVABILITY_H3_RES=9 python3 scripts/prepare-livability-grid.py
@@ -28,7 +28,9 @@ import subprocess
 import sys
 import tempfile
 
+import geopandas as gpd
 import h3
+import numpy as np
 from shapely.geometry import Point, shape
 from shapely.strtree import STRtree
 
@@ -51,9 +53,15 @@ PBF_PATH = os.path.join(ROOT, "backend/otp/data/barcelona.osm.pbf")
 NOISE_GPKG = os.path.join(ROOT, "data/noise/2022_Isofones_Total_Lden_BCN.gpkg")
 NOISE_GEOJSON = os.path.join(ROOT, "data/noise/noise-isophones-tmp.geojson")
 NOISE_LAYER = "2022_Isofones_Total_Lden_Mapa_Estrategic_Soroll_BCN"
+PRICES_GPKG = os.path.join(ROOT, "data/open-prices/bcn_prices.gpkg")
 OUTPUT_PATH = os.path.join(ROOT, "frontend/public/data/livability-h3.geojson")
+PRICES_META_OUT = os.path.join(ROOT, "frontend/public/data/open-price-meta.json")
 
 H3_RES = int(os.environ.get("LIVABILITY_H3_RES", "9"))
+# Sub-sampling resolution for noise: child cells at this resolution are used to compute a
+# weighted average Lden across the hex area instead of a single centroid sample.
+# Default H3_RES+2 → ~49 sample points per cell at ~26 m spacing (for base res 9).
+NOISE_SAMPLE_RES = int(os.environ.get("NOISE_SAMPLE_RES", str(H3_RES + 2)))
 
 # Walkability = distance-decay + per-category saturation. MUST match the frontend constants in
 # src/services/walkability/walkabilityScore.ts and serviceCategories.ts:
@@ -255,6 +263,95 @@ def lden_at(noise, lng, lat):
     return None
 
 
+def lden_avg(noise, cell, sample_res):
+    """Return area-average Lden by sampling at H3 child centroids at sample_res.
+
+    Smooths boundary artefacts for hexes that straddle a noise-isophone edge.
+    Returns None when the cell has no noise coverage at any sample point.
+    """
+    if noise is None:
+        return None
+    samples = []
+    for child in h3.cell_to_children(cell, sample_res):
+        clat, clng = h3.cell_to_latlng(child)
+        v = lden_at(noise, clng, clat)
+        if v is not None:
+            samples.append(v)
+    if not samples:
+        return None
+    return sum(samples) / len(samples)
+
+
+def _latest_sale_total(row, year_cols):
+    for col in reversed(year_cols):
+        val = row[col]
+        if val is not None and not (isinstance(val, float) and np.isnan(val)) and val > 0:
+            return float(val)
+    return None
+
+
+def enrich_with_prices(features):
+    """Inject sale_eur_m2 / sale_src into features in-place; write open-price-meta.json."""
+    if not os.path.exists(PRICES_GPKG):
+        print("   Price GPKG not found — sale_eur_m2 will be null for all cells.", file=sys.stderr)
+        for f in features:
+            f["properties"]["sale_eur_m2"] = None
+            f["properties"]["sale_src"] = None
+        return
+
+    print("Loading price data…")
+    barri = gpd.read_file(PRICES_GPKG, layer="bcn_sale_barri")[["geometry", "sale_total_latest"]]
+    barri = barri[barri["sale_total_latest"].notna()].to_crs(epsg=4326)
+
+    muni_raw = gpd.read_file(PRICES_GPKG, layer="catalonia_sale_muni")
+    total_cols = sorted(c for c in muni_raw.columns if c.startswith("sale_total_"))
+    muni_raw["_latest"] = muni_raw.apply(lambda r: _latest_sale_total(r, total_cols), axis=1)
+    muni = muni_raw[["geometry", "_latest"]].rename(columns={"_latest": "sale_total_latest"})
+    muni = muni[muni["sale_total_latest"].notna()].to_crs(epsg=4326)
+
+    # Build centroid GeoDataFrame directly from H3 cell IDs (no file I/O needed).
+    cent_pts = []
+    for f in features:
+        clat, clng = h3.cell_to_latlng(f["properties"]["h3"])
+        cent_pts.append(Point(clng, clat))
+    centroids = gpd.GeoDataFrame(geometry=cent_pts, crs="EPSG:4326")
+
+    print("Spatial join → barri…")
+    j_barri = gpd.sjoin(centroids[["geometry"]], barri, how="left", predicate="within")
+    barri_price = j_barri["sale_total_latest"].values.astype(float)
+
+    no_barri = np.isnan(barri_price)
+    print(f"   Cells without barri match: {no_barri.sum()}")
+    muni_price = np.full(len(features), np.nan)
+    if no_barri.sum() > 0:
+        print("Spatial join → municipality (fallback)…")
+        j_muni = gpd.sjoin(centroids[no_barri][["geometry"]], muni, how="left", predicate="within")
+        if "sale_total_latest" in j_muni.columns:
+            muni_price[no_barri] = j_muni["sale_total_latest"].values.astype(float)
+
+    sale = np.where(~no_barri, barri_price, muni_price)
+    src = np.where(~no_barri, "barri", np.where(~np.isnan(muni_price), "muni", None))
+
+    valid = sale[~np.isnan(sale)]
+    p5  = float(np.percentile(valid, 5))
+    p95 = float(np.percentile(valid, 95))
+    print(f"   p5={p5:.0f} €/m², p95={p95:.0f} €/m², coverage={len(valid)}/{len(features)} cells")
+
+    with open(PRICES_META_OUT, "w") as f:
+        json.dump({"sale_p5": round(p5), "sale_p95": round(p95)}, f)
+    print(f"   -> {os.path.basename(PRICES_META_OUT)}")
+
+    for i, feat in enumerate(features):
+        v = sale[i]
+        feat["properties"]["sale_eur_m2"] = round(float(v), 2) if not np.isnan(v) else None
+        feat["properties"]["sale_src"] = str(src[i]) if src[i] not in (None, "None") else None
+
+    null_c  = sum(1 for f in features if f["properties"]["sale_eur_m2"] is None)
+    barri_c = sum(1 for f in features if f["properties"].get("sale_src") == "barri")
+    muni_c  = sum(1 for f in features if f["properties"].get("sale_src") == "muni")
+    print(f"   barri={barri_c}, muni={muni_c}, null={null_c}")
+
+
 def main():
     if not os.path.exists(AREAS_PATH):
         sys.exit(f"areas.geojson not found: {AREAS_PATH}")
@@ -297,7 +394,7 @@ def main():
                 sub_scores[cid] = round(sub * 100)
                 weighted += sub * w
             walk = round(weighted / TOTAL_WEIGHT * 100)
-            lden = lden_at(noise, lng, lat)
+            lden = lden_avg(noise, cell, NOISE_SAMPLE_RES)
 
             boundary = h3.cell_to_boundary(cell)  # [(lat, lng), …]
             ring = [[lng2, lat2] for lat2, lng2 in boundary]
@@ -314,6 +411,9 @@ def main():
             })
             if (n + 1) % 1000 == 0:
                 print(f"   {n + 1}/{len(cells)} cells")
+
+        print("\nEnriching with market prices…")
+        enrich_with_prices(features)
 
         with open(OUTPUT_PATH, "w") as f:
             json.dump({"type": "FeatureCollection", "features": features}, f, separators=(",", ":"))
