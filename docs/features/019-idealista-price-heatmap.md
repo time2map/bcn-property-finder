@@ -55,13 +55,19 @@ python3 scripts/har_to_geojson.py file1.har file2.har
 
 Switch in the filter panel: **Idealista prices**. Off by default.
 
-### Price range slider (dual-handle)
+### Price window slider
 
-Rendered below the toggle when the layer is active. Bounds are inferred from the loaded GeoJSON at runtime; default range 100k–1.5M€, step 25k.
+Rendered below the toggle when the layer is active. Bounds are computed at runtime from p10/p90 of the loaded GeoJSON and used as slider min/max. Step 10k.
 
-- Drag handles → updates MapLibre paint expression + filter without re-loading the source.
-- Points outside the range are hidden (MapLibre filter).
-- Labels show `Xk€` / `X.XM€` format.
+Custom `PriceWindowSlider` component with three drag interactions:
+
+- **Drag the blue bar** (between handles) → slides the entire price window left/right, preserving its width. Cursor becomes `grabbing`.
+- **Drag the left handle** → resizes the lower bound only. Minimum window width: 50k.
+- **Drag the right handle** → resizes the upper bound only.
+
+Uses `document`-level `mousemove`/`mouseup` listeners so the pointer can move freely outside the track. Touch-aware (`touchmove`/`touchend`). Updates MapLibre filter + icon expression in real time.
+
+Labels show `€Xk` / `€X.XM` format. Slider min/max tick labels are shown below the track.
 
 ### Colour scale
 
@@ -91,14 +97,15 @@ Click any dot → popup with formatted price + **"View on Idealista ↗"** link 
 | `data/idealista-prices/` | Dated snapshots (git-ignored) |
 | `frontend/public/data/idealista_prices.geojson` | Live data served by Vite |
 | `frontend/src/components/IdealistaPricesLayer/IdealistaPricesLayer.tsx` | MapLibre source + circle layer |
-| `frontend/src/components/IdealistaPricesLayer/IdealistaPricesControls.tsx` | Toggle + range slider UI |
+| `frontend/src/components/IdealistaPricesLayer/IdealistaPricesControls.tsx` | Toggle + price window slider UI |
+| `frontend/src/components/IdealistaPricesLayer/PriceWindowSlider.tsx` | Custom draggable window slider component |
 | `frontend/src/components/IdealistaPricesLayer/priceColors.ts` | Colour expression builder |
 | `frontend/src/components/IdealistaPricesLayer/priceColors.test.ts` | Unit tests |
 
 ## Definition of Done
 
 - [x] Layer toggle in filter panel
-- [x] Dual-handle price range slider
+- [x] Draggable price window slider (shift whole window by dragging the bar; resize with handles)
 - [x] Real-time recolour via `setPaintProperty` + `setFilter`
 - [x] Click popup with price + Idealista link
 - [x] Script accepts CLI args, outputs dated snapshot, never overwrites
