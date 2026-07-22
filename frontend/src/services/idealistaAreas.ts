@@ -251,7 +251,7 @@ export function decomposeByBarris(geometry: Poly | null, areas: AreaFeature[], b
   if (clips.length === 0) return decomposeForIdealista(geometry, baseUrl)
 
   // Step 3: union all clips — adjacent barris merge; small gaps fill automatically
-  const merged = clips.reduce<Feature<Poly> | null>(
+  let merged = clips.reduce<Feature<Poly> | null>(
     (acc, clip) => (acc ? (union(collection([acc, clip])) ?? acc) : clip),
     null,
   )
