@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Feature, FeatureCollection, Polygon } from 'geojson'
 import type maplibregl from 'maplibre-gl'
+import type { ExpressionSpecification } from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useIdealistaAreas } from '../../hooks/useIdealistaAreas'
 import { useStore } from '../../store'
@@ -13,7 +14,7 @@ const LABEL_LAYER_ID = 'export-areas-label'
 const COLOR = '#6741d9'
 
 // Stronger fill/outline when the area is hovered (in the panel link or on the map).
-const HOVER = ['boolean', ['feature-state', 'hover'], false] as const
+const HOVER: ExpressionSpecification = ['boolean', ['feature-state', 'hover'], false]
 
 function areaLabel(i: number, total: number): string {
   return i === 0 ? 'Main' : total > 1 ? String(i + 1) : ''

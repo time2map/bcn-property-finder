@@ -32,9 +32,12 @@ jobs:
 
       - name: Build
         working-directory: frontend
+        # Public, non-secret config lives in frontend/.env.production. Only client keys that must
+        # reach the browser are injected here from repo secrets, keeping them out of git.
+        # The TMB keys power the metro layer; if unset, the map still works, metro just won't load.
         env:
-          VITE_BASE_URL: /bcn-property-finder/
-          VITE_ORS_API_KEY: ${{ secrets.VITE_ORS_API_KEY }}
+          VITE_TMB_APP_ID: ${{ secrets.VITE_TMB_APP_ID }}
+          VITE_TMB_APP_KEY: ${{ secrets.VITE_TMB_APP_KEY }}
         run: npm run build
 
       - uses: actions/upload-pages-artifact@v3

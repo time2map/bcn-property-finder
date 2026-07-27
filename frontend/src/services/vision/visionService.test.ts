@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const MOCK_ENV = {
   VITE_ANTHROPIC_API_KEY: 'test-key',
@@ -23,6 +23,12 @@ function mockSdkError() {
 
 beforeEach(() => {
   vi.resetModules()
+  // parseScreenshot short-circuits unless the screenshot feature flag is on.
+  vi.stubEnv('VITE_FEATURE_SCREENSHOT', 'true')
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe('parseScreenshot', () => {

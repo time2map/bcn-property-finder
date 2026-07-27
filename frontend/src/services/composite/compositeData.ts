@@ -53,7 +53,7 @@ export function loadBundles(): Promise<CellBundle[]> {
           geometry: f.geometry,
           walk: p.walk,
           lden: p.lden,
-          saleEurM2: (p as Record<string, unknown>).sale_eur_m2 as number ?? null,
+          saleEurM2: (p as unknown as Record<string, unknown>).sale_eur_m2 as number ?? null,
           cityCoreProps: cityCoreMap.get(p.h3) ?? { h3: p.h3, ...EMPTY_CITY_CORE },
           walkCategories: Object.keys(walkCategories).length > 0 ? walkCategories : undefined,
         }

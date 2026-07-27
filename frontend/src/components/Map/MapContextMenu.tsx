@@ -16,6 +16,7 @@ export function MapContextMenu() {
 
   useEffect(() => {
     if (!map) return
+    const target = map
     const popup = new maplibregl.Popup({
       closeButton: true,
       closeOnClick: true,
@@ -35,7 +36,7 @@ export function MapContextMenu() {
             </a>
           </div>`,
         )
-        .addTo(map)
+        .addTo(target)
     }
 
     map.on('contextmenu', onContextMenu)

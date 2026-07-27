@@ -45,7 +45,7 @@ function polyFeature(coordinates: Rings): Feature<Polygon> {
   return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates } }
 }
 
-function collection(features: Feature<Polygon>[]): FeatureCollection<Polygon> {
+function collection(features: Feature<Poly>[]): FeatureCollection<Poly> {
   return { type: 'FeatureCollection', features }
 }
 

@@ -124,7 +124,7 @@ export function HexDetailCard() {
   // All enabled landmarks sorted nearest first
   const cityCoreLandmarks = enabledLandmarkIds
     .map((id) => {
-      const props = bundle.cityCoreProps as Record<string, number | null | string>
+      const props = bundle.cityCoreProps as unknown as Record<string, number | null | string>
       const minutes = props[id] as number | null
       const landmark = LANDMARKS.find((l) => l.id === id)
       return { id, name: landmark?.name ?? id, minutes }
