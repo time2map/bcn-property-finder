@@ -1,4 +1,4 @@
-const GEOJSON_URL = '/data/idealista_prices.geojson'
+const GEOJSON_URL = `${import.meta.env.BASE_URL}data/idealista_prices.geojson`
 
 let cache: Promise<GeoJSON.Feature<GeoJSON.Point>[]> | null = null
 

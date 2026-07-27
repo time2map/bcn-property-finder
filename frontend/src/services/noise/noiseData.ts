@@ -4,7 +4,7 @@ import Pbf from 'pbf'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { point } from '@turf/helpers'
 
-const PMTILES_URL = '/data/noise.pmtiles'
+const PMTILES_URL = `${import.meta.env.BASE_URL}data/noise.pmtiles`
 const SCORE_ZOOM = 14
 
 let pmtiles: PMTiles | null = null

@@ -12,7 +12,7 @@ const LABEL_LAYER = 'idealista-prices-labels'
 const PILL_ICON = 'idealista-pill'
 const DOT_ICON_PREFIX = 'idealista-dot-'
 const DOT_ICON_NAMES = PRICE_RAMP.map((_, i) => `${DOT_ICON_PREFIX}${i}`)
-const GEOJSON_URL = '/data/idealista_prices.geojson'
+const GEOJSON_URL = `${import.meta.env.BASE_URL}data/idealista_prices.geojson`
 const LABEL_MINZOOM = 15.3
 const TEXT_FONT = ['Noto Sans Regular', 'Arial Unicode MS Regular']
 

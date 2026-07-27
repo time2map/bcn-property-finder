@@ -16,8 +16,8 @@ export function FgcLayer() {
     let cancelled = false
 
     Promise.all([
-      fetch('/fgc-lines.geojson').then((r) => r.json() as Promise<GeoJSON.FeatureCollection>),
-      fetch('/fgc-stations.geojson').then((r) => r.json() as Promise<GeoJSON.FeatureCollection>),
+      fetch(`${import.meta.env.BASE_URL}fgc-lines.geojson`).then((r) => r.json() as Promise<GeoJSON.FeatureCollection>),
+      fetch(`${import.meta.env.BASE_URL}fgc-stations.geojson`).then((r) => r.json() as Promise<GeoJSON.FeatureCollection>),
     ])
       .then(([lines, stations]) => {
         if (cancelled || map.getSource(SOURCE_LINES)) return

@@ -1,7 +1,7 @@
 import type { FeatureCollection, Polygon } from 'geojson'
 import { livabilityIndex } from './livabilityScore'
 
-const GRID_URL = '/data/livability-h3.geojson'
+const GRID_URL = `${import.meta.env.BASE_URL}data/livability-h3.geojson`
 
 /** Per-cell properties baked by scripts/prepare-livability-grid.py. */
 export interface LivabilityCellProps {

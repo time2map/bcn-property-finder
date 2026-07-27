@@ -91,7 +91,7 @@ export function PoiLayer() {
 
       map.addSource(SOURCE_ID, {
         type: 'vector',
-        url: 'pmtiles:///barcelona_poi.pmtiles',
+        url: `pmtiles://${import.meta.env.BASE_URL}barcelona_poi.pmtiles`,
         attribution: 'OpenStreetMap contributors',
       })
 

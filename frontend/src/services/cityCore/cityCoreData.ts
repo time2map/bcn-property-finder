@@ -1,7 +1,7 @@
 import type { FeatureCollection, Polygon } from 'geojson'
 import { cellCityCoreIndex } from './cityCoreScore'
 
-const GRID_URL = '/data/city-core-access.geojson'
+const GRID_URL = `${import.meta.env.BASE_URL}data/city-core-access.geojson`
 
 /** Per-cell properties baked by scripts/prepare-city-core-access.py. */
 export interface CityCoreCellProps {

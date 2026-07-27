@@ -5,7 +5,7 @@ import { addLayerOrdered } from '../Map/layerOrder'
 
 const SOURCE_ID = 'noise-pmtiles'
 const LAYER_ID = 'noise-overlay'
-const PMTILES_URL = 'pmtiles:///data/noise.pmtiles'
+const PMTILES_URL = `pmtiles://${import.meta.env.BASE_URL}data/noise.pmtiles`
 
 // Color palette matching official Barcelona acoustic map (QGIS .qml style)
 const LDEN_COLOR_STEP = [
