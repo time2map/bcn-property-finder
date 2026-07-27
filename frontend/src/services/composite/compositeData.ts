@@ -99,7 +99,7 @@ let openPriceMetaCache: Promise<OpenPriceBounds> | null = null
 /** Loads precomputed p5/p95 normalisation bounds for INCASOL open price data. */
 export function loadOpenPriceMeta(): Promise<OpenPriceBounds> {
   if (openPriceMetaCache) return openPriceMetaCache
-  openPriceMetaCache = fetch('/data/open-price-meta.json')
+  openPriceMetaCache = fetch(`${import.meta.env.BASE_URL}data/open-price-meta.json`)
     .then((r) => r.json() as Promise<{ sale_p5: number; sale_p95: number }>)
     .then((d) => {
       const bounds = { p5: d.sale_p5, p95: d.sale_p95 }

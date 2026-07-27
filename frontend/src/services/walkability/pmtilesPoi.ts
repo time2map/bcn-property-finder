@@ -12,7 +12,7 @@ export interface NearbyResult {
   score: number
 }
 
-const PMTILES_URL = '/barcelona_poi.pmtiles'
+const PMTILES_URL = `${import.meta.env.BASE_URL}barcelona_poi.pmtiles`
 const ZOOM = 14
 const SEARCH_RADIUS_M = 2500
 export const DETOUR_FACTOR = 1.3
