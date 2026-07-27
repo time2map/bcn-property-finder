@@ -1,0 +1,62 @@
+﻿time2map — Acquisition Engine for Your Buy-Box
+Limited intake — 2–3 spots open this month
+Here's what I'm offering this month:
+The outcome is simple: your manual search for parcels to buy and invest in becomes a system that runs your buy-box across the full set of parcels and returns a ranked list of candidates — in about 4 weeks, without you sitting in geoportals, GIS, and Excel.
+I personally take on 2–3 land investors, developers, or builders (US, Australia, Canada; teams of 1–50) who currently hunt for parcels by hand, and take them to a working system.
+How we do it
+Through a combination of work tailored to your case, a reusable core (I've built "parcel → answer" systems more than once), and direct support from me and my team.
+Phase 1 — a fast result on your data
+We start with a free 48-hour demo. You outline your buy-box (what parcels you're looking for and by what criteria) and give me one county or market. I build a demo on your data and show it live — you see right away that I understood the task and can handle your data.
+Then a paid trial (7 days, credited toward the MVP). I take a real piece of the system — data or output design — and start building it for real on your county. In that week you get a feel for working with me: pace, communication, quality. What gets done counts toward the MVP, it doesn't go into a drawer.
+Phase 2 — a working system and growth
+After the trial we build the MVP — one working flow on your data, in about 4 weeks. The output-design track and the data track run in parallel and converge into a result: the system runs your rules across the set of parcels, ranks candidates, and delivers the output in the agreed form — a table (Excel/CSV: address, APN, zoning, score), a map, or export to CRM / via API.
+Once you've played with the live MVP, you decide what to grow next: new counties and sources, alerts, team access, integrations. We move step by step, budget under control. Throughout, you have direct access to me and my team.
+What you get
+Phase 1
+1 – Demo on your buy-box (48 hours, free). In 2 days you see your case live, zero risk.
+2 – Trial on your county (7 days, credited). Before the main check, you confirm the system actually answers your question.
+Phase 2 — MVP
+3 – System design (optional, starts first). On mockups we agree on how the output and the control panel look (list, map, weight and dataset controls) — so there's no reworking "you built the wrong thing."
+4 – Data pipeline for your counties. Collecting, cleaning, and merging the sources your buy-box actually needs — parcels & ownership, zoning & land use, valuation & sales, utilities & access, flood & environmental constraints — with the exact set tailored to your criteria; convenient loading. If your logic isn't written down, we help turn your buy-box into rules.
+5 – A working engine "buy-box → parcels." Running your rules across the set → a ranked list and map with controls (move weights, toggle datasets in and out of the calc) and output in the form you need. Hours of manual sifting → minutes.
+Later, at your choice after the MVP
+Multi-user mode for your team; auto-fetching of data; new counties / sources / integrations + alerts; charts and extra analytics.
+Payment
+An entry without a big check and without paying blind:
+1 – Demo: 48 hours, free.
+2 – Trial: 7 days, paid and small, credited toward the MVP.
+3 – MVP (start): one working flow on your data, $10–15k (less the trial), 50% upfront after the trial / 50% on delivery.
+4 – Development: new counties, sources, integrations, team access. Step by step, you pay as features ship.
+5 – Support: tech support $50/hour; development at standard rates.
+You decide how far to go: you can stop at the MVP or grow with features. Payment is tied to what already works.
+Guarantee
+You don't hand over a big check on promises. First a free demo on your data. Then a small paid trial on your county — and only after you've seen the system working on it do you move to the MVP upfront payment. If the trial shows the data isn't good enough or the task doesn't come together, we part ways: you pay only for that week and keep everything I built.
+This is more honest than "money back": the big-check point sits after the proof, not before — you don't pay and then chase a refund. The most you risk before the MVP is one paid week, and its result stays with you.
+Who this is for (and not for)
+A good fit if:
+1 – You buy, entitle, or develop land for your own deals — parcel search is your internal, repeatable process, not a one-off order.
+2 – You have a buy-box / investment thesis and a repeatable process: dozens to hundreds of parcels, markets, or opportunities per month or quarter.
+3 – You're ready to start small — demo and trial on your data — and to share your domain logic, rather than demanding everything at once.
+Not a fit if:
+1 – The task is one parcel or a one-off — cheaper to do by hand.
+2 – You don't have your own buy-box and clear rules, or your budget bottoms out at the lowest rate (then a ready-made SaaS is the better call).
+3 – You need someone on staff, a licensed planner or civil engineer, or a ready-made SaaS (BatchLeads and the like) already covers your logic, geography, and data.
+4 – You expect a full system in a couple of days at MVP price, or a one-off pretty picture.
+Next steps
+If this is your case:
+1 – Send me the word "Demo."
+2 – In a couple of lines, outline your buy-box (what parcels you're after and by what criteria) and name one county or market to start. If you have written rules or an algorithm, send them.
+3 – In 48 hours I build a demo on your data and show it live.
+From you — just the buy-box and the area. Data collection, parsing, cleaning, and the demo itself are on me. You set nothing up.
+Bonus
+The first month after MVP delivery, support is on me: available to answer questions, fix minor bugs, and help publish the system on your servers. Plus a clean handover: documentation, code, and data are yours. With a finished MVP you work autonomously, not tied to me as a contractor — the system becomes part of your proprietary process.
+Why me, and why now
+Cases (I've already shown I can build these systems):
+1 – Compact Cottages (USA, zoningsearch.com). Evaluating a parcel by zoning and eligibility took ~1 hour in Excel — now the summary is visible in ~5 seconds. Rules engine plus a structured parcels DB. This is the core of your task: buy-box → machine rules → evaluation, only with you it's the whole market instead of one parcel.
+2 – LandTracing (USA, New Jersey). A zone-inclusion certificate was done by hand in up to an hour — we launched a production system on parsing and geo-search, now up to 10 a day automatically or with a 5-minute check. 5 stars on Upwork. The same mechanism runs your buy-box across the set, not one parcel at a time.
+3 – Data integration at scale (coal company, 20,000+ people). Heterogeneous sources merged into a single real-time monitoring system watched 24/7 by dozens of dispatchers. Proof that the data pipeline handles heterogeneous data across many sources — the same task as pulling data across many counties.
+Experience. 10+ years in geospatial development, Top Rated on Upwork with a 100% Job Success Score, a specialized background (cartography, GIS, remote sensing, geodesy), and a team of 15+ built for custom mapping services. Two "parcel → answer" systems in production, three more in progress.
+Honest about the cases. My clients in the niche are land-service projects, not acquisition teams. So I don't ask you to take it on faith: in 48 hours I build a demo on your data, and you see the result before paying. The lack of a ready acquisition case is closed by a demo, not a story.
+Why waiting is expensive. While you search by hand, parcels go to whoever already automated their scan — over a quarter that's dozens of missed opportunities. A fresh law (upzoning, lot-split, a min-lot-size change) opens a window: whoever rescans the market under the new rules first takes the cream. And I take 2–3 projects a month because I build each demo and trial on real data myself — the nearest slot is limited.
+Waiting for your "Demo." — Alexander Semenov
+P.S. 2–3 projects a month isn't marketing, it's a physical limit: I build each demo and trial on real data myself. If this is your topic, write now and grab the nearest slot.

@@ -1,0 +1,78 @@
+﻿time2map – Land Parcel Analysis Automation
+I take on 2–3 new projects per month. For each client I build the demo and the trial on their real data personally, so I physically can't run more than a few projects in parallel.
+What I offer
+The outcome is simple: your manual parcel work becomes a working system that does it without you. You load your data in a convenient way, and the system evaluates a specific parcel, then delivers a finished report, an interactive map, or a file package depending on your needs. We launch the first working flow in about 4 weeks, without you spending nights in GIS and Excel.
+I select a few founders in PropTech and land-tech (US, Australia, Canada; teams of 1–50) who currently produce parcel reports by hand, and take them to a working system.
+How we do it
+Through a combination of hands-on work tailored to your case, a reusable core (we've built systems like this more than once), and direct support from me and my team.
+Phase 1: a fast result on your data
+We start with a free 48-hour demo. You outline your area of interest and what you want as the output, and I build a demo on your data and show it live. You see right away that I understood the task and can handle your data.
+Then a 7-day trial, credited toward the cost. I build a working piece of the system on your real parcel. Before you pay, you see that the system actually solves your task, and you get a feel for what working with me is like: pace, communication, quality.
+Phase 2: a working system and growth
+After the trial we build the MVP, one working flow on your data, in about 4 weeks. The output-design track and the data track run in parallel and converge into a finished result: the system evaluates a specific parcel or finds matching ones, and delivers the result in the agreed form (a report, a single CAD/GIS file, or an interactive map with layers).
+Once you've played with the live MVP, you decide what to grow next: new sources and integrations, a public mode, turning the product outward for sale. We move step by step, budget under control.
+Throughout, you have direct access to me and my team: if questions come up, I'm available.
+What's included
+Phase 1 
+1 – Demo application on your data (48 hours, free). In 2 days you see your case live, zero risk. 2 – A working piece of the system on your parcel (7 days, credited). Before paying, you confirm the system solves your task.
+Phase 2, MVP 
+3 – Output design. We agree on how the result looks on mockups before implementation, so there's no reworking "you built the wrong thing." 
+4 – Data pipeline and convenient data loading. A fast start without getting stuck on parsing and captchas; data stops being a manual pain. 
+5 – Post-processing and rules. Data is brought to the form you need, and the system answers by your logic. 
+6 – A working flow with a finished output. Your parcel task is solved without you for the first time. An hour in GIS and Excel turns into minutes.
+Later, at your choice after the MVP From an internal tool to an external product; auto-parsers; new sources and alerts; view modes and analytics; payment systems intregration; user accounts; landing pages.
+Payment
+An entry without a big check and without paying blind:
+1 – Demo: 48 hours, free. 
+2 – Trial: 7 days, credited. 
+3 – MVP (start): one working flow on your data, $10–15k, 50% upfront and 50% on delivery. 
+4 – Development: finding matching parcels, new sources, integrations, turning the product outward. Step by step, you pay as features ship. 
+5 – Support: Tech support: $50/hour. Development work: at the rates below.
+Rates: 
+Architecture / System analysis: $90/hour 
+Backend (GIS development included): $75/hour 
+Frontend (map design included): $70/hour 
+Project / Product management: $65/hour 
+DevOps: $75/hour 
+UX/UI design: $55/hour 
+QA: $45/hour
+You decide how far to go: you can stop at the MVP or grow with features. Payment is tied to what already works.
+Guarantee
+You don't pay a cent until you've seen a result. First a free demo on your data, then a 7-day trial on your parcel. If you like it, we continue and that week is credited. If you don't, we part ways: you owe nothing and keep what I managed to show.
+This is more honest than "money back": you don't have to pay and then chase a refund. All the risk is on me.
+Who it's for and who it's not
+A good fit if: 
+1 – You produce recurring parcel reports for land and real estate by hand (zoning, flood, wetlands, buildability), not necessarily as a finished product yet. 
+2 – You have your own data sources and clear rules for checking or selecting parcels, and a live case for the demo. 
+3 – You're ready to start small and test on your own parcel, rather than demanding everything at once.
+Not a fit if: 
+1 – The task is one-off and cheaper to do by hand at once. 
+2 – You're not ready to share data, fix the rules, and agree on the form of the result. 
+3 – You expect a full turnkey system for the price of an MVP and in a couple of days, or you want a one-off pretty picture with nowhere to plug it in.
+4 – Если ищете руки/аналитика в свою команду (staff augmentation) — это не мы» (кейсы PadStats, #4, #13).
+5 – «Если задача — разовая оцифровка/обмер/трейсинг данных — это коммодити, дешевле нанять почасовика» (#10, #16, #21).
+6 – если вам хватает готовой платформы — берите её; я для случаев, где ваши правила/данные/юрисдикция готовым продуктом не покрываются
+
+________________
+
+
+Next step
+If this resonates: 
+1 – Send me the word "Demo." 
+2 – Outline your area of interest (any scale, I'll pick the piece for the demo myself) and tell me what you want as the output. If you have rules or an algorithm, send them. 
+3 – In 48 hours I'll build a demo on your data and show it live.
+I take the data work, the demo, and the next step on myself. You don't need to set anything up.
+Bonus
+The first month after MVP delivery, support is on me: I'm available to chat, answer questions, and fix minor bugs that didn't surface at delivery. In that same month I help publish the system on your servers (beyond that, by arrangement).
+Plus a clean handover: documentation and access to the code and data. With a finished MVP you work autonomously, without me, and you're not tied to me as a contractor.
+Proof
+1 – LandTracing (USA, New Jersey). We launched a system for generating zone-inclusion certificates in production: a certificate used to take up to an hour by hand, now up to 10 a day automatically or with a 5-minute validation. 5 stars on Upwork. 
+2 – Compact Cottages (USA, zoningsearch.com). Analyzing a parcel took about an hour in Excel, now the full summary is visible in 5 seconds. 
+3 – Experience: 10+ years in geospatial development, Top Rated on Upwork with a 100% Job Success Score, a specialized background (cartography, GIS, remote sensing, geodesy), and a team of 15+ built for custom mapping services.
+Two parcel systems are already in production, three more in progress.
+________________
+
+
+Why waiting is expensive: while everything is manual, each report is an hour that could go to growth, and over a quarter dozens of hours pile up that you won't get back. And parcel reporting is being automated by others too: whoever puts it on a system first captures the flow. Конкурент автоматизирует раньше» — «правила меняются (новые lot-split / min-lot-size законы), отчёты устаревают в день вступления; кто обновил движок первым, забирает поток». Свежо и конкретно (TX SB15).
+I'm waiting for your "Demo." — Alexander Semenov
+P.S. I run 2–3 projects a month because I build each client's demo and trial on real data personally. If this is your topic, write now to grab the nearest slot.
