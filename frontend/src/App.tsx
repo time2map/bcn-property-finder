@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useMediaQuery } from '@mantine/hooks'
 import { Drawer, ActionIcon, Notification, SegmentedControl } from '@mantine/core'
+import { IconAdjustmentsHorizontal } from '@tabler/icons-react'
 import { Map } from './components/Map/Map'
+import { BrandBar } from './components/BrandBar/BrandBar'
 import { FilterPanel } from './components/FilterPanel/FilterPanel'
 import { ComparePane } from './components/PropertyPins/ComparePane'
 import { AddPinButton } from './components/PropertyPins/AddPinButton'
@@ -54,7 +56,8 @@ export function App() {
         <Map />
       )}
       {!isMobile && (
-        <div className="panel-desktop">
+        <div className="top-panel">
+          <BrandBar />
           <FilterPanel isLoading={isLoading} />
         </div>
       )}
@@ -66,6 +69,10 @@ export function App() {
     return (
       <div className="app">
         {mapPane}
+
+        <div className="brand-mobile">
+          <BrandBar />
+        </div>
 
         {features.pins && mobileView === 'compare' && pinCount > 0 && (
           <div className="mobile-compare">
@@ -79,8 +86,9 @@ export function App() {
           radius="xl"
           variant="white"
           onClick={() => setDrawerOpen(true)}
+          aria-label="Open filters"
         >
-          ⚙
+          <IconAdjustmentsHorizontal size={22} />
         </ActionIcon>
         <Drawer
           opened={drawerOpen}

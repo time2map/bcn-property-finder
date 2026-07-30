@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Text } from '@mantine/core'
+import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
@@ -89,11 +90,10 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
 
   return (
     <Paper
-      shadow="md"
+      className="glass-panel"
       p="md"
       radius="md"
-      w={260}
-      style={{ maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}
+      style={{ minHeight: 0, overflowY: 'auto' }}
     >
       {features.isochrone && <IsochroneInfoModal opened={isoModalOpen} onClose={() => setIsoModalOpen(false)} />}
       <Stack gap="md">
@@ -107,7 +107,7 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
                   aria-label="About the commute zone"
                   title="About the commute zone"
                 >
-                  ⓘ
+                  <IconInfoCircle size={14} stroke={1.8} />
                 </button>
               </div>
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ActionIcon, Checkbox, Group, Modal, RangeSlider, Slider, Stack, Switch, Text } from '@mantine/core'
+import { IconSettings, IconInfoCircle } from '@tabler/icons-react'
 import { useStore, DEFAULT_COMPOSITE_WEIGHTS, type CompositeWeights } from '../../store'
 import { LANDMARKS, ALL_LANDMARK_IDS } from '../../services/cityCore/landmarks'
 import { CompositeLegend } from '../CompositeLayer/CompositeLegend'
@@ -24,10 +25,10 @@ function GearButton({ onClick, label }: GearButtonProps) {
       aria-label={label}
       style={{
         background: 'none', border: 'none', cursor: 'pointer',
-        padding: '0 2px', fontSize: 12, color: '#aaa', lineHeight: 1,
+        padding: '0 2px', color: '#868e96', lineHeight: 0, display: 'inline-flex',
       }}
     >
-      ⚙
+      <IconSettings size={15} stroke={1.8} />
     </button>
   )
 }
@@ -79,7 +80,7 @@ function ComponentRow({ id, label, weight, onChange, onGear }: ComponentRowProps
           value={weight}
           onChange={(v) => onChange(id, v)}
           aria-label={`${label} weight`}
-          style={{ '--slider-color': '#4CAF50' } as React.CSSProperties}
+          style={{ '--slider-color': '#F06965' } as React.CSSProperties}
         />
       )}
     </Stack>
@@ -214,7 +215,7 @@ export function CompositeControls() {
             onClick={() => setInfoModalOpen(true)}
             aria-label="About Livability Index"
           >
-            ℹ
+            <IconInfoCircle size={16} stroke={1.8} />
           </ActionIcon>
         </Group>
         {visible && (
@@ -240,7 +241,7 @@ export function CompositeControls() {
                 onChange={(v) => setScoreRange(v as [number, number])}
                 marks={SCORE_MARKS}
                 aria-label="Score range filter"
-                style={{ '--slider-color': '#4CAF50' } as React.CSSProperties}
+                style={{ '--slider-color': '#F06965' } as React.CSSProperties}
                 styles={{ markLabel: { fontSize: 9, marginTop: 4 } }}
               />
             </Stack>

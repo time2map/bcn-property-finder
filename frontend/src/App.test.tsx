@@ -118,14 +118,14 @@ describe('App (integration) - mobile', () => {
 
   it('opens drawer when filter button is clicked', () => {
     renderApp()
-    const toggleBtn = screen.getByRole('button', { name: /⚙/ })
+    const toggleBtn = screen.getByRole('button', { name: /open filters/i })
     fireEvent.click(toggleBtn)
     expect(screen.getByRole('dialog', { name: 'Filters' })).toBeInTheDocument()
   })
 
   it('closes drawer via close button', () => {
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: /⚙/ }))
+    fireEvent.click(screen.getByRole('button', { name: /open filters/i }))
     const closeBtn = screen.getByRole('button', { name: /close/i })
     fireEvent.click(closeBtn)
     expect(screen.queryByRole('dialog', { name: 'Filters' })).not.toBeInTheDocument()

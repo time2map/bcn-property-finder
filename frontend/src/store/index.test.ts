@@ -1,5 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { readUrlParams, readWorkplaceFromStorage, useStore, DEFAULT_CENTER } from './index'
+
+describe('layer visibility defaults', () => {
+  it('defaults Livability ON and Noise OFF for a fresh visitor (no localStorage)', async () => {
+    localStorage.clear()
+    vi.resetModules()
+    const { useStore: freshStore } = await import('./index')
+    expect(freshStore.getState().compositeVisible).toBe(true)
+    expect(freshStore.getState().noiseLayerVisible).toBe(false)
+  })
+
+  it('respects an explicit stored Livability OFF', async () => {
+    localStorage.clear()
+    localStorage.setItem('bcn_composite_visible', 'false')
+    vi.resetModules()
+    const { useStore: freshStore } = await import('./index')
+    expect(freshStore.getState().compositeVisible).toBe(false)
+  })
+})
 
 function setSearch(search: string) {
   Object.defineProperty(window, 'location', {

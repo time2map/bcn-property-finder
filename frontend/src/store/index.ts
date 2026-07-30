@@ -132,11 +132,12 @@ function loadCompositeWeights(): CompositeWeights {
   }
 }
 
-function loadBoolKey(key: string): boolean {
+function loadBoolKey(key: string, dflt = false): boolean {
   try {
-    return localStorage.getItem(key) === 'true'
+    const raw = localStorage.getItem(key)
+    return raw === null ? dflt : raw === 'true'
   } catch {
-    return false
+    return dflt
   }
 }
 
@@ -196,7 +197,7 @@ export const useStore = create<AppState>((set) => {
     setIdealistaPricesVisible: (idealistaPricesVisible) => set({ idealistaPricesVisible }),
     setIdealistaPriceRange: (idealistaPriceRange) => set({ idealistaPriceRange }),
     setIdealistaPriceBounds: (idealistaPriceBounds) => set({ idealistaPriceBounds }),
-    compositeVisible: loadBoolKey(COMPOSITE_VISIBLE_KEY),
+    compositeVisible: loadBoolKey(COMPOSITE_VISIBLE_KEY, true),
     compositeWeights: loadCompositeWeights(),
     compositeScoreRange: (() => {
       try {

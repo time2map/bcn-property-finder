@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Modal, Text, Table, Anchor } from '@mantine/core'
+import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
 
 const BANDS = [
@@ -100,7 +101,7 @@ export function NoiseLegend() {
             aria-label="About the noise map"
             title="About the noise map"
           >
-            ⓘ
+            <IconInfoCircle size={14} stroke={1.8} />
           </button>
         </div>
         <div className="noise-legend__scale">
