@@ -12,6 +12,8 @@
 
 - [x] Починить 9 ошибок типов → зелёный `npm run build` → рабочий деплой. Заодно: SDK Anthropic
       выведен из бандла (vite-плагин-заглушка при выключенном флаге screenshot).
+- [x] **Деплой живой** на GitHub Pages: включён Pages (source = GitHub Actions), пути к статике
+      сделаны base-aware (`import.meta.env.BASE_URL`) — слои грузятся под `/bcn-property-finder/`.
 - [x] Prod-`.env` только с публично-безопасными ключами (`.env.production`, без Anthropic).
       TMB-ключи — через GitHub Actions secrets. `grep sk-ant dist/` — чисто.
 - [ ] Привязать `live.time2map.com` (CNAME) к Pages, `base` = `/`, пересобрать пайплайн.

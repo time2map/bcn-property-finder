@@ -1,5 +1,18 @@
 # TODO-034 — OG tags, social sharing, default map state
 
+## Decided (MS1)
+
+- `<title>`: "time2map livability — Barcelona neighbourhood livability map".
+- `<meta description>`: "Compare Barcelona neighbourhoods by livability — noise, walkability,
+  city-core access and price."
+- OG + Twitter: `og:title/description/image/url/type=website`, `twitter:card=summary_large_image`,
+  `theme-color`.
+- **OG image (provided by Alex):** screenshot of the interface, **1200×630 px**, JPG (< ~1 MB),
+  at `frontend/public/og-image.jpg`.
+- `og:url` / `og:image` absolute URLs point at the current GitHub Pages address until the custom
+  domain (`live.time2map.com`) is wired, then switch.
+- Default map state: Livability ON, Noise OFF (see TODO-035).
+
 ## Idea
 
 Add proper Open Graph and Twitter Card meta tags so sharing the URL on social media or Slack shows a rich preview with image + description.
