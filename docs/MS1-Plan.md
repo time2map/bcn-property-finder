@@ -16,8 +16,7 @@
       сделаны base-aware (`import.meta.env.BASE_URL`) — слои грузятся под `/bcn-property-finder/`.
 - [x] Prod-`.env` только с публично-безопасными ключами (`.env.production`, без Anthropic).
       TMB-ключи — через GitHub Actions secrets. `grep sk-ant dist/` — чисто.
-- [ ] Привязать `live.time2map.com` (CNAME) к Pages, `base` = `/`, пересобрать пайплайн.
-- [ ] Брендинг: `<title>`, favicon, OG-теги, «Built by time2map» в футере (без CTA). (TODO-034 / TODO-035 lite)
+- [x] Брендинг: `<title>`, favicon, OG-теги, «Built by time2map» в футере (без CTA). (TODO-034 / TODO-035 lite)
 
 ## Волна 2 — «SEO + легенда + редизайн» (дни 4–7)
 
@@ -29,6 +28,8 @@
       топ. Абсолютный score — в карточке. Легенда читаемая, без ручной возни слайдером.
 - [ ] Редизайн (TODO-035): типографика, спокойная палитра chrome (карта — герой), продуктовый вид
       панели/легенды, мобилка, favicon/лого, убрать дев-элементы. Референсы: felt / Datawrapper / Mapbox Studio.
+
+- [ ] Привязать `liveability.time2map.com` (CNAME) к Pages, `base` = `/`, пересобрать пайплайн.
 
 Если не влезаем: barri-страницы → after-MS1; легенда и редизайн остаются.
 
