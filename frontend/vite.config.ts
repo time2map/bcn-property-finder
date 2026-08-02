@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), ...(stub ? [stubAnthropicSdk()] : [])],
-    base: mode === 'production' ? '/bcn-property-finder/' : '/',
+    base: '/',
     test: {
       environment: 'jsdom',
       globals: true,
