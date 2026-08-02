@@ -1,7 +1,6 @@
 /**
- * Top-left brand mini-panel reading "time2map livability". The coral brand mark + "time2map" form
- * a link to time2map.com; "livability" is the plain product descriptor. All in IBM Plex Sans so
- * the mark and text share one scale. Glass style — see .app-brand / .top-panel.
+ * Top-left brand mini-panel: the time2map agency mark (coral, links to time2map.com) + the page
+ * heading "Barcelona livability map" as the single <h1>. Glass style — see .app-brand / .top-panel.
  */
 export function BrandBar() {
   return (
@@ -18,9 +17,8 @@ export function BrandBar() {
           src={`${import.meta.env.BASE_URL}time2map-mark.svg`}
           alt="time2map"
         />
-        <span className="app-title__brand">time2map</span>
       </a>
-      <span className="app-title__rest">livability</span>
+      <h1 className="app-title">Barcelona livability map</h1>
     </div>
   )
 }

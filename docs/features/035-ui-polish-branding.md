@@ -5,10 +5,11 @@ style. Shipped in commit "branding & basic redesign".
 
 ## Status — DONE (MS1), shipped
 
-- [x] Name / wordmark: **time2map livability**. Domain target: `live.time2map.com`.
+- [x] Page name / `<h1>`: **Barcelona livability map**. time2map is the agency (icon attribution).
+      Domain target: `livability.time2map.com`.
 - [x] BrandBar (`src/components/BrandBar/`): top-left glass mini-panel, separated from the layers
-      panel. Content: time2map **agency mark** (coral, `public/time2map-mark.svg`) + clickable
-      "time2map" link (→ time2map.com) + plain "livability". All in IBM Plex Sans (one scale).
+      panel. Content: time2map **agency mark** (coral, `public/time2map-mark.svg`, links to
+      time2map.com) + the page `<h1>` "Barcelona livability map". IBM Plex Sans.
 - [x] Font: IBM Plex Sans self-hosted via `@fontsource/ibm-plex-sans` (400/500/600/700), applied
       through the Mantine theme + body.
 - [x] Glass panels: translucent white (`rgba(255,255,255,0.82)`) + `backdrop-filter: blur(16px)`,
@@ -33,4 +34,4 @@ style. Shipped in commit "branding & basic redesign".
 ## Out of scope — Wave 2
 
 Deep layout rework, legend rework + dynamic/percentile score scale, mobile layout deep-dive,
-ES i18n. Custom domain (`live.time2map.com`) tracked in `docs/MS1-Plan.md`.
+ES i18n. Custom domain (`livability.time2map.com`) tracked in `docs/MS1-Plan.md`.

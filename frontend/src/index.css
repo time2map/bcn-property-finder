@@ -126,15 +126,12 @@ body {
   padding: 9px 14px;
 }
 
-/* [mark + "time2map"] is the clickable link to time2map.com; "livability" is plain. */
+/* time2map mark links to time2map.com (attribution); the heading sits beside it. */
 .brand-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   text-decoration: none;
-  color: inherit;
 }
-.brand-link:hover .app-title__brand { color: #f06965; }
 .brand-link:hover .brand-mark { opacity: 1; }
 
 .brand-mark {
@@ -145,15 +142,14 @@ body {
   transition: opacity 0.15s ease;
 }
 
-.app-title__brand,
-.app-title__rest {
+/* Page <h1>, styled down to a wordmark scale (not a big default heading). */
+.app-title {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.005em;
   line-height: 1;
   white-space: nowrap;
-  transition: color 0.15s ease;
 }
 
 /* Brand bar on mobile — floating top-left over the map */

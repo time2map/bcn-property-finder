@@ -4,9 +4,11 @@
 
 Implemented in `frontend/index.html` (+ store default), commit "branding & basic redesign".
 
-- [x] `<title>`: "time2map livability — Barcelona neighbourhood livability map".
-- [x] `<meta description>`: "Compare Barcelona neighbourhoods by livability — noise, walkability,
-      city-core access and price."
+- [x] `<title>`: "Barcelona livability map — compare neighbourhoods by price, core access, noise
+      and walkability". `og:title` / `twitter:title`: "Barcelona livability map";
+      `og:site_name`: "time2map livability".
+- [x] `<meta description>` (+ og/twitter): "Compare Barcelona neighbourhoods by price, city-core
+      access, noise and walkability — an interactive map for deciding where to live."
 - [x] OG + Twitter tags: `og:type=website`, `og:site_name/title/description/url/image` (+
       `image:type/width/height`), `twitter:card=summary_large_image` + title/description/image.
 - [x] `theme-color`.
@@ -17,7 +19,7 @@ Implemented in `frontend/index.html` (+ store default), commit "branding & basic
 ### Remaining (follow-ups, not blocking)
 
 - `og:url` / `og:image` / `twitter:image` are absolute URLs on the current GitHub Pages address.
-  **Switch to `https://live.time2map.com/…` when the custom domain is wired** (domain task).
+  **Switch to `https://livability.time2map.com/…` when the custom domain is wired** (domain task).
 - Per-barri OG images — deferred to TODO-027 (Wave 2 SEO), a big SEO multiplier.
 - Optional "typical expat workplace" default — parked (isochrone off in public); revisit later.
 
