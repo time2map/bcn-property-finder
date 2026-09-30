@@ -19,7 +19,7 @@ const HAZARD_COLOR = [
   'match', ['get', 'class'],
   ...HAZARD_CLASS_COLORS.flatMap((c, i) => [i + 1, c]),
   '#cccccc',
-] as maplibregl.ExpressionSpecification
+] as unknown as maplibregl.ExpressionSpecification
 
 /** Forest wildfire hazard 2024 + wildland–urban interface — feature 036. */
 export function WildfireLayer() {

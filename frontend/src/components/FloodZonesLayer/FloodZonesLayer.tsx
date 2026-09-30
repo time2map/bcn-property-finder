@@ -19,7 +19,7 @@ const ZONE_COLOR = [
   'match', ['get', 'zone'],
   ...FLOOD_ZONE_STYLES.flatMap((s) => [s.zone, s.color]),
   '#9ecae1',
-] as maplibregl.ExpressionSpecification
+] as unknown as maplibregl.ExpressionSpecification
 
 // Zones are nested (T10 ⊂ T100 ⊂ T500): draw the most severe on top.
 const ZONE_SORT_KEY = [
