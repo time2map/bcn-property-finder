@@ -4,6 +4,7 @@ import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { loadBundles, loadOpenPriceMeta, type CellBundle } from '../../services/composite/compositeData'
 import { computeComposite, type CompositeWeights, type OpenPriceBounds } from '../../services/composite/compositeScore'
+import type { RiskStrengths } from '../../services/climateRisk/climateRisk'
 import { buildScoreFillColorForRange } from './scoreRamp'
 import { addLayerOrdered } from '../Map/layerOrder'
 
@@ -23,6 +24,8 @@ interface ScoredFeature {
     noiseScore: number | null
     cityScore: number
     openPriceScore: number | null
+    floodPenalty: number
+    firePenalty: number
   }
 }
 
@@ -31,13 +34,15 @@ function buildGeoJSON(
   openPriceBounds: OpenPriceBounds,
   weights: ReturnType<typeof useStore.getState>['compositeWeights'],
   enabledLandmarkIds: readonly string[],
+  riskStrengths: RiskStrengths,
 ): GeoJSON.FeatureCollection {
   const features: ScoredFeature[] = bundles.map((b) => {
-    const { score, hasGap, components } = computeComposite(
+    const { score, hasGap, components, penalties } = computeComposite(
       b,
       weights,
       enabledLandmarkIds,
       openPriceBounds,
+      riskStrengths,
     )
     return {
       type: 'Feature',
@@ -50,6 +55,8 @@ function buildGeoJSON(
         noiseScore: components.noise,
         cityScore: components.cityCore,
         openPriceScore: components.openPrice,
+        floodPenalty: penalties.flood,
+        firePenalty: penalties.fire,
       },
     }
   })
@@ -91,6 +98,10 @@ function buildBreakdownHTML(
     rows.push(row('City Core', formatScore(props.cityScore as number)))
   if (weights.openPrice > 0)
     rows.push(row('Market Price', formatScore(props.openPriceScore as number | null)))
+  if ((props.floodPenalty as number) > 0)
+    rows.push(row('Flood risk', `−${props.floodPenalty as number}`))
+  if ((props.firePenalty as number) > 0)
+    rows.push(row('Wildfire risk', `−${props.firePenalty as number}`))
 
   if (rows.length === 0) return ''
   return `<table style="width:100%;border-collapse:collapse;margin-top:4px">${rows.join('')}</table>`
@@ -102,6 +113,7 @@ export function CompositeLayer() {
   const weights = useStore((s) => s.compositeWeights)
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
   const scoreRange = useStore((s) => s.compositeScoreRange)
+  const riskStrengths = useStore((s) => s.compositeRiskStrengths)
   const setSelectedHexH3 = useStore((s) => s.setSelectedHexH3)
 
   const bundlesRef = useRef<CellBundle[] | null>(null)
@@ -134,6 +146,7 @@ export function CompositeLayer() {
       openPriceMetaRef.current,
       weights,
       enabledLandmarkIds,
+      riskStrengths,
     )
 
     const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined
@@ -174,7 +187,7 @@ export function CompositeLayer() {
       }, HOVER_LAYER_ID)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, dataLoaded, weights, enabledLandmarkIds])
+  }, [map, dataLoaded, weights, enabledLandmarkIds, riskStrengths])
 
   // Update fill-color expression + filters when score range changes.
   useEffect(() => {

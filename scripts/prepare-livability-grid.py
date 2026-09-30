@@ -7,6 +7,7 @@ For every H3 cell covering Barcelona + AMB (from frontend/public/data/areas.geoj
   - lden        : area-average noise level (dB) sampled across H3 child cells (feature 009)
   - sale_eur_m2 : open market sale price €/m² — barri level, muni fallback (INCASOL data)
   - sale_src    : 'barri' | 'muni' | null
+  - flood_* / fire_* : climate-risk exposure (feature 036, see scripts/climate_risk.py)
 
 Outputs:
   frontend/public/data/livability-h3.geojson   — one hexagon polygon per cell
@@ -46,6 +47,7 @@ from extract_poi import (  # noqa: E402
     centroid,
     polygon_area_m2,
 )
+import climate_risk  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AREAS_PATH = os.path.join(ROOT, "frontend/public/data/areas.geojson")
@@ -414,6 +416,9 @@ def main():
 
         print("\nEnriching with market prices…")
         enrich_with_prices(features)
+
+        print("\nEnriching with climate-risk exposure…")
+        climate_risk.enrich_grid(features, H3_RES)
 
         with open(OUTPUT_PATH, "w") as f:
             json.dump({"type": "FeatureCollection", "features": features}, f, separators=(",", ":"))

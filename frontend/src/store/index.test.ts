@@ -165,3 +165,44 @@ describe('store setters', () => {
     expect(useStore.getState().resultPolygon).toEqual(polygon)
   })
 })
+
+describe('climate risk state (036)', () => {
+  it('defaults: risk strengths from env (5/5), both climate layers hidden', async () => {
+    localStorage.clear()
+    vi.resetModules()
+    const { useStore: freshStore } = await import('./index')
+    expect(freshStore.getState().compositeRiskStrengths).toEqual({ flood: 5, fire: 5 })
+    expect(freshStore.getState().floodLayerVisible).toBe(false)
+    expect(freshStore.getState().wildfireLayerVisible).toBe(false)
+  })
+
+  it('restores stored strengths and fills missing keys with defaults', async () => {
+    localStorage.clear()
+    localStorage.setItem('bcn_composite_risk_strengths', JSON.stringify({ flood: 0 }))
+    vi.resetModules()
+    const { useStore: freshStore } = await import('./index')
+    expect(freshStore.getState().compositeRiskStrengths).toEqual({ flood: 0, fire: 5 })
+  })
+
+  it('falls back to defaults on corrupt storage', async () => {
+    localStorage.clear()
+    localStorage.setItem('bcn_composite_risk_strengths', '{oops')
+    vi.resetModules()
+    const { useStore: freshStore } = await import('./index')
+    expect(freshStore.getState().compositeRiskStrengths).toEqual({ flood: 5, fire: 5 })
+  })
+
+  it('setters update and persist', () => {
+    localStorage.clear()
+    useStore.getState().setCompositeRiskStrengths({ flood: 8, fire: 2 })
+    useStore.getState().setFloodLayerVisible(true)
+    useStore.getState().setWildfireLayerVisible(true)
+    const s = useStore.getState()
+    expect(s.compositeRiskStrengths).toEqual({ flood: 8, fire: 2 })
+    expect(s.floodLayerVisible).toBe(true)
+    expect(s.wildfireLayerVisible).toBe(true)
+    expect(JSON.parse(localStorage.getItem('bcn_composite_risk_strengths')!)).toEqual({ flood: 8, fire: 2 })
+    expect(localStorage.getItem('bcn_flood_layer_visible')).toBe('true')
+    expect(localStorage.getItem('bcn_wildfire_layer_visible')).toBe('true')
+  })
+})

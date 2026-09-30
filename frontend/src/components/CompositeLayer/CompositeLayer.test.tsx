@@ -30,6 +30,21 @@ vi.mock('../../services/composite/compositeData', () => ({
         glories: 25, poblenou: 30, parc_guell: 45, eixample: 0, waterfront: 35,
       },
     },
+    {
+      // Same cell as 'aaa' but fully inside the ACA T10 river flood zone (036)
+      h3: 'flooded',
+      geometry: { type: 'Polygon', coordinates: [[[1, 0], [2, 0], [2, 1], [1, 0]]] },
+      walk: 80,
+      lden: 50,
+      saleEurM2: 3500,
+      cityCoreProps: {
+        h3: 'flooded',
+        sagrada: 10, placa_cat: 5, barceloneta: 20, barri_gotic: 15,
+        pg_gracia: 8, arc_triomf: 12, montjuic: 18, placa_espanya: 22,
+        glories: 25, poblenou: 30, parc_guell: 45, eixample: 0, waterfront: 35,
+      },
+      climate: { flood_t10: 1, flood_t100: 1, flood_t500: 1, fire_wui: 0, fire_hazard: 0 },
+    },
   ]),
   loadPriceMap: vi.fn().mockResolvedValue(new Map([['aaa', 400_000]])),
   loadOpenPriceMeta: vi.fn().mockResolvedValue({ p5: 2088, p95: 5816 }),
@@ -107,6 +122,43 @@ describe('CompositeLayer', () => {
     act(() => useStore.setState({ compositeVisible: false }))
     expect(map.setLayoutProperty).toHaveBeenCalledWith(FILL_LAYER_ID, 'visibility', 'none')
     expect(map.setLayoutProperty).toHaveBeenCalledWith(GAP_LAYER_ID, 'visibility', 'none')
+  })
+
+  it('applies climate-risk penalties to the scored cells (integration, 036)', async () => {
+    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5 } })
+    const map = makeFakeMap()
+    await act(async () => { renderLayer(map) })
+
+    type Props = { h3: string; score: number; floodPenalty: number }
+    const scoreOf = (h3: string) => {
+      const fc = map.getSource(SOURCE_ID)!.data as GeoJSON.FeatureCollection
+      return fc.features.find((f) => f.properties!.h3 === h3)!.properties as Props
+    }
+    const safe = scoreOf('aaa')
+    const flooded = scoreOf('flooded')
+    expect(safe.floodPenalty).toBe(0)
+    expect(flooded.floodPenalty).toBeGreaterThan(0)
+    expect(flooded.score).toBe(Math.round(safe.score * 0.5))
+
+    // Strength 0 → penalty disappears
+    act(() => useStore.setState({ compositeRiskStrengths: { flood: 0, fire: 5 } }))
+    expect(scoreOf('flooded').score).toBe(safe.score)
+  })
+
+  it('lists the points lost to climate risk in the hover tooltip', async () => {
+    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5 } })
+    const map = makeFakeMap()
+    await act(async () => { renderLayer(map) })
+
+    const onMove = map.on.mock.calls.find(([ev, layer]) => ev === 'mousemove' && layer === FILL_LAYER_ID)![2]
+    const fc = map.getSource(SOURCE_ID)!.data as GeoJSON.FeatureCollection
+    const flooded = fc.features.find((f) => f.properties!.h3 === 'flooded')!
+    onMove({ features: [{ properties: flooded.properties }], lngLat: { lng: 0, lat: 0 } })
+
+    const html = mockPopup.setHTML.mock.calls.at(-1)![0] as string
+    expect(html).toContain('Flood risk')
+    expect(html).toContain(`−${flooded.properties!.floodPenalty}`)
+    expect(html).not.toContain('Wildfire risk')
   })
 
   it('rebuilds data when weights change', async () => {

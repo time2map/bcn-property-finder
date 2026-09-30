@@ -8,7 +8,11 @@ vi.mock('../livability/livabilityData', () => ({
       {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] },
-        properties: { h3: 'aaa', walk: 75, lden: 55, sale_eur_m2: 3500 },
+        properties: {
+          h3: 'aaa', walk: 75, lden: 55, sale_eur_m2: 3500,
+          flood_t10: 0, flood_t100: 0.2, flood_t500: 0.6,
+          fire_wui: 1, fire_hazard: 0.4, fire_class: 8, fire_dist_m: 120,
+        },
       },
       {
         type: 'Feature',
@@ -67,6 +71,20 @@ describe('loadBundles', () => {
     expect(aaa.walk).toBe(75)
     expect(aaa.lden).toBe(55)
     expect(aaa.cityCoreProps.sagrada).toBe(10)
+  })
+
+  it('carries climate-risk exposure into the bundle (036)', async () => {
+    const bundles = await loadBundles()
+    const aaa = bundles.find((b) => b.h3 === 'aaa')!
+    expect(aaa.climate).toEqual({
+      flood_t10: 0, flood_t100: 0.2, flood_t500: 0.6,
+      fire_wui: 1, fire_hazard: 0.4, fire_class: 8, fire_dist_m: 120,
+    })
+    const bbb = bundles.find((b) => b.h3 === 'bbb')!
+    expect(bbb.climate).toEqual({
+      flood_t10: null, flood_t100: null, flood_t500: null,
+      fire_wui: null, fire_hazard: null, fire_class: null, fire_dist_m: null,
+    })
   })
 
   it('reads saleEurM2 from sale_eur_m2 property', async () => {

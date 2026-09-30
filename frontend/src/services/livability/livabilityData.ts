@@ -1,10 +1,11 @@
 import type { FeatureCollection, Polygon } from 'geojson'
 import { livabilityIndex } from './livabilityScore'
+import type { ClimateRiskProps } from '../climateRisk/climateRisk'
 
 const GRID_URL = `${import.meta.env.BASE_URL}data/livability-h3.geojson`
 
-/** Per-cell properties baked by scripts/prepare-livability-grid.py. */
-export interface LivabilityCellProps {
+/** Per-cell properties baked by scripts/prepare-livability-grid.py (+ climate fields, scripts/climate_risk.py). */
+export interface LivabilityCellProps extends ClimateRiskProps {
   h3: string
   walk: number // walkability index 0–100
   lden: number | null // representative Lden (dB) or null when no noise data

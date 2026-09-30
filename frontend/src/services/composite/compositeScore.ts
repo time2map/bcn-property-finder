@@ -1,6 +1,10 @@
 import { noiseScore } from '../noise/noiseScore'
 import { cellCityCoreIndex } from '../cityCore/cityCoreScore'
 import type { CityCoreCellProps } from '../cityCore/cityCoreData'
+import {
+  applyRiskPenalties, fireRisk, floodRisk,
+  type ClimateRiskProps, type Risks, type RiskStrengths,
+} from '../climateRisk/climateRisk'
 
 export interface CompositeWeights {
   poiAccess: number
@@ -15,6 +19,8 @@ export interface CellBundle {
   lden: number | null
   cityCoreProps: CityCoreCellProps
   saleEurM2: number | null
+  /** Raw climate exposure (036); missing = no penalty. */
+  climate?: ClimateRiskProps
 }
 
 export interface OpenPriceBounds {
@@ -50,12 +56,31 @@ export interface ComponentScores {
   openPrice: number | null
 }
 
+const NO_RISK_PENALTY: RiskStrengths = { flood: 0, fire: 0 }
+
+export interface CompositeResult {
+  /** Final score after climate-risk penalties. */
+  score: number
+  /** Weighted-mean score before penalties. */
+  baseScore: number
+  hasGap: boolean
+  components: ComponentScores
+  risks: Risks
+  /** Points lost to each risk. */
+  penalties: { flood: number; fire: number }
+}
+
+/**
+ * Climate risks (036) are applied after the weighted mean as multiplicative penalties
+ * (see applyRiskPenalties), so safe cells keep their score. Default strengths 0 = no penalty.
+ */
 export function computeComposite(
   bundle: CellBundle,
   weights: CompositeWeights,
   enabledLandmarkIds: readonly string[],
   openPriceBounds: OpenPriceBounds,
-): { score: number; hasGap: boolean; components: ComponentScores } {
+  riskStrengths: RiskStrengths = NO_RISK_PENALTY,
+): CompositeResult {
   const noiseVal = bundle.lden !== null ? noiseScore(bundle.lden) : null
   const cityVal = cellCityCoreIndex(bundle.cityCoreProps, enabledLandmarkIds)
   const openPriceVal = bundle.saleEurM2 !== null
@@ -101,6 +126,9 @@ export function computeComposite(
     totalWeight += weights.openPrice
   }
 
-  const score = totalWeight === 0 ? 0 : Math.round(weightedSum / totalWeight)
-  return { score, hasGap, components }
+  const baseScore = totalWeight === 0 ? 0 : Math.round(weightedSum / totalWeight)
+  const climate = bundle.climate ?? {}
+  const risks: Risks = { flood: floodRisk(climate), fire: fireRisk(climate) }
+  const { score, floodPenalty, firePenalty } = applyRiskPenalties(baseScore, risks, riskStrengths)
+  return { score, baseScore, hasGap, components, risks, penalties: { flood: floodPenalty, fire: firePenalty } }
 }

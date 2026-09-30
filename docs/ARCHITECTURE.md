@@ -67,6 +67,8 @@ bcn-property-finder/
 │   ├── prepare-noise-data.sh        # GPKG → GeoJSON → PMTiles pipeline
 │   ├── prepare-areas-data.sh        # districtes+barris+AMB municipis → areas.geojson
 │   ├── prepare-livability-grid.py   # H3 grid + walkability + noise → livability-h3.geojson
+│   ├── climate_risk.py              # flood/wildfire exposure per H3 cell + flood-zones/wildfire.pmtiles (036)
+│   ├── fetch_climate_risk.py        # downloads climate-risk sources → data/climate-risk/ (gitignored)
 │   ├── prepare-city-core-access.py  # landmark walking-time matrix → city-core-h3.geojson
 │   ├── prepare-landmark-geometries.py # landmark point/polygon extraction
 │   ├── extract_poi.py               # OSM PBF → barcelona_poi.pmtiles (walkability POIs)
@@ -97,6 +99,8 @@ src/
 │   │   └── googleMapsUrl.ts     # builds Google Maps URL for a coordinate
 │   ├── IsochroneLayer/  # GeoJSON fill + outer mask layer
 │   ├── NoiseLayer/      # PMTiles vector fill layer (Lden) + legend + info modal
+│   ├── FloodZonesLayer/ # ACA river flood zones T10/T100/T500 (PMTiles) + legend + info modal
+│   ├── WildfireLayer/   # wildfire hazard 2024 classes + WUI outline (PMTiles) + legend + info modal
 │   ├── WalkabilityLayer/  # H3 hex choropleth (walkability only) + legend
 │   ├── CompositeLayer/    # H3 hex choropleth (4-factor composite index) + legend + hover
 │   │   └── scoreRamp.ts         # shared RdYlGn colour ramp for hex layers
@@ -169,7 +173,9 @@ src/
     │   └── landmarks.ts      # landmark definitions (id, name, ALL_LANDMARK_IDS)
     ├── composite/
     │   ├── compositeData.ts  # joins livability + cityCore + INCASOL prices → CellBundle[]
-    │   └── compositeScore.ts # computeComposite: 4-factor weighted index per hex cell
+    │   └── compositeScore.ts # computeComposite: 4-factor weighted index + climate-risk penalties
+    ├── climateRisk/
+    │   └── climateRisk.ts    # floodRisk / fireRisk (0–1) + applyRiskPenalties (036)
     ├── livability/
     │   ├── livabilityData.ts  # loads livability-h3.geojson (walk + lden per cell)
     │   └── livabilityScore.ts # livabilityIndex (walk only, or walk+noise blend — WalkabilityLayer)
@@ -219,9 +225,10 @@ H3 hex grid coloured by a **4-factor composite index**: walkability (POI access)
   3. `cityCore` — `cellCityCoreIndex`: proximity to selected landmarks (Sagrada Família, Passeig de Gràcia, Barceloneta, etc.) weighted by walking minutes
   4. `openPrice` — INCASOL sale EUR/m² normalised to 0–100 (cheaper = better)
 - **Data**: joins `livability-h3.geojson` + `city-core-h3.geojson` + INCASOL price data into `CellBundle[]` (`services/composite/compositeData.ts`).
-- **Score**: `computeComposite(bundle, weights, enabledLandmarkIds, priceBounds)` → weighted average, skipping factors with null data.
-- **Client**: `CompositeLayer` renders the choropleth; `HexDetailCard` shows per-factor breakdown on hover/click. `FilterPanel/CompositeControls` hosts the layer toggle + per-factor weight sliders + landmark selection.
-- **State**: `compositeVisible`, `compositeWeights`, `compositeScoreRange`, `selectedHexH3`, `enabledLandmarkIds` in Zustand store.
+- **Score**: `computeComposite(bundle, weights, enabledLandmarkIds, priceBounds, riskStrengths)` → weighted average (missing data = 0, see feature 022), then climate-risk penalties.
+- **Climate-risk penalties (036)**: `score = base × (1 − sFlood/10 · floodRisk) × (1 − sFire/10 · fireRisk)` — safe cells keep their score. Raw exposure (`flood_t10/t100/t500`, `fire_wui`, `fire_hazard`, `fire_class`, `fire_dist_m`) is baked into `livability-h3.geojson` by `scripts/climate_risk.py`; risks and penalties are computed in `services/climateRisk`. ENV: `VITE_FLOOD_PENALTY_T10/T100/T500`, `VITE_RISK_STRENGTH_FLOOD/FIRE`.
+- **Client**: `CompositeLayer` renders the choropleth; `HexDetailCard` shows per-factor breakdown and the climate-risk explanation on hover/click. `FilterPanel/CompositeControls` hosts the layer toggle + per-factor weight sliders + risk-penalty strengths + landmark selection. `FilterPanel/ClimateLayerControls` toggles the Flood Zones / Wildfire Hazard view layers.
+- **State**: `compositeVisible`, `compositeWeights`, `compositeScoreRange`, `compositeRiskStrengths`, `floodLayerVisible`, `wildfireLayerVisible`, `selectedHexH3`, `enabledLandmarkIds` in Zustand store.
 
 ## Idealista Prices layer (feature 019)
 

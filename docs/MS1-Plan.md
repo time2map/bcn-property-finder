@@ -29,9 +29,15 @@
 - [ ] Редизайн (TODO-035): типографика, спокойная палитра chrome (карта — герой), продуктовый вид
       панели/легенды, мобилка, favicon/лого, убрать дев-элементы. Референсы: felt / Datawrapper / Mapbox Studio.
 
-- [ ] Привязать `livability.time2map.com` (CNAME) к Pages, `base` = `/`, пересобрать пайплайн.
+- [x] Привязать `livability.time2map.com` (CNAME) к Pages, `base` = `/`, пересобрать пайплайн.
+      Живёт на https://livability.time2map.com/ (HTTPS/Let's Encrypt). Осталось включить Enforce HTTPS.
 
 Если не влезаем: barri-страницы → after-MS1; легенда и редизайн остаются.
+
+## Климатические риски
+
+- [x] 036: штрафы за речные паводки (ACA T10/T100/T500) и лесные пожары (WUI + карта опасности
+      2024) в Livability Index + слои «Flood Zones» / «Wildfire Hazard» и объяснение в карточке ячейки.
 
 ## Артефакт под агентство
 

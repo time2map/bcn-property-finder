@@ -4,6 +4,7 @@ import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
 import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
+import { ClimateLayerControls } from './ClimateLayerControls'
 import { CompositeControls } from './CompositeControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 import { ExclusionControls } from './ExclusionControls'
@@ -151,6 +152,7 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
             onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
           />
           <NoiseLegend />
+          <ClimateLayerControls />
 
           <Divider />
           <CompositeControls />

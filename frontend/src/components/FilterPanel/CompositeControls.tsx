@@ -3,6 +3,7 @@ import { ActionIcon, Checkbox, Group, Modal, RangeSlider, Slider, Stack, Switch,
 import { IconSettings, IconInfoCircle } from '@tabler/icons-react'
 import { useStore, DEFAULT_COMPOSITE_WEIGHTS, type CompositeWeights } from '../../store'
 import { LANDMARKS, ALL_LANDMARK_IDS } from '../../services/cityCore/landmarks'
+import { DEFAULT_RISK_STRENGTHS, type RiskStrengths } from '../../services/climateRisk/climateRisk'
 import { CompositeLegend } from '../CompositeLayer/CompositeLegend'
 
 const SCORE_MARKS = [
@@ -34,23 +35,26 @@ function GearButton({ onClick, label }: GearButtonProps) {
 }
 
 interface ComponentRowProps {
-  id: keyof CompositeWeights
   label: string
   weight: number
-  onChange: (id: keyof CompositeWeights, value: number) => void
+  /** Value restored when the row is re-enabled and had no previous value. */
+  defaultWeight: number
+  onChange: (value: number) => void
   onGear?: () => void
+  /** Noun used in the slider's accessible name, e.g. "weight" or "strength". */
+  sliderNoun?: string
 }
 
-function ComponentRow({ id, label, weight, onChange, onGear }: ComponentRowProps) {
-  const [lastWeight, setLastWeight] = useState(weight > 0 ? weight : DEFAULT_COMPOSITE_WEIGHTS[id])
+function ComponentRow({ label, weight, defaultWeight, onChange, onGear, sliderNoun = 'weight' }: ComponentRowProps) {
+  const [lastWeight, setLastWeight] = useState(weight > 0 ? weight : defaultWeight)
   const enabled = weight > 0
 
   function toggle(checked: boolean) {
     if (checked) {
-      onChange(id, lastWeight)
+      onChange(lastWeight)
     } else {
       setLastWeight(weight)
-      onChange(id, 0)
+      onChange(0)
     }
   }
 
@@ -78,8 +82,8 @@ function ComponentRow({ id, label, weight, onChange, onGear }: ComponentRowProps
           step={1}
           size="xs"
           value={weight}
-          onChange={(v) => onChange(id, v)}
-          aria-label={`${label} weight`}
+          onChange={(v) => onChange(v)}
+          aria-label={`${label} ${sliderNoun}`}
           style={{ '--slider-color': '#F06965' } as React.CSSProperties}
         />
       )}
@@ -135,6 +139,26 @@ function InfoModal({ opened, onClose }: { opened: boolean; onClose: () => void }
           </Text>
         </Stack>
 
+        <Stack gap={6}>
+          <Text size="sm" fw={600}>Risk penalties</Text>
+          <Text size="xs" c="dimmed">
+            Climate risks are not averaged in — they reduce the score of exposed cells only:
+            score × (1 − strength/10 × risk). Safe cells keep their score; strength 10 on a cell
+            fully in the highest-risk zone drives it to 0.
+          </Text>
+          <Text size="xs" c="dimmed">
+            <b>Flood risk</b> — share of the cell inside official river flood zones (ACA): 10-year
+            zone counts fully, 100-year 60%, 500-year 25%. River flooding only; flash flooding of
+            streets during heavy rain is not included.
+          </Text>
+          <Text size="xs" c="dimmed">
+            <b>Wildfire risk</b> — share of the cell inside the wildland–urban interface (Protecció
+            Civil, zones around forests ≥ 5 ha) × the hazard of the nearest forest (Generalitat
+            structural wildfire hazard map 2024, classes 1–10), fading with distance. A static
+            hazard map, not a forecast; recent burned areas are not reflected.
+          </Text>
+        </Stack>
+
       </Stack>
     </Modal>
   )
@@ -149,12 +173,27 @@ export function CompositeControls() {
   const setScoreRange = useStore((s) => s.setCompositeScoreRange)
   const enabledIds = useStore((s) => s.enabledLandmarkIds)
   const setEnabledIds = useStore((s) => s.setEnabledLandmarkIds)
+  const riskStrengths = useStore((s) => s.compositeRiskStrengths)
+  const setRiskStrengths = useStore((s) => s.setCompositeRiskStrengths)
 
   const [cityModalOpen, setCityModalOpen] = useState(false)
   const [infoModalOpen, setInfoModalOpen] = useState(false)
 
-  function setWeight(id: keyof CompositeWeights, value: number) {
-    setWeights({ ...weights, [id]: value })
+  function weightRow(id: keyof CompositeWeights) {
+    return {
+      weight: weights[id],
+      defaultWeight: DEFAULT_COMPOSITE_WEIGHTS[id],
+      onChange: (value: number) => setWeights({ ...weights, [id]: value }),
+    }
+  }
+
+  function riskRow(id: keyof RiskStrengths) {
+    return {
+      weight: riskStrengths[id],
+      defaultWeight: DEFAULT_RISK_STRENGTHS[id] || 5,
+      onChange: (value: number) => setRiskStrengths({ ...riskStrengths, [id]: value }),
+      sliderNoun: 'strength',
+    }
   }
 
   function toggleLandmark(id: string, checked: boolean) {
@@ -220,15 +259,15 @@ export function CompositeControls() {
         </Group>
         {visible && (
           <Stack gap={10} pl={28}>
-            <ComponentRow id="poiAccess" label="Walkability"
-              weight={weights.poiAccess} onChange={setWeight} />
-            <ComponentRow id="noise" label="Noise"
-              weight={weights.noise} onChange={setWeight} />
-            <ComponentRow id="cityCore" label="City Core Access"
-              weight={weights.cityCore} onChange={setWeight}
+            <ComponentRow label="Walkability" {...weightRow('poiAccess')} />
+            <ComponentRow label="Noise" {...weightRow('noise')} />
+            <ComponentRow label="City Core Access" {...weightRow('cityCore')}
               onGear={() => setCityModalOpen(true)} />
-            <ComponentRow id="openPrice" label="Market Price"
-              weight={weights.openPrice} onChange={setWeight} />
+            <ComponentRow label="Market Price" {...weightRow('openPrice')} />
+
+            <Text size="xs" c="dimmed" mt={2}>Risk penalties</Text>
+            <ComponentRow label="Flood risk" {...riskRow('flood')} />
+            <ComponentRow label="Wildfire risk" {...riskRow('fire')} />
 
             <Stack gap={4}>
               <Text size="xs" c="dimmed">Score range</Text>
