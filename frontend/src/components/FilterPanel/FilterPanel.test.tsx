@@ -21,6 +21,10 @@ vi.mock('../IdealistaPricesLayer/IdealistaPricesControls', () => ({
   IdealistaPricesControls: () => <div data-testid="idealista-prices-controls" />,
 }))
 
+vi.mock('./ClimateLayerControls', () => ({
+  ClimateLayerControls: () => <div data-testid="climate-layer-controls" />,
+}))
+
 vi.mock('./CompositeControls', () => ({
   CompositeControls: () => <div data-testid="composite-controls" />,
 }))
@@ -69,5 +73,10 @@ describe('FilterPanel', () => {
   it('renders noise areas switch', () => {
     render(<MantineProvider><FilterPanel /></MantineProvider>)
     expect(screen.getByLabelText('Noise areas')).toBeTruthy()
+  })
+
+  it('renders the climate-risk layer toggles', () => {
+    render(<MantineProvider><FilterPanel /></MantineProvider>)
+    expect(screen.getByTestId('climate-layer-controls')).toBeTruthy()
   })
 })

@@ -10,6 +10,8 @@ import { FgcLayer } from '../FgcLayer/FgcLayer'
 import { PinLayer } from '../PropertyPins/PinLayer'
 import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
+import { FloodZonesLayer } from '../FloodZonesLayer/FloodZonesLayer'
+import { WildfireLayer } from '../WildfireLayer/WildfireLayer'
 import { CompositeLayer } from '../CompositeLayer/CompositeLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
@@ -159,6 +161,8 @@ export function Map() {
       <CompositeLayer />
       <LandmarksLayer />
       <NoiseLayer />
+      <FloodZonesLayer />
+      <WildfireLayer />
       {features.exclusions && <ExclusionLayer />}
       {features.exclusions && <ExclusionDraw />}
       {features.isochrone && <ExportAreasLayer />}

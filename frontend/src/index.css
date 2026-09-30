@@ -901,6 +901,34 @@ body {
   margin-top: 2px;
 }
 
+/* Climate-risk layer legends (feature 036) — extend .noise-legend */
+.climate-legend__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.climate-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #555;
+}
+
+.climate-legend__swatch {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.climate-legend__line {
+  width: 14px;
+  border-top: 2px dashed;
+  flex-shrink: 0;
+}
+
 /* Idealista price layer legend (feature 019) */
 .price-legend__swatches {
   display: flex;

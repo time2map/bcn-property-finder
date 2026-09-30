@@ -4,6 +4,7 @@ import { loadCityCoreGrid, type CityCoreCellProps } from '../cityCore/cityCoreDa
 import { loadIdealistaFeatures } from '../idealista/idealistaRawData'
 import { aggregateToH3 } from '../../components/IdealistaPricesLayer/h3Index'
 import type { OpenPriceBounds } from './compositeScore'
+import type { ClimateRiskProps } from '../climateRisk/climateRisk'
 
 export interface CellBundle {
   h3: string
@@ -14,7 +15,13 @@ export interface CellBundle {
   saleEurM2: number | null
   /** Per-category walkability sub-scores 0–100; present after pipeline v2+. */
   walkCategories?: Record<string, number>
+  /** Raw climate exposure (036); null fields = grid built without climate data. */
+  climate?: ClimateRiskProps
 }
+
+const CLIMATE_KEYS = [
+  'flood_t10', 'flood_t100', 'flood_t500', 'fire_wui', 'fire_hazard', 'fire_class', 'fire_dist_m',
+] as const satisfies readonly (keyof ClimateRiskProps)[]
 
 /** Populated after loadBundles() resolves — keyed by h3 index for O(1) card lookups. */
 export const hexBundleMap = new Map<string, CellBundle>()
@@ -56,6 +63,7 @@ export function loadBundles(): Promise<CellBundle[]> {
           saleEurM2: (p as unknown as Record<string, unknown>).sale_eur_m2 as number ?? null,
           cityCoreProps: cityCoreMap.get(p.h3) ?? { h3: p.h3, ...EMPTY_CITY_CORE },
           walkCategories: Object.keys(walkCategories).length > 0 ? walkCategories : undefined,
+          climate: Object.fromEntries(CLIMATE_KEYS.map((k) => [k, p[k] ?? null])) as ClimateRiskProps,
         }
       })
       hexBundleMap.clear()

@@ -32,6 +32,18 @@ composite(cell) = Σ (score_i × weight_i) / Σ weight_i
 - Component is **inactive** when `weight_i = 0` (excluded from numerator and denominator).
 - Score range: 0–100.
 
+### Climate-risk penalties (feature 036)
+
+After the weighted mean, flood and wildfire risks are applied as multiplicative penalties — they are
+not components, so safe cells keep their score:
+
+```
+score(cell) = composite(cell) × (1 − sFlood/10 · floodRisk) × (1 − sFire/10 · fireRisk)
+```
+
+`sFlood`, `sFire` ∈ [0, 10] are separate "Risk penalties" sliders (default 5). Details, data sources and
+formulas for `floodRisk` / `fireRisk`: `036-climate-risk-penalties.md`.
+
 ### Missing data rule
 
 If a cell has no data for a component whose weight > 0:

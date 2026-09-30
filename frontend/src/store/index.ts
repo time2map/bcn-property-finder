@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { MultiPolygon, Polygon } from 'geojson'
 import { ALL_LANDMARK_IDS } from '../services/cityCore/landmarks'
+import { DEFAULT_RISK_STRENGTHS, type RiskStrengths } from '../services/climateRisk/climateRisk'
 
 export interface CompositeWeights {
   poiAccess: number
@@ -38,6 +39,10 @@ export interface AppState {
   compositeVisible: boolean
   compositeWeights: CompositeWeights
   compositeScoreRange: [number, number]
+  // Climate risk penalties + view layers — feature 036
+  compositeRiskStrengths: RiskStrengths
+  floodLayerVisible: boolean
+  wildfireLayerVisible: boolean
   // Hex detail card — feature 025
   selectedHexH3: string | null
   setWorkplace: (wp: [number, number] | null) => void
@@ -58,6 +63,9 @@ export interface AppState {
   setCompositeVisible: (visible: boolean) => void
   setCompositeWeights: (weights: CompositeWeights) => void
   setCompositeScoreRange: (range: [number, number]) => void
+  setCompositeRiskStrengths: (strengths: RiskStrengths) => void
+  setFloodLayerVisible: (visible: boolean) => void
+  setWildfireLayerVisible: (visible: boolean) => void
   setSelectedHexH3: (h3: string | null) => void
 }
 
@@ -87,6 +95,9 @@ const CITY_CORE_LANDMARKS_KEY = 'bcn_city_core_landmarks'
 const COMPOSITE_VISIBLE_KEY = 'bcn_composite_visible'
 const COMPOSITE_WEIGHTS_KEY = 'bcn_composite_weights'
 const COMPOSITE_SCORE_RANGE_KEY = 'bcn_composite_score_range'
+const COMPOSITE_RISK_STRENGTHS_KEY = 'bcn_composite_risk_strengths'
+const FLOOD_LAYER_KEY = 'bcn_flood_layer_visible'
+const WILDFIRE_LAYER_KEY = 'bcn_wildfire_layer_visible'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -129,6 +140,20 @@ function loadCompositeWeights(): CompositeWeights {
     }
   } catch {
     return DEFAULT_COMPOSITE_WEIGHTS
+  }
+}
+
+function loadRiskStrengths(): RiskStrengths {
+  try {
+    const raw = localStorage.getItem(COMPOSITE_RISK_STRENGTHS_KEY)
+    if (!raw) return DEFAULT_RISK_STRENGTHS
+    const parsed = JSON.parse(raw) as Partial<RiskStrengths>
+    return {
+      flood: parsed.flood ?? DEFAULT_RISK_STRENGTHS.flood,
+      fire: parsed.fire ?? DEFAULT_RISK_STRENGTHS.fire,
+    }
+  } catch {
+    return DEFAULT_RISK_STRENGTHS
   }
 }
 
@@ -219,6 +244,21 @@ export const useStore = create<AppState>((set) => {
     setCompositeScoreRange: (range) => {
       try { localStorage.setItem(COMPOSITE_SCORE_RANGE_KEY, JSON.stringify(range)) } catch { /* ignore */ }
       set({ compositeScoreRange: range })
+    },
+    compositeRiskStrengths: loadRiskStrengths(),
+    setCompositeRiskStrengths: (strengths) => {
+      try { localStorage.setItem(COMPOSITE_RISK_STRENGTHS_KEY, JSON.stringify(strengths)) } catch { /* ignore */ }
+      set({ compositeRiskStrengths: strengths })
+    },
+    floodLayerVisible: loadBoolKey(FLOOD_LAYER_KEY),
+    setFloodLayerVisible: (visible) => {
+      try { localStorage.setItem(FLOOD_LAYER_KEY, String(visible)) } catch { /* ignore */ }
+      set({ floodLayerVisible: visible })
+    },
+    wildfireLayerVisible: loadBoolKey(WILDFIRE_LAYER_KEY),
+    setWildfireLayerVisible: (visible) => {
+      try { localStorage.setItem(WILDFIRE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
+      set({ wildfireLayerVisible: visible })
     },
     selectedHexH3: null,
     setSelectedHexH3: (selectedHexH3) => set({ selectedHexH3 }),

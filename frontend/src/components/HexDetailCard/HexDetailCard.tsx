@@ -9,6 +9,38 @@ import { computeComposite } from '../../services/composite/compositeScore'
 import { LANDMARKS } from '../../services/cityCore/landmarks'
 import { SERVICE_CATEGORIES } from '../../services/walkability/serviceCategories'
 import { SCORE_RAMP } from '../CompositeLayer/scoreRamp'
+import { mostSevereFloodZone, type ClimateRiskProps } from '../../services/climateRisk/climateRisk'
+
+const FLOOD_ZONE_LABEL = { t10: '10-year', t100: '100-year', t500: '500-year' } as const
+const PENALTY_COLOR = '#d73027'
+
+function floodText(climate: ClimateRiskProps): string {
+  const z = mostSevereFloodZone(climate)
+  if (!z) return 'Outside mapped river flood zones'
+  return `${FLOOD_ZONE_LABEL[z.zone]} flood zone (${Math.round(z.share * 100)}% of cell)`
+}
+
+function fireText(climate: ClimateRiskProps): string {
+  if (!climate.fire_wui) return 'Not in the wildland–urban interface'
+  if (climate.fire_class == null || climate.fire_dist_m == null) {
+    return 'Wildland–urban interface · no rated forest nearby'
+  }
+  return `Wildland–urban interface · hazard class ${climate.fire_class} forest at ~${climate.fire_dist_m} m`
+}
+
+function RiskRow({ label, text, penalty }: { label: string; text: string; penalty: number }) {
+  return (
+    <Stack gap={0}>
+      <Group justify="space-between" gap="xs" wrap="nowrap">
+        <Text size="xs" fw={500}>{label}</Text>
+        {penalty > 0 && (
+          <Text size="xs" fw={600} style={{ color: PENALTY_COLOR }}>−{penalty} pts</Text>
+        )}
+      </Group>
+      <Text size="xs" c="dimmed">{text}</Text>
+    </Stack>
+  )
+}
 
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16)
@@ -98,6 +130,7 @@ export function HexDetailCard() {
   const weights = useStore((s) => s.compositeWeights)
   const enabledLandmarkIds = useStore((s) => s.enabledLandmarkIds)
   const scoreRange = useStore((s) => s.compositeScoreRange)
+  const riskStrengths = useStore((s) => s.compositeRiskStrengths)
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -114,12 +147,16 @@ export function HexDetailCard() {
 
   const bounds = hexOpenPriceBounds ?? { p5: 0, p95: 0 }
   const [sMin, sMax] = scoreRange
-  const { score, components } = computeComposite(
+  const { score, baseScore, components, penalties } = computeComposite(
     bundle,
     weights,
     enabledLandmarkIds,
     bounds,
+    riskStrengths,
   )
+  const climate = bundle.climate ?? {}
+  const riskShown = riskStrengths.flood > 0 || riskStrengths.fire > 0
+  const riskLost = penalties.flood + penalties.fire
 
   // All enabled landmarks sorted nearest first
   const cityCoreLandmarks = enabledLandmarkIds
@@ -151,6 +188,9 @@ export function HexDetailCard() {
                 {score}
                 <Text component="span" size="sm" c="dimmed" fw={400}> / 100</Text>
               </Text>
+              {riskLost > 0 && (
+                <Text size="xs" c="dimmed">{baseScore} before risk penalties</Text>
+              )}
             </Stack>
             <ActionIcon
               size="xs"
@@ -260,6 +300,22 @@ export function HexDetailCard() {
                   </>
                 ) : (
                   <Text size="xs" c="dimmed">No data for this area</Text>
+                )}
+              </Stack>
+            </>
+          )}
+
+          {/* Climate risk penalties — 036 */}
+          {riskShown && (
+            <>
+              <Divider />
+              <Stack gap={6}>
+                <SectionTitle>Climate risk</SectionTitle>
+                {riskStrengths.flood > 0 && (
+                  <RiskRow label="Flood" text={floodText(climate)} penalty={penalties.flood} />
+                )}
+                {riskStrengths.fire > 0 && (
+                  <RiskRow label="Wildfire" text={fireText(climate)} penalty={penalties.fire} />
                 )}
               </Stack>
             </>

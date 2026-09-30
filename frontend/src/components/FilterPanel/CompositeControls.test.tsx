@@ -39,6 +39,7 @@ describe('CompositeControls', () => {
       compositeScoreRange: [0, 100],
       idealistaPriceBounds: null,
       enabledLandmarkIds: ['sagrada', 'barceloneta'],
+      compositeRiskStrengths: { flood: 5, fire: 5 },
     })
   })
 
@@ -93,5 +94,33 @@ describe('CompositeControls', () => {
     renderControls()
     fireEvent.click(screen.getByLabelText('Configure City Core Access'))
     expect(screen.getByText('City Core landmarks')).toBeTruthy()
+  })
+
+  describe('risk penalties (036)', () => {
+    it('shows flood and wildfire penalty rows when the index is on', () => {
+      useStore.setState({ compositeVisible: true })
+      renderControls()
+      expect(screen.getByText('Risk penalties')).toBeTruthy()
+      expect(screen.getByText('Flood risk')).toBeTruthy()
+      expect(screen.getByText('Wildfire risk')).toBeTruthy()
+      expect(screen.getByLabelText('Flood risk strength')).toBeTruthy()
+    })
+
+    it('disabling a risk sets its strength to 0 and re-enabling restores it', () => {
+      useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 7, fire: 5 } })
+      renderControls()
+      fireEvent.click(screen.getByLabelText('Enable Flood risk'))
+      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 0, fire: 5 })
+      fireEvent.click(screen.getByLabelText('Enable Flood risk'))
+      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 7, fire: 5 })
+    })
+
+    it('explains the penalties in the info modal', () => {
+      useStore.setState({ compositeVisible: true })
+      renderControls()
+      fireEvent.click(screen.getByLabelText('About Livability Index'))
+      expect(screen.getByText(/river flood zones/i)).toBeTruthy()
+      expect(screen.getByText(/wildland–urban interface/i)).toBeTruthy()
+    })
   })
 })
