@@ -21,6 +21,7 @@ export interface CellBundle {
 
 const CLIMATE_KEYS = [
   'flood_t10', 'flood_t100', 'flood_t500', 'fire_wui', 'fire_hazard', 'fire_class', 'fire_dist_m',
+  'street_t10', 'street_t100',
 ] as const satisfies readonly (keyof ClimateRiskProps)[]
 
 /** Populated after loadBundles() resolves — keyed by h3 index for O(1) card lookups. */

@@ -25,10 +25,13 @@ vi.mock('../../services/composite/compositeData', () => {
     climate: {
       flood_t10: 0, flood_t100: 0, flood_t500: 0.35,
       fire_wui: 1, fire_hazard: 0.6, fire_class: 9, fire_dist_m: 80,
+      street_t10: 0.06, street_t100: 0.16,
     },
   }
+  // Barcelona cell without modelled street water (037)
+  const dry = { ...bundle, h3: 'dry', climate: { street_t10: 0, street_t100: 0 } }
   return {
-    hexBundleMap: new Map([['abc123', bundle], ['risky', risky]]),
+    hexBundleMap: new Map([['abc123', bundle], ['risky', risky], ['dry', dry]]),
     get hexOpenPriceBounds() { return { p5: 2000, p95: 6000 } },
   }
 })
@@ -49,7 +52,7 @@ describe('HexDetailCard', () => {
       selectedHexH3: null,
       compositeWeights: DEFAULT_COMPOSITE_WEIGHTS,
       enabledLandmarkIds: ['sagrada', 'placa_cat', 'pg_gracia', 'eixample'],
-      compositeRiskStrengths: { flood: 5, fire: 5 },
+      compositeRiskStrengths: { flood: 5, fire: 5, street: 5 },
     })
   })
 
@@ -127,6 +130,16 @@ describe('HexDetailCard', () => {
       expect(screen.getByText('Climate risk')).toBeInTheDocument()
       expect(screen.getByText('Outside mapped river flood zones')).toBeInTheDocument()
       expect(screen.getByText('Not in the wildland–urban interface')).toBeInTheDocument()
+      // bundle without street fields = outside the RESCCUE model area
+      expect(screen.getByText('No street-flooding model outside Barcelona')).toBeInTheDocument()
+      expect(screen.getByText('River flooding')).toBeInTheDocument()
+    })
+
+    it('says when a Barcelona cell has no significant street flooding (037)', () => {
+      useStore.setState({ selectedHexH3: 'dry' })
+      renderCard()
+      expect(screen.getByText('No significant street flooding modelled')).toBeInTheDocument()
+      expect(screen.queryByText(/ground-floor/)).not.toBeInTheDocument()
     })
 
     it('shows the flood zone, wildfire exposure and points lost', () => {
@@ -134,18 +147,20 @@ describe('HexDetailCard', () => {
       renderCard()
       expect(screen.getByText('500-year flood zone (35% of cell)')).toBeInTheDocument()
       expect(screen.getByText('Wildland–urban interface · hazard class 9 forest at ~80 m')).toBeInTheDocument()
-      expect(screen.getAllByText(/^−\d+ pts$/)).toHaveLength(2)
+      expect(screen.getByText('Effective flooded area: 6% (10-year rain) · 16% (100-year rain)')).toBeInTheDocument()
+      expect(screen.getByText('Matters most for ground-floor flats, basements and underground parking')).toBeInTheDocument()
+      expect(screen.getAllByText(/^−\d+ pts$/)).toHaveLength(3)
       expect(screen.getByText(/before risk penalties/)).toBeInTheDocument()
     })
 
-    it('hides the section when both penalties are off', () => {
-      useStore.setState({ selectedHexH3: 'risky', compositeRiskStrengths: { flood: 0, fire: 0 } })
+    it('hides the section when all penalties are off', () => {
+      useStore.setState({ selectedHexH3: 'risky', compositeRiskStrengths: { flood: 0, fire: 0, street: 0 } })
       renderCard()
       expect(screen.queryByText('Climate risk')).not.toBeInTheDocument()
     })
 
     it('shows only the enabled risk', () => {
-      useStore.setState({ selectedHexH3: 'risky', compositeRiskStrengths: { flood: 5, fire: 0 } })
+      useStore.setState({ selectedHexH3: 'risky', compositeRiskStrengths: { flood: 5, fire: 0, street: 0 } })
       renderCard()
       expect(screen.getByText('500-year flood zone (35% of cell)')).toBeInTheDocument()
       expect(screen.queryByText(/hazard class/)).not.toBeInTheDocument()

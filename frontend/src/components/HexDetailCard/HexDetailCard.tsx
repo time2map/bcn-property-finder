@@ -28,7 +28,17 @@ function fireText(climate: ClimateRiskProps): string {
   return `Wildland–urban interface · hazard class ${climate.fire_class} forest at ~${climate.fire_dist_m} m`
 }
 
-function RiskRow({ label, text, penalty }: { label: string; text: string; penalty: number }) {
+function streetText(climate: ClimateRiskProps): string {
+  const { street_t10: t10, street_t100: t100 } = climate
+  if (t10 == null || t100 == null) return 'No street-flooding model outside Barcelona'
+  if (t10 === 0 && t100 === 0) return 'No significant street flooding modelled'
+  const pct = (v: number) => Math.round(v * 100)
+  return `Effective flooded area: ${pct(t10)}% (10-year rain) · ${pct(t100)}% (100-year rain)`
+}
+
+const STREET_HINT = 'Matters most for ground-floor flats, basements and underground parking'
+
+function RiskRow({ label, text, penalty, hint }: { label: string; text: string; penalty: number; hint?: string }) {
   return (
     <Stack gap={0}>
       <Group justify="space-between" gap="xs" wrap="nowrap">
@@ -38,6 +48,9 @@ function RiskRow({ label, text, penalty }: { label: string; text: string; penalt
         )}
       </Group>
       <Text size="xs" c="dimmed">{text}</Text>
+      {hint && penalty > 0 && (
+        <Text size="xs" c="dimmed" fs="italic" style={{ fontSize: 10 }}>{hint}</Text>
+      )}
     </Stack>
   )
 }
@@ -155,8 +168,8 @@ export function HexDetailCard() {
     riskStrengths,
   )
   const climate = bundle.climate ?? {}
-  const riskShown = riskStrengths.flood > 0 || riskStrengths.fire > 0
-  const riskLost = penalties.flood + penalties.fire
+  const riskShown = riskStrengths.flood > 0 || riskStrengths.fire > 0 || riskStrengths.street > 0
+  const riskLost = penalties.flood + penalties.fire + penalties.street
 
   // All enabled landmarks sorted nearest first
   const cityCoreLandmarks = enabledLandmarkIds
@@ -305,17 +318,21 @@ export function HexDetailCard() {
             </>
           )}
 
-          {/* Climate risk penalties — 036 */}
+          {/* Climate risk penalties — 036, 037 */}
           {riskShown && (
             <>
               <Divider />
               <Stack gap={6}>
                 <SectionTitle>Climate risk</SectionTitle>
                 {riskStrengths.flood > 0 && (
-                  <RiskRow label="Flood" text={floodText(climate)} penalty={penalties.flood} />
+                  <RiskRow label="River flooding" text={floodText(climate)} penalty={penalties.flood} />
                 )}
                 {riskStrengths.fire > 0 && (
                   <RiskRow label="Wildfire" text={fireText(climate)} penalty={penalties.fire} />
+                )}
+                {riskStrengths.street > 0 && (
+                  <RiskRow label="Street flooding" text={streetText(climate)} penalty={penalties.street}
+                    hint={STREET_HINT} />
                 )}
               </Stack>
             </>

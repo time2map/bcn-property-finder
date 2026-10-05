@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Climate-risk exposure per H3 cell + view-layer tiles (feature 036).
+Climate-risk exposure per H3 cell + view-layer tiles (features 036, 037).
 
 For every cell of frontend/public/data/livability-h3.geojson compute (sampled at H3 children, like lden_avg):
   - flood_t10 / flood_t100 / flood_t500 : share of cell area (0–1) in ACA river flood zones, forced nested
@@ -8,11 +8,15 @@ For every cell of frontend/public/data/livability-h3.geojson compute (sampled at
   - fire_hazard : mean over samples of max_px(class/10 · exp(−d/FIRE_DECAY_M)) over forest pixels
                   (Generalitat wildfire hazard 2024, classes 1–10) within FIRE_SEARCH_RADIUS_M
   - fire_class / fire_dist_m : class and distance of the strongest pixel at the cell centre (detail card)
+  - street_t10 / street_t100 : RESCCUE street flooding in heavy rain (Barcelona only, null elsewhere):
+                  Σ area · severity(depth) / cell area, severity ramps 0 → 1 between
+                  STREET_FLOOD_MIN_DEPTH_M and STREET_FLOOD_MAX_DEPTH_M; model elements assigned by centroid
 Risk scores and penalties are computed in the frontend (src/services/climateRisk/climateRisk.ts).
 
 Also builds the view layers:
   frontend/public/data/flood-zones.pmtiles — source-layer `flood` (prop `zone`: t10 | t100 | t500)
   frontend/public/data/wildfire.pmtiles    — source-layers `hazard` (prop `class` 1–10) and `wui`
+  frontend/public/data/street-flooding.pmtiles — source-layer `street` (props `rp`: t10 | t100, `class` 1–3)
 
 Inputs come from scripts/fetch_climate_risk.py (data/climate-risk/, gitignored).
 All geometry work is done in EPSG:25831 (metres).
@@ -44,21 +48,28 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRID_PATH = os.path.join(ROOT, "frontend/public/data/livability-h3.geojson")
 FLOOD_TILES_OUT = os.path.join(ROOT, "frontend/public/data/flood-zones.pmtiles")
 WILDFIRE_TILES_OUT = os.path.join(ROOT, "frontend/public/data/wildfire.pmtiles")
+STREET_TILES_OUT = os.path.join(ROOT, "frontend/public/data/street-flooding.pmtiles")
 
 CLIMATE_RISK_DIR = os.path.join(ROOT, os.environ.get("CLIMATE_RISK_DIR", "data/climate-risk"))
 FLOOD_GPKG = os.path.join(CLIMATE_RISK_DIR, "flood_catalonia.gpkg")
 FIRE_GPKG = os.path.join(CLIMATE_RISK_DIR, "fire_catalonia.gpkg")
 FIRE_TIF = os.path.join(CLIMATE_RISK_DIR, "fire_hazard_2024.tif")
-BCN_GPKG = os.path.join(CLIMATE_RISK_DIR, "flood_bcn.gpkg")  # barri polygons for calibration stats only
+BCN_GPKG = os.path.join(CLIMATE_RISK_DIR, "flood_bcn.gpkg")  # RESCCUE depths + barri polygons (BCN boundary)
+BCN_BOUNDARY_LAYER = "bcn_resccue_property_damage_barri"
 
 FLOOD_LAYERS = {"t10": "aca_flood_zone_t10", "t100": "aca_flood_zone_t100", "t500": "aca_flood_zone_t500"}
 WUI_LAYER = "pcivil_fire_wui_zone"
 FIRE_NODATA = 15
+STREET_LAYERS = {"t10": "bcn_resccue_depth_t10_current", "t100": "bcn_resccue_depth_t100_current"}
 
 # Sample resolution defaults to grid resolution + 2 (~49 points per res-9 cell), like NOISE_SAMPLE_RES.
 CLIMATE_SAMPLE_RES = os.environ.get("CLIMATE_SAMPLE_RES")
 FIRE_SEARCH_RADIUS_M = float(os.environ.get("FIRE_SEARCH_RADIUS_M", "500"))
 FIRE_DECAY_M = float(os.environ.get("FIRE_DECAY_M", "150"))
+# Street flooding (037): depth weight ramps linearly from 0 at MIN to 1 at MAX (kerb ~15 cm; cars float ~50 cm).
+STREET_FLOOD_MIN_DEPTH_M = float(os.environ.get("STREET_FLOOD_MIN_DEPTH_M", "0.10"))
+STREET_FLOOD_MAX_DEPTH_M = float(os.environ.get("STREET_FLOOD_MAX_DEPTH_M", "0.50"))
+STREET_CLASS_MID_M = 0.30  # view-layer classes: MIN–0.30, 0.30–MAX, ≥ MAX
 # Margin around the grid when clipping inputs, so edge cells still see nearby forest.
 CLIP_MARGIN_M = FIRE_SEARCH_RADIUS_M + 500
 
@@ -152,6 +163,78 @@ def fire_exposure(samples, centre_xy, wui, forest, radius_m, decay_m):
         "fire_class": cls,
         "fire_dist_m": None if dist is None else int(round(dist)),
     }
+
+
+# ── Street flooding (RESCCUE, feature 037) ──────────────────────────────────
+def street_severity(depths, min_m=STREET_FLOOD_MIN_DEPTH_M, max_m=STREET_FLOOD_MAX_DEPTH_M):
+    """Depth (m) → weight 0–1: 0 at ≤ min_m (water stays in the gutter), 1 at ≥ max_m."""
+    return np.clip((np.asarray(depths, dtype=float) - min_m) / (max_m - min_m), 0, 1)
+
+
+def depth_class(depths):
+    """View-layer depth class: 0 below MIN (dropped), 1 MIN–0.30 m, 2 0.30–MAX, 3 ≥ MAX."""
+    return np.digitize(np.asarray(depths, dtype=float),
+                       [STREET_FLOOD_MIN_DEPTH_M, STREET_CLASS_MID_M, STREET_FLOOD_MAX_DEPTH_M])
+
+
+def street_shares(lats, lngs, areas, depths, h3_res):
+    """{cell: Σ area · severity(depth) / cell area} — model elements (≤ 150 m²) assigned by centroid."""
+    weighted = np.asarray(areas, dtype=float) * street_severity(depths)
+    sums = {}
+    for lat, lng, w in zip(lats, lngs, weighted):
+        if w > 0:
+            c = h3.latlng_to_cell(lat, lng, h3_res)
+            sums[c] = sums.get(c, 0.0) + w
+    return {c: w / h3.cell_area(c, "m^2") for c, w in sums.items()}
+
+
+def enrich_with_street(features, shares_by_rp, bcn_cells):
+    """street_t10/t100 in-place: share in Barcelona (0 when dry), null outside (no model there)."""
+    for feat in features:
+        props = feat["properties"]
+        for rp in STREET_LAYERS:
+            props[f"street_{rp}"] = (round(shares_by_rp.get(rp, {}).get(props["h3"], 0.0), 4)
+                                     if props["h3"] in bcn_cells else None)
+
+
+def load_bcn_boundary():
+    """Barcelona municipality (union of barris, EPSG:25831), prepared — or None when data is missing."""
+    import geopandas as gpd
+
+    if not os.path.exists(BCN_GPKG):
+        return None
+    return prep(gpd.read_file(BCN_GPKG, layer=BCN_BOUNDARY_LAYER).to_crs(25831).union_all())
+
+
+def cells_in(features, boundary):
+    """Cells whose centre falls inside a prepared metric boundary."""
+    return {f["properties"]["h3"] for f in features
+            if boundary.covers(Point(*to_metric(*h3.cell_to_latlng(f["properties"]["h3"]))))}
+
+
+def load_street_elements(rp):
+    """RESCCUE wet mesh elements for a return period, EPSG:25831 (depth2d, area2d, geometry)."""
+    import geopandas as gpd
+
+    return gpd.read_file(BCN_GPKG, layer=STREET_LAYERS[rp], columns=["area2d", "depth2d"]).to_crs(25831)
+
+
+def enrich_grid_street(features, h3_res):
+    """Street-flooding fields for the grid; all null when RESCCUE data is missing."""
+    boundary = load_bcn_boundary()
+    if boundary is None:
+        print("   RESCCUE data missing — street_* fields will be null.", file=sys.stderr)
+        enrich_with_street(features, {}, bcn_cells=set())
+        return
+    to_wgs = Transformer.from_crs("EPSG:25831", "EPSG:4326", always_xy=True)
+    shares = {}
+    for rp in STREET_LAYERS:
+        print(f"Scoring street flooding {rp} (severity {STREET_FLOOD_MIN_DEPTH_M:.2f}→{STREET_FLOOD_MAX_DEPTH_M:.2f} m)…")
+        el = load_street_elements(rp)
+        c = el.geometry.centroid
+        lngs, lats = to_wgs.transform(c.x.values, c.y.values)
+        shares[rp] = street_shares(lats, lngs, el["area2d"].values, el["depth2d"].values, h3_res)
+    enrich_with_street(features, shares, cells_in(features, boundary))
 
 
 # ── Grid enrichment ──────────────────────────────────────────────────────────
@@ -250,6 +333,7 @@ def enrich_grid(features, h3_res):
     print(f"Scoring climate exposure (sample res {sample_res}, radius {FIRE_SEARCH_RADIUS_M:.0f} m, "
           f"decay {FIRE_DECAY_M:.0f} m)…")
     enrich_with_climate(features, inputs, sample_res)
+    enrich_grid_street(features, h3_res)
     return inputs is not None
 
 
@@ -289,6 +373,20 @@ def build_view_tiles(features):
         _write_geojson(wui, wui_json)
         _tippecanoe(WILDFIRE_TILES_OUT, [("hazard", hazard_json), ("wui", wui_json)])
 
+        print("Building street-flooding.pmtiles…")
+        parts = []
+        for rp in STREET_LAYERS:
+            el = load_street_elements(rp)
+            el["class"] = depth_class(el["depth2d"].values)
+            el = el[el["class"] > 0].dissolve(by="class", as_index=False)
+            el["rp"] = rp
+            el["geometry"] = el.geometry.simplify(1)
+            parts.append(el[["rp", "class", "geometry"]])
+        street = gpd.GeoDataFrame(pd.concat(parts, ignore_index=True), crs=25831).explode(index_parts=False)
+        street_json = os.path.join(tmp, "street.geojson")
+        _write_geojson(street, street_json)
+        _tippecanoe(STREET_TILES_OUT, [("street", street_json)])
+
 
 def _tippecanoe(out, layers):
     cmd = ["tippecanoe", "--output", out, "--minimum-zoom", "9", "--maximum-zoom", "15", "--force",
@@ -302,11 +400,7 @@ def _tippecanoe(out, layers):
 # ── Calibration stats ────────────────────────────────────────────────────────
 def print_stats(features):
     """Share of cells touched by each hazard, split Barcelona / rest of the grid."""
-    import geopandas as gpd
-
-    bcn = None
-    if os.path.exists(BCN_GPKG):
-        bcn = prep(gpd.read_file(BCN_GPKG, layer="bcn_resccue_property_damage_barri").to_crs(25831).union_all())
+    bcn = load_bcn_boundary()
     groups = {"Barcelona": [], "Rest of grid": []}
     for f in features:
         p = f["properties"]
@@ -323,6 +417,12 @@ def print_stats(features):
               f"T100 {pct(lambda p: p['flood_t100'] > 0):.1f}% · T500 {pct(lambda p: p['flood_t500'] > 0):.1f}% | "
               f"WUI {pct(lambda p: p['fire_wui'] > 0):.1f}% | fire exposure p50/p90/max "
               f"{np.percentile(fire, 50):.2f}/{np.percentile(fire, 90):.2f}/{max(fire):.2f}")
+        for rp in STREET_LAYERS:
+            v = [p[f"street_{rp}"] for p in ps if p.get(f"street_{rp}") is not None]
+            if v:
+                print(f"      street {rp}: {len(v)} cells, >0 {100 * np.mean(np.array(v) > 0):.1f}% | "
+                      f"p50/p90/p99/max {np.percentile(v, 50):.3f}/{np.percentile(v, 90):.3f}/"
+                      f"{np.percentile(v, 99):.3f}/{max(v):.3f}")
 
 
 def main():

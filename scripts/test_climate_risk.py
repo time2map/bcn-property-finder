@@ -137,6 +137,39 @@ class TestForestPolygons(unittest.TestCase):
         self.assertEqual(cr.forest_polygons(cr.make_forest([], []), pixel_m=100), [])
 
 
+class TestStreetFlooding(unittest.TestCase):
+    """Feature 037 — RESCCUE street-flooding depth → per-cell severity-weighted flooded share."""
+
+    def test_severity_ramps_from_10_to_50_cm(self):
+        sev = cr.street_severity([0.05, 0.10, 0.30, 0.50, 0.90])
+        self.assertEqual([round(float(v), 6) for v in sev], [0.0, 0.0, 0.5, 1.0, 1.0])
+
+    def test_depth_classes(self):
+        self.assertEqual(list(cr.depth_class([0.05, 0.2, 0.4, 0.7])), [0, 1, 2, 3])
+
+    def test_shares_aggregate_by_element_centroid(self):
+        lat, lng = h3.cell_to_latlng(BCN_CELL)
+        other = h3.latlng_to_cell(41.42, 2.19, 9)
+        olat, olng = h3.cell_to_latlng(other)
+        shares = cr.street_shares(
+            lats=[lat, lat, olat, lat], lngs=[lng, lng, olng, lng],
+            areas=[1000, 1000, 500, 5000], depths=[0.5, 0.3, 0.9, 0.05], h3_res=9,
+        )
+        cell_area = h3.cell_area(BCN_CELL, "m^2")
+        self.assertAlmostEqual(shares[BCN_CELL], (1000 * 1 + 1000 * 0.5) / cell_area)
+        self.assertAlmostEqual(shares[other], 500 / h3.cell_area(other, "m^2"))
+        self.assertEqual(len(shares), 2)  # the 5 cm element adds nothing
+
+    def test_enrich_marks_barcelona_dry_cells_zero_and_others_null(self):
+        wet, dry, outside = BCN_CELL, h3.latlng_to_cell(41.40, 2.17, 9), h3.latlng_to_cell(41.50, 2.00, 9)
+        features = [{"properties": {"h3": c}} for c in (wet, dry, outside)]
+        cr.enrich_with_street(features, {"t10": {wet: 0.02}, "t100": {wet: 0.123456}}, bcn_cells={wet, dry})
+        p = [f["properties"] for f in features]
+        self.assertEqual((p[0]["street_t10"], p[0]["street_t100"]), (0.02, 0.1235))
+        self.assertEqual((p[1]["street_t10"], p[1]["street_t100"]), (0.0, 0.0))
+        self.assertEqual((p[2]["street_t10"], p[2]["street_t100"]), (None, None))
+
+
 class TestEnrichWithClimate(unittest.TestCase):
     def test_adds_all_fields(self):
         features = [{"properties": {"h3": BCN_CELL}}]

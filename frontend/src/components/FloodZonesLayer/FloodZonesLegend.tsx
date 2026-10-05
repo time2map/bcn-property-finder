@@ -17,8 +17,8 @@ function FloodInfoModal({ opened, onClose }: { opened: boolean; onClose: () => v
       </Text>
       <Text size="sm" fw={500} mb={4}>What it does not show</Text>
       <Text size="sm" c="dimmed" mb="md">
-        Only river flooding. Flash flooding of streets when the sewer system overflows during
-        heavy rain is not included, nor coastal flooding.
+        This layer shows river overflow only, without water depth. For flooding of streets during
+        heavy rain (with depth) see Street flooding (heavy rain). Coastal flooding is not included.
       </Text>
       <Text size="xs" c="dimmed">
         Data:{' '}
@@ -41,7 +41,7 @@ export function FloodZonesLegend() {
       <FloodInfoModal opened={modalOpen} onClose={() => setModalOpen(false)} />
       <div className="noise-legend">
         <div className="noise-legend__header">
-          <span className="noise-legend__title">River flood zones · ACA</span>
+          <span className="noise-legend__title">River flood zones · ACA — by probability</span>
           <button
             className="noise-legend__info-btn"
             onClick={() => setModalOpen(true)}

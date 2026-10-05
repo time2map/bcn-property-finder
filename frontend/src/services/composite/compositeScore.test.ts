@@ -187,35 +187,44 @@ describe('computeComposite — climate risk penalties (036)', () => {
   it('does not penalise when no strengths are passed (backwards compatible)', () => {
     const r = computeComposite(makeBundle({ walk: 80, climate: FLOODED }), WALK_ONLY, ALL_ENABLED, DEFAULT_OPEN_PRICE_BOUNDS)
     expect(r.score).toBe(80)
-    expect(r.penalties).toEqual({ flood: 0, fire: 0 })
+    expect(r.penalties).toEqual({ flood: 0, fire: 0, street: 0 })
   })
 
   it('keeps safe cells unchanged', () => {
     const r = computeComposite(makeBundle({ walk: 80, climate: {} }), WALK_ONLY, ALL_ENABLED,
-      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 10, fire: 10 })
+      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 10, fire: 10, street: 0 })
     expect(r.score).toBe(80)
     expect(r.baseScore).toBe(80)
   })
 
   it('penalises a flooded cell and reports the points lost', () => {
     const r = computeComposite(makeBundle({ walk: 80, climate: FLOODED }), WALK_ONLY, ALL_ENABLED,
-      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 5, fire: 5 })
+      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 5, fire: 5, street: 0 })
     expect(r.baseScore).toBe(80)
     expect(r.score).toBe(40)
-    expect(r.penalties).toEqual({ flood: 40, fire: 0 })
+    expect(r.penalties).toEqual({ flood: 40, fire: 0, street: 0 })
     expect(r.risks.flood).toBe(1)
   })
 
   it('penalises a WUI cell by fire risk', () => {
     const r = computeComposite(makeBundle({ walk: 80, climate: IN_WUI }), WALK_ONLY, ALL_ENABLED,
-      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 5, fire: 10 })
+      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 5, fire: 10, street: 0 })
     expect(r.score).toBe(40)
     expect(r.penalties.fire).toBe(40)
   })
 
+  it('penalises street flooding in heavy rain (037)', () => {
+    const wet = { street_t10: 0.15, street_t100: 0.3 }
+    const r = computeComposite(makeBundle({ walk: 80, climate: wet }), WALK_ONLY, ALL_ENABLED,
+      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 5, fire: 5, street: 5 })
+    expect(r.risks.street).toBe(1)
+    expect(r.score).toBe(40)
+    expect(r.penalties).toEqual({ flood: 0, fire: 0, street: 40 })
+  })
+
   it('treats a grid without climate fields as no risk', () => {
     const r = computeComposite(makeBundle({ walk: 80 }), WALK_ONLY, ALL_ENABLED,
-      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 10, fire: 10 })
+      DEFAULT_OPEN_PRICE_BOUNDS, { flood: 10, fire: 10, street: 0 })
     expect(r.score).toBe(80)
     expect(r.hasGap).toBe(false)
   })
