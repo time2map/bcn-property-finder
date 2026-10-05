@@ -43,6 +43,9 @@ export interface AppState {
   compositeRiskStrengths: RiskStrengths
   floodLayerVisible: boolean
   wildfireLayerVisible: boolean
+  // Street flooding view layer — feature 037
+  streetFloodingLayerVisible: boolean
+  streetFloodingReturnPeriod: 't10' | 't100'
   // Hex detail card — feature 025
   selectedHexH3: string | null
   setWorkplace: (wp: [number, number] | null) => void
@@ -66,6 +69,8 @@ export interface AppState {
   setCompositeRiskStrengths: (strengths: RiskStrengths) => void
   setFloodLayerVisible: (visible: boolean) => void
   setWildfireLayerVisible: (visible: boolean) => void
+  setStreetFloodingLayerVisible: (visible: boolean) => void
+  setStreetFloodingReturnPeriod: (rp: 't10' | 't100') => void
   setSelectedHexH3: (h3: string | null) => void
 }
 
@@ -98,6 +103,7 @@ const COMPOSITE_SCORE_RANGE_KEY = 'bcn_composite_score_range'
 const COMPOSITE_RISK_STRENGTHS_KEY = 'bcn_composite_risk_strengths'
 const FLOOD_LAYER_KEY = 'bcn_flood_layer_visible'
 const WILDFIRE_LAYER_KEY = 'bcn_wildfire_layer_visible'
+const STREET_FLOODING_LAYER_KEY = 'bcn_street_flooding_layer_visible'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -151,6 +157,7 @@ function loadRiskStrengths(): RiskStrengths {
     return {
       flood: parsed.flood ?? DEFAULT_RISK_STRENGTHS.flood,
       fire: parsed.fire ?? DEFAULT_RISK_STRENGTHS.fire,
+      street: parsed.street ?? DEFAULT_RISK_STRENGTHS.street,
     }
   } catch {
     return DEFAULT_RISK_STRENGTHS
@@ -260,6 +267,13 @@ export const useStore = create<AppState>((set) => {
       try { localStorage.setItem(WILDFIRE_LAYER_KEY, String(visible)) } catch { /* ignore */ }
       set({ wildfireLayerVisible: visible })
     },
+    streetFloodingLayerVisible: loadBoolKey(STREET_FLOODING_LAYER_KEY),
+    setStreetFloodingLayerVisible: (visible) => {
+      try { localStorage.setItem(STREET_FLOODING_LAYER_KEY, String(visible)) } catch { /* ignore */ }
+      set({ streetFloodingLayerVisible: visible })
+    },
+    streetFloodingReturnPeriod: 't10',
+    setStreetFloodingReturnPeriod: (streetFloodingReturnPeriod) => set({ streetFloodingReturnPeriod }),
     selectedHexH3: null,
     setSelectedHexH3: (selectedHexH3) => set({ selectedHexH3 }),
   }

@@ -12,6 +12,7 @@ import { PinAccuracyLayer } from '../PropertyPins/PinAccuracyLayer'
 import { NoiseLayer } from '../NoiseLayer/NoiseLayer'
 import { FloodZonesLayer } from '../FloodZonesLayer/FloodZonesLayer'
 import { WildfireLayer } from '../WildfireLayer/WildfireLayer'
+import { StreetFloodingLayer } from '../StreetFloodingLayer/StreetFloodingLayer'
 import { CompositeLayer } from '../CompositeLayer/CompositeLayer'
 import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
@@ -163,6 +164,7 @@ export function Map() {
       <NoiseLayer />
       <FloodZonesLayer />
       <WildfireLayer />
+      <StreetFloodingLayer />
       {features.exclusions && <ExclusionLayer />}
       {features.exclusions && <ExclusionDraw />}
       {features.isochrone && <ExportAreasLayer />}

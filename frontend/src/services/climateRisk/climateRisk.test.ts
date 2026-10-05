@@ -5,6 +5,7 @@ import {
   fireRisk,
   floodRisk,
   mostSevereFloodZone,
+  streetFloodRisk,
   type ClimateRiskProps,
 } from './climateRisk'
 
@@ -59,29 +60,56 @@ describe('fireRisk', () => {
 
 describe('applyRiskPenalties', () => {
   it('leaves the score unchanged when there is no risk', () => {
-    expect(applyRiskPenalties(70, { flood: 0, fire: 0 }, { flood: 10, fire: 10 }))
-      .toEqual({ score: 70, floodPenalty: 0, firePenalty: 0 })
+    expect(applyRiskPenalties(70, { flood: 0, fire: 0, street: 0 }, { flood: 10, fire: 10, street: 10 }))
+      .toEqual({ score: 70, floodPenalty: 0, firePenalty: 0, streetPenalty: 0 })
   })
 
   it('leaves the score unchanged when strengths are 0', () => {
-    expect(applyRiskPenalties(70, { flood: 1, fire: 1 }, { flood: 0, fire: 0 }))
-      .toEqual({ score: 70, floodPenalty: 0, firePenalty: 0 })
+    expect(applyRiskPenalties(70, { flood: 1, fire: 1, street: 1 }, { flood: 0, fire: 0, street: 0 }))
+      .toEqual({ score: 70, floodPenalty: 0, firePenalty: 0, streetPenalty: 0 })
   })
 
   it('max strength on a full-risk cell drives the score to 0', () => {
-    expect(applyRiskPenalties(80, { flood: 1, fire: 0 }, { flood: 10, fire: 5 }).score).toBe(0)
+    expect(applyRiskPenalties(80, { flood: 1, fire: 0, street: 0 }, { flood: 10, fire: 5, street: 5 }).score).toBe(0)
   })
 
   it('multiplies both penalties and attributes the lost points', () => {
-    // 80 × (1 − 0.5·0.5) = 60 → −20 flood; 60 × (1 − 0.5·0.4) = 48 → −12 fire
-    expect(applyRiskPenalties(80, { flood: 0.5, fire: 0.4 }, { flood: 5, fire: 5 }))
-      .toEqual({ score: 48, floodPenalty: 20, firePenalty: 12 })
+    // 80 × (1 − 0.5·0.5) = 60 → −20 flood; 60 × (1 − 0.5·0.4) = 48 → −12 fire; 48 × (1 − 0.5·0.5) = 36 → −12 street
+    expect(applyRiskPenalties(80, { flood: 0.5, fire: 0.4, street: 0.5 }, { flood: 5, fire: 5, street: 5 }))
+      .toEqual({ score: 36, floodPenalty: 20, firePenalty: 12, streetPenalty: 12 })
   })
 
   it('never goes below 0 or above base', () => {
-    const r = applyRiskPenalties(50, { flood: 2, fire: -1 }, { flood: 10, fire: 10 })
+    const r = applyRiskPenalties(50, { flood: 2, fire: -1, street: 0 }, { flood: 10, fire: 10, street: 10 })
     expect(r.score).toBe(0)
     expect(r.firePenalty).toBe(0)
+  })
+})
+
+describe('streetFloodRisk (feature 037)', () => {
+  const SAT = 0.15
+
+  it('is 0 without data (outside Barcelona / old grid) or when dry', () => {
+    expect(streetFloodRisk({}, PENALTIES, SAT)).toBe(0)
+    expect(streetFloodRisk(props({ street_t10: null, street_t100: null }), PENALTIES, SAT)).toBe(0)
+    expect(streetFloodRisk(props({ street_t10: 0, street_t100: 0 }), PENALTIES, SAT)).toBe(0)
+  })
+
+  it('normalises by the saturation share and weights T10 above the extra T100 part', () => {
+    // r10 = 0.075/0.15 = 0.5, r100 = 1 → 0.5·1 + 0.5·0.6
+    expect(streetFloodRisk(props({ street_t10: 0.075, street_t100: 0.15 }), PENALTIES, SAT)).toBeCloseTo(0.8)
+  })
+
+  it('caps at 1 above saturation', () => {
+    expect(streetFloodRisk(props({ street_t10: 0.4, street_t100: 0.5 }), PENALTIES, SAT)).toBe(1)
+  })
+
+  it('treats T100 as at least as wet as T10', () => {
+    expect(streetFloodRisk(props({ street_t10: 0.075, street_t100: 0.01 }), PENALTIES, SAT)).toBeCloseTo(0.5)
+  })
+
+  it('uses env defaults (saturation 0.15)', () => {
+    expect(streetFloodRisk(props({ street_t10: 0.15, street_t100: 0.15 }))).toBe(1)
   })
 })
 
@@ -101,6 +129,6 @@ describe('mostSevereFloodZone', () => {
 
 describe('DEFAULT_RISK_STRENGTHS', () => {
   it('defaults to a medium strength', () => {
-    expect(DEFAULT_RISK_STRENGTHS).toEqual({ flood: 5, fire: 5 })
+    expect(DEFAULT_RISK_STRENGTHS).toEqual({ flood: 5, fire: 5, street: 5 })
   })
 })

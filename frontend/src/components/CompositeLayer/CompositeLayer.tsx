@@ -26,6 +26,7 @@ interface ScoredFeature {
     openPriceScore: number | null
     floodPenalty: number
     firePenalty: number
+    streetPenalty: number
   }
 }
 
@@ -57,6 +58,7 @@ function buildGeoJSON(
         openPriceScore: components.openPrice,
         floodPenalty: penalties.flood,
         firePenalty: penalties.fire,
+        streetPenalty: penalties.street,
       },
     }
   })
@@ -99,9 +101,11 @@ function buildBreakdownHTML(
   if (weights.openPrice > 0)
     rows.push(row('Market Price', formatScore(props.openPriceScore as number | null)))
   if ((props.floodPenalty as number) > 0)
-    rows.push(row('Flood risk', `−${props.floodPenalty as number}`))
+    rows.push(row('River flood', `−${props.floodPenalty as number}`))
   if ((props.firePenalty as number) > 0)
-    rows.push(row('Wildfire risk', `−${props.firePenalty as number}`))
+    rows.push(row('Wildfire', `−${props.firePenalty as number}`))
+  if ((props.streetPenalty as number) > 0)
+    rows.push(row('Street flooding', `−${props.streetPenalty as number}`))
 
   if (rows.length === 0) return ''
   return `<table style="width:100%;border-collapse:collapse;margin-top:4px">${rows.join('')}</table>`

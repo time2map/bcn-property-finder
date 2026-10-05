@@ -147,15 +147,21 @@ function InfoModal({ opened, onClose }: { opened: boolean; onClose: () => void }
             fully in the highest-risk zone drives it to 0.
           </Text>
           <Text size="xs" c="dimmed">
-            <b>Flood risk</b> — share of the cell inside official river flood zones (ACA): 10-year
-            zone counts fully, 100-year 60%, 500-year 25%. River flooding only; flash flooding of
-            streets during heavy rain is not included.
+            <b>River flood risk</b> — share of the cell inside official river flood zones (ACA): 10-year
+            zone counts fully, 100-year 60%, 500-year 25%. Rivers overflowing only — rain water on
+            streets is the separate Street flooding risk.
           </Text>
           <Text size="xs" c="dimmed">
             <b>Wildfire risk</b> — share of the cell inside the wildland–urban interface (Protecció
             Civil, zones around forests ≥ 5 ha) × the hazard of the nearest forest (Generalitat
             structural wildfire hazard map 2024, classes 1–10), fading with distance. A static
             hazard map, not a forecast; recent burned areas are not reflected.
+          </Text>
+          <Text size="xs" c="dimmed">
+            <b>Street flooding risk</b> — how much of the cell is under water in a 10-year and a
+            100-year rain (RESCCUE drainage model, Barcelona only). Depth is weighted smoothly: water
+            up to 10 cm stays in the gutter and counts 0, 50 cm or more counts fully. Matters most for
+            ground-floor flats, basements and underground parking.
           </Text>
         </Stack>
 
@@ -266,8 +272,9 @@ export function CompositeControls() {
             <ComponentRow label="Market Price" {...weightRow('openPrice')} />
 
             <Text size="xs" c="dimmed" mt={2}>Risk penalties</Text>
-            <ComponentRow label="Flood risk" {...riskRow('flood')} />
+            <ComponentRow label="River flood risk" {...riskRow('flood')} />
             <ComponentRow label="Wildfire risk" {...riskRow('fire')} />
+            <ComponentRow label="Street flooding risk" {...riskRow('street')} />
 
             <Stack gap={4}>
               <Text size="xs" c="dimmed">Score range</Text>

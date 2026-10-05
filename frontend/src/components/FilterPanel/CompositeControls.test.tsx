@@ -39,7 +39,7 @@ describe('CompositeControls', () => {
       compositeScoreRange: [0, 100],
       idealistaPriceBounds: null,
       enabledLandmarkIds: ['sagrada', 'barceloneta'],
-      compositeRiskStrengths: { flood: 5, fire: 5 },
+      compositeRiskStrengths: { flood: 5, fire: 5, street: 5 },
     })
   })
 
@@ -101,18 +101,20 @@ describe('CompositeControls', () => {
       useStore.setState({ compositeVisible: true })
       renderControls()
       expect(screen.getByText('Risk penalties')).toBeTruthy()
-      expect(screen.getByText('Flood risk')).toBeTruthy()
+      expect(screen.getByText('River flood risk')).toBeTruthy()
       expect(screen.getByText('Wildfire risk')).toBeTruthy()
-      expect(screen.getByLabelText('Flood risk strength')).toBeTruthy()
+      expect(screen.getByText('Street flooding risk')).toBeTruthy()
+      expect(screen.getByLabelText('River flood risk strength')).toBeTruthy()
+      expect(screen.getByLabelText('Street flooding risk strength')).toBeTruthy()
     })
 
     it('disabling a risk sets its strength to 0 and re-enabling restores it', () => {
-      useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 7, fire: 5 } })
+      useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 7, fire: 5, street: 5 } })
       renderControls()
-      fireEvent.click(screen.getByLabelText('Enable Flood risk'))
-      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 0, fire: 5 })
-      fireEvent.click(screen.getByLabelText('Enable Flood risk'))
-      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 7, fire: 5 })
+      fireEvent.click(screen.getByLabelText('Enable River flood risk'))
+      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 0, fire: 5, street: 5 })
+      fireEvent.click(screen.getByLabelText('Enable River flood risk'))
+      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 7, fire: 5, street: 5 })
     })
 
     it('explains the penalties in the info modal', () => {
@@ -121,6 +123,14 @@ describe('CompositeControls', () => {
       fireEvent.click(screen.getByLabelText('About Livability Index'))
       expect(screen.getByText(/river flood zones/i)).toBeTruthy()
       expect(screen.getByText(/wildland–urban interface/i)).toBeTruthy()
+      expect(screen.getByText(/ground-floor flats, basements and underground parking/i)).toBeTruthy()
+    })
+
+    it('turns street flooding off independently (037)', () => {
+      useStore.setState({ compositeVisible: true })
+      renderControls()
+      fireEvent.click(screen.getByLabelText('Enable Street flooding risk'))
+      expect(useStore.getState().compositeRiskStrengths).toEqual({ flood: 5, fire: 5, street: 0 })
     })
   })
 })

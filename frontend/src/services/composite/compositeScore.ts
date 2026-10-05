@@ -2,7 +2,7 @@ import { noiseScore } from '../noise/noiseScore'
 import { cellCityCoreIndex } from '../cityCore/cityCoreScore'
 import type { CityCoreCellProps } from '../cityCore/cityCoreData'
 import {
-  applyRiskPenalties, fireRisk, floodRisk,
+  applyRiskPenalties, fireRisk, floodRisk, streetFloodRisk,
   type ClimateRiskProps, type Risks, type RiskStrengths,
 } from '../climateRisk/climateRisk'
 
@@ -56,7 +56,7 @@ export interface ComponentScores {
   openPrice: number | null
 }
 
-const NO_RISK_PENALTY: RiskStrengths = { flood: 0, fire: 0 }
+const NO_RISK_PENALTY: RiskStrengths = { flood: 0, fire: 0, street: 0 }
 
 export interface CompositeResult {
   /** Final score after climate-risk penalties. */
@@ -67,7 +67,7 @@ export interface CompositeResult {
   components: ComponentScores
   risks: Risks
   /** Points lost to each risk. */
-  penalties: { flood: number; fire: number }
+  penalties: { flood: number; fire: number; street: number }
 }
 
 /**
@@ -128,7 +128,10 @@ export function computeComposite(
 
   const baseScore = totalWeight === 0 ? 0 : Math.round(weightedSum / totalWeight)
   const climate = bundle.climate ?? {}
-  const risks: Risks = { flood: floodRisk(climate), fire: fireRisk(climate) }
-  const { score, floodPenalty, firePenalty } = applyRiskPenalties(baseScore, risks, riskStrengths)
-  return { score, baseScore, hasGap, components, risks, penalties: { flood: floodPenalty, fire: firePenalty } }
+  const risks: Risks = { flood: floodRisk(climate), fire: fireRisk(climate), street: streetFloodRisk(climate) }
+  const { score, floodPenalty, firePenalty, streetPenalty } = applyRiskPenalties(baseScore, risks, riskStrengths)
+  return {
+    score, baseScore, hasGap, components, risks,
+    penalties: { flood: floodPenalty, fire: firePenalty, street: streetPenalty },
+  }
 }

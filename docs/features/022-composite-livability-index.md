@@ -32,17 +32,18 @@ composite(cell) = Σ (score_i × weight_i) / Σ weight_i
 - Component is **inactive** when `weight_i = 0` (excluded from numerator and denominator).
 - Score range: 0–100.
 
-### Climate-risk penalties (feature 036)
+### Climate-risk penalties (features 036, 037)
 
-After the weighted mean, flood and wildfire risks are applied as multiplicative penalties — they are
-not components, so safe cells keep their score:
+After the weighted mean, river-flood, wildfire and street-flooding risks are applied as multiplicative
+penalties — they are not components, so safe cells keep their score:
 
 ```
-score(cell) = composite(cell) × (1 − sFlood/10 · floodRisk) × (1 − sFire/10 · fireRisk)
+score(cell) = composite(cell) × (1 − sFlood/10 · floodRisk) × (1 − sFire/10 · fireRisk) × (1 − sStreet/10 · streetFloodRisk)
 ```
 
-`sFlood`, `sFire` ∈ [0, 10] are separate "Risk penalties" sliders (default 5). Details, data sources and
-formulas for `floodRisk` / `fireRisk`: `036-climate-risk-penalties.md`.
+`sFlood`, `sFire`, `sStreet` ∈ [0, 10] are separate "Risk penalties" sliders (default 5). Details, data
+sources and formulas: `036-climate-risk-penalties.md` (river flood, wildfire) and
+`037-street-flooding-penalty.md` (street flooding in heavy rain).
 
 ### Missing data rule
 

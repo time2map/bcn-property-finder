@@ -93,6 +93,9 @@ class-7 forest ~100 m away loses 6 points.
 
 ## UI
 
+> Labels renamed in feature 037 to keep river and street flooding apart: *River flood risk*,
+> *River flood zones*, card row *River flooding*.
+
 - **Livability Index panel** — new sub-section "Risk penalties" with two rows: *Flood risk*,
   *Wildfire risk* (slider 0–10, same row component as the index weights), ℹ info text: what is measured,
   limitations, sources.

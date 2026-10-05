@@ -12,6 +12,7 @@ vi.mock('../livability/livabilityData', () => ({
           h3: 'aaa', walk: 75, lden: 55, sale_eur_m2: 3500,
           flood_t10: 0, flood_t100: 0.2, flood_t500: 0.6,
           fire_wui: 1, fire_hazard: 0.4, fire_class: 8, fire_dist_m: 120,
+          street_t10: 0.02, street_t100: 0.07,
         },
       },
       {
@@ -79,11 +80,13 @@ describe('loadBundles', () => {
     expect(aaa.climate).toEqual({
       flood_t10: 0, flood_t100: 0.2, flood_t500: 0.6,
       fire_wui: 1, fire_hazard: 0.4, fire_class: 8, fire_dist_m: 120,
+      street_t10: 0.02, street_t100: 0.07,
     })
     const bbb = bundles.find((b) => b.h3 === 'bbb')!
     expect(bbb.climate).toEqual({
       flood_t10: null, flood_t100: null, flood_t500: null,
       fire_wui: null, fire_hazard: null, fire_class: null, fire_dist_m: null,
+      street_t10: null, street_t100: null,
     })
   })
 

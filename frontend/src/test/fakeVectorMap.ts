@@ -10,6 +10,7 @@ export function makeFakeVectorMap() {
     getLayer: (id: string) => layers.get(id),
     addLayer: (l: { id: string }) => { layers.set(l.id, l) },
     setLayoutProperty: vi.fn(),
+    setFilter: vi.fn(),
     removeLayer: vi.fn((id: string) => { layers.delete(id) }),
     removeSource: vi.fn((id: string) => { sources.delete(id) }),
   }

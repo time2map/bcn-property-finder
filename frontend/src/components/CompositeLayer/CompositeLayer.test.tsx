@@ -125,7 +125,7 @@ describe('CompositeLayer', () => {
   })
 
   it('applies climate-risk penalties to the scored cells (integration, 036)', async () => {
-    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5 } })
+    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5, street: 5 } })
     const map = makeFakeMap()
     await act(async () => { renderLayer(map) })
 
@@ -141,12 +141,12 @@ describe('CompositeLayer', () => {
     expect(flooded.score).toBe(Math.round(safe.score * 0.5))
 
     // Strength 0 → penalty disappears
-    act(() => useStore.setState({ compositeRiskStrengths: { flood: 0, fire: 5 } }))
+    act(() => useStore.setState({ compositeRiskStrengths: { flood: 0, fire: 5, street: 5 } }))
     expect(scoreOf('flooded').score).toBe(safe.score)
   })
 
   it('lists the points lost to climate risk in the hover tooltip', async () => {
-    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5 } })
+    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5, street: 5 } })
     const map = makeFakeMap()
     await act(async () => { renderLayer(map) })
 
@@ -156,9 +156,10 @@ describe('CompositeLayer', () => {
     onMove({ features: [{ properties: flooded.properties }], lngLat: { lng: 0, lat: 0 } })
 
     const html = mockPopup.setHTML.mock.calls.at(-1)![0] as string
-    expect(html).toContain('Flood risk')
+    expect(html).toContain('River flood')
     expect(html).toContain(`−${flooded.properties!.floodPenalty}`)
-    expect(html).not.toContain('Wildfire risk')
+    expect(html).not.toContain('Wildfire')
+    expect(html).not.toContain('Street flooding')
   })
 
   it('rebuilds data when weights change', async () => {

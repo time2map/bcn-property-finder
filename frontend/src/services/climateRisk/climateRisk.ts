@@ -1,5 +1,5 @@
 /**
- * Climate-risk penalties for the Livability Index (feature 036).
+ * Climate-risk penalties for the Livability Index (features 036, 037).
  *
  * The grid pipeline (scripts/climate_risk.py) stores raw exposure per H3 cell; this module turns it into
  * risks 0–1 and applies them as multiplicative penalties on the composite score, so safe cells keep
@@ -15,6 +15,9 @@ export interface ClimateRiskProps {
   fire_hazard?: number | null // distance-decayed forest hazard class / 10 (0–1)
   fire_class?: number | null // hazard class 1–10 of the strongest nearby forest pixel
   fire_dist_m?: number | null // distance to that pixel (m)
+  // Street flooding in heavy rain (RESCCUE, Barcelona only; null outside): Σ area·severity(depth) / cell area
+  street_t10?: number | null // 10-year rain
+  street_t100?: number | null // 100-year rain
 }
 
 export interface FloodZonePenalties {
@@ -24,13 +27,15 @@ export interface FloodZonePenalties {
 }
 
 export interface RiskStrengths {
-  flood: number // 0–10
+  flood: number // river flooding, 0–10
   fire: number // 0–10
+  street: number // street flooding in heavy rain, 0–10
 }
 
 export interface Risks {
   flood: number // 0–1
   fire: number // 0–1
+  street: number // 0–1
 }
 
 export type FloodZone = 't10' | 't100' | 't500'
@@ -45,7 +50,11 @@ export const FLOOD_ZONE_PENALTIES: FloodZonePenalties = {
 export const DEFAULT_RISK_STRENGTHS: RiskStrengths = {
   flood: Number(import.meta.env.VITE_RISK_STRENGTH_FLOOD ?? 5),
   fire: Number(import.meta.env.VITE_RISK_STRENGTH_FIRE ?? 5),
+  street: Number(import.meta.env.VITE_RISK_STRENGTH_STREET ?? 5),
 }
+
+/** Severity-weighted flooded share of a cell that counts as full street-flooding risk (~p95 at T100). */
+export const STREET_FLOOD_SATURATION = Number(import.meta.env.VITE_STREET_FLOOD_SATURATION ?? 0.15)
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 
@@ -63,22 +72,37 @@ export function fireRisk(p: ClimateRiskProps): number {
 }
 
 /**
- * Applies both risks as multiplicative penalties: score = base × (1 − sF/10·flood) × (1 − sW/10·fire).
- * Returns the final score and the points lost to each risk (flood first, then fire).
+ * Street-flooding risk 0–1 (feature 037): each return period's weighted flooded share normalised by
+ * `saturation`, then the same exclusive-band weighting as river zones (T10 fully, extra T100 part less).
+ */
+export function streetFloodRisk(
+  p: ClimateRiskProps,
+  penalties: FloodZonePenalties = FLOOD_ZONE_PENALTIES,
+  saturation: number = STREET_FLOOD_SATURATION,
+): number {
+  const r10 = clamp01((p.street_t10 ?? 0) / saturation)
+  const r100 = Math.max(clamp01((p.street_t100 ?? 0) / saturation), r10)
+  return clamp01(r10 * penalties.t10 + (r100 - r10) * penalties.t100)
+}
+
+/**
+ * Applies the risks as multiplicative penalties: score = base × Π (1 − strength/10 · risk).
+ * Returns the final score and the points lost to each risk (river flood, then fire, then street flooding).
  */
 export function applyRiskPenalties(
   base: number,
   risks: Risks,
   strengths: RiskStrengths,
-): { score: number; floodPenalty: number; firePenalty: number } {
-  const floodFactor = 1 - clamp01(strengths.flood / 10) * clamp01(risks.flood)
-  const fireFactor = 1 - clamp01(strengths.fire / 10) * clamp01(risks.fire)
-  const afterFlood = base * floodFactor
-  const final = afterFlood * fireFactor
+): { score: number; floodPenalty: number; firePenalty: number; streetPenalty: number } {
+  const factor = (k: keyof Risks) => 1 - clamp01(strengths[k] / 10) * clamp01(risks[k])
+  const afterFlood = base * factor('flood')
+  const afterFire = afterFlood * factor('fire')
+  const final = afterFire * factor('street')
   return {
     score: Math.round(final),
     floodPenalty: Math.round(base - afterFlood),
-    firePenalty: Math.round(afterFlood - final),
+    firePenalty: Math.round(afterFlood - afterFire),
+    streetPenalty: Math.round(afterFire - final),
   }
 }
 

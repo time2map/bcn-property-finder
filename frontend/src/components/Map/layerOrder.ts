@@ -15,10 +15,11 @@ export const LAYER_Z_ORDER: readonly string[] = [
   'composite-gap-outline',
   'composite-hover-outline',
   'noise-overlay',
-  // Climate-risk view layers — feature 036
+  // Climate-risk view layers — features 036, 037
   'wildfire-hazard-fill',
   'flood-zones-fill',
   'flood-zones-line',
+  'street-flooding-fill',
   'wildfire-wui-line',
   // Exclusion zones
   'exclusion-fill',
