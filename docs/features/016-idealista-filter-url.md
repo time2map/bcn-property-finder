@@ -1,5 +1,8 @@
 # Feature 016 — Idealista saved filter URL
 
+> **Update (feature 038):** the input now lives in the ⚙ popover of the floating **Draw best zones** bar
+> (`components/BestZones/BaseUrlInput.tsx`); best-zone links reuse the saved filters.
+
 ## Goal
 
 Let the user paste an Idealista search URL (with their personal filters already set) so that

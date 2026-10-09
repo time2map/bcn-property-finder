@@ -1,8 +1,7 @@
 import type { MultiPolygon, Polygon } from 'geojson'
 
 function encodeValue(value: number): string {
-  let v = Math.round(value * 1e5)
-  v = v < 0 ? ~(v << 1) : v << 1
+  let v = value < 0 ? ~(value << 1) : value << 1
   let chunk = ''
   while (v >= 0x20) {
     chunk += String.fromCharCode((0x20 | (v & 0x1f)) + 63)
@@ -12,15 +11,19 @@ function encodeValue(value: number): string {
 }
 
 // Encodes [lat, lng] pairs as a Google Encoded Polyline string.
+// Coordinates are rounded to 1e-5 *before* differencing — rounding each delta instead accumulates
+// error along the ring, so the last point no longer equals the first and Idealista rejects the shape.
 function encodePolyline(coords: [number, number][]): string {
   let result = ''
   let prevLat = 0
   let prevLng = 0
   for (const [lat, lng] of coords) {
-    result += encodeValue(lat - prevLat)
-    result += encodeValue(lng - prevLng)
-    prevLat = lat
-    prevLng = lng
+    const iLat = Math.round(lat * 1e5)
+    const iLng = Math.round(lng * 1e5)
+    result += encodeValue(iLat - prevLat)
+    result += encodeValue(iLng - prevLng)
+    prevLat = iLat
+    prevLng = iLng
   }
   return result
 }

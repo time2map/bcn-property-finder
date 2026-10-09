@@ -25,7 +25,7 @@ export function App() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const pinCount = usePinsStore((s) => s.pins.length)
 
-  const { isLoading } = useIsochrone((err) => {
+  useIsochrone((err) => {
     setErrorMsg(err.message)
     setTimeout(() => setErrorMsg(null), 4000)
   })
@@ -58,7 +58,7 @@ export function App() {
       {!isMobile && (
         <div className="top-panel">
           <BrandBar />
-          <FilterPanel isLoading={isLoading} />
+          <FilterPanel />
         </div>
       )}
       <HexDetailCard />
@@ -97,7 +97,7 @@ export function App() {
           size="auto"
           title="Filters"
         >
-          <FilterPanel isLoading={isLoading} />
+          <FilterPanel />
         </Drawer>
 
         {features.pins && pinCount > 0 && (

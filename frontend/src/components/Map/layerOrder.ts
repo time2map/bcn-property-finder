@@ -29,10 +29,10 @@ export const LAYER_Z_ORDER: readonly string[] = [
   'barrio-boundaries-line',
   'barrio-boundaries-label-district',
   'barrio-boundaries-label-barri',
-  // Idealista export areas
-  'export-areas-fill',
-  'export-areas-line',
-  'export-areas-label',
+  // Best zones — feature 038
+  'best-zones-fill',
+  'best-zones-line',
+  'best-zones-label',
   // Idealista price overlay
   'idealista-prices-dots',
   'idealista-prices-labels',

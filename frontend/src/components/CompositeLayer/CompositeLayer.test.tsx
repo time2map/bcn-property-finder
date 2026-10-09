@@ -4,17 +4,6 @@ import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { DEFAULT_COMPOSITE_WEIGHTS } from '../../store'
 
-const mockPopup = {
-  setLngLat: vi.fn().mockReturnThis(),
-  setHTML: vi.fn().mockReturnThis(),
-  addTo: vi.fn().mockReturnThis(),
-  remove: vi.fn(),
-}
-
-vi.mock('maplibre-gl', () => ({
-  default: { Popup: vi.fn(function () { return mockPopup }) },
-}))
-
 vi.mock('../../services/composite/compositeData', () => ({
   loadBundles: vi.fn().mockResolvedValue([
     {
@@ -50,7 +39,7 @@ vi.mock('../../services/composite/compositeData', () => ({
   loadOpenPriceMeta: vi.fn().mockResolvedValue({ p5: 2088, p95: 5816 }),
 }))
 
-import { CompositeLayer, SOURCE_ID, FILL_LAYER_ID, GAP_LAYER_ID } from './CompositeLayer'
+import { CompositeLayer, SOURCE_ID, FILL_LAYER_ID, GAP_LAYER_ID, HOVER_LAYER_ID } from './CompositeLayer'
 
 function makeFakeMap() {
   const sources = new Map<string, { data: unknown; setData: ReturnType<typeof vi.fn> }>()
@@ -68,6 +57,7 @@ function makeFakeMap() {
     removeSource: vi.fn(),
     on: vi.fn(),
     off: vi.fn(),
+    queryRenderedFeatures: vi.fn((): unknown[] => []),
     getCanvas: () => ({ style: {} as Record<string, string> }),
   }
 }
@@ -145,21 +135,56 @@ describe('CompositeLayer', () => {
     expect(scoreOf('flooded').score).toBe(safe.score)
   })
 
-  it('lists the points lost to climate risk in the hover tooltip', async () => {
-    useStore.setState({ compositeVisible: true, compositeRiskStrengths: { flood: 5, fire: 5, street: 5 } })
+  it('hover outlines the hex (no tooltip); details open on click', async () => {
+    useStore.setState({ compositeVisible: true })
     const map = makeFakeMap()
     await act(async () => { renderLayer(map) })
+    const handler = (ev: string) => map.on.mock.calls.find(([e, layer]) => e === ev && layer === FILL_LAYER_ID)![2]
+    const canvas = map.getCanvas()
+    map.getCanvas = () => canvas
 
-    const onMove = map.on.mock.calls.find(([ev, layer]) => ev === 'mousemove' && layer === FILL_LAYER_ID)![2]
-    const fc = map.getSource(SOURCE_ID)!.data as GeoJSON.FeatureCollection
-    const flooded = fc.features.find((f) => f.properties!.h3 === 'flooded')!
-    onMove({ features: [{ properties: flooded.properties }], lngLat: { lng: 0, lat: 0 } })
+    handler('mousemove')({ features: [{ properties: { h3: 'aaa' } }] })
+    expect(map.setFilter).toHaveBeenLastCalledWith(HOVER_LAYER_ID, ['==', ['get', 'h3'], 'aaa'])
+    expect(canvas.style.cursor).toBe('pointer')
+    expect(document.querySelector('.maplibregl-popup')).toBeNull()
 
-    const html = mockPopup.setHTML.mock.calls.at(-1)![0] as string
-    expect(html).toContain('River flood')
-    expect(html).toContain(`−${flooded.properties!.floodPenalty}`)
-    expect(html).not.toContain('Wildfire')
-    expect(html).not.toContain('Street flooding')
+    handler('mouseleave')()
+    expect(map.setFilter).toHaveBeenLastCalledWith(HOVER_LAYER_ID, ['==', ['get', 'h3'], ''])
+    expect(canvas.style.cursor).toBe('')
+  })
+
+  it('no hex hover outline over a best zone — the zone highlight wins (038)', async () => {
+    useStore.setState({ compositeVisible: true })
+    const map = makeFakeMap()
+    await act(async () => { renderLayer(map) })
+    const onMove = map.on.mock.calls.find(([e, layer]) => e === 'mousemove' && layer === FILL_LAYER_ID)![2]
+    const e = { features: [{ properties: { h3: 'aaa' } }], point: { x: 1, y: 1 } }
+
+    map.addLayer({ id: 'best-zones-fill' })
+    map.queryRenderedFeatures.mockReturnValue([{}])
+    onMove(e)
+    expect(map.setFilter).toHaveBeenLastCalledWith(HOVER_LAYER_ID, ['==', ['get', 'h3'], ''])
+
+    map.queryRenderedFeatures.mockReturnValue([])
+    onMove(e)
+    expect(map.setFilter).toHaveBeenLastCalledWith(HOVER_LAYER_ID, ['==', ['get', 'h3'], 'aaa'])
+  })
+
+  it('a click inside a best zone opens the zone popup, not the hex card (038)', async () => {
+    useStore.setState({ compositeVisible: true, selectedHexH3: null })
+    const map = makeFakeMap()
+    await act(async () => { renderLayer(map) })
+    const onClick = map.on.mock.calls.find(([ev, layer]) => ev === 'click' && layer === FILL_LAYER_ID)![2]
+    const e = { features: [{ properties: { h3: 'aaa' } }], point: { x: 1, y: 1 } }
+
+    map.addLayer({ id: 'best-zones-fill' })
+    map.queryRenderedFeatures.mockReturnValue([{}])
+    act(() => onClick(e))
+    expect(useStore.getState().selectedHexH3).toBeNull()
+
+    map.queryRenderedFeatures.mockReturnValue([])
+    act(() => onClick(e))
+    expect(useStore.getState().selectedHexH3).toBe('aaa')
   })
 
   it('rebuilds data when weights change', async () => {

@@ -1,12 +1,13 @@
 import { useContext, useEffect, useRef, useState } from 'react'
-import maplibregl from 'maplibre-gl'
+import type maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { loadBundles, loadOpenPriceMeta, type CellBundle } from '../../services/composite/compositeData'
-import { computeComposite, type CompositeWeights, type OpenPriceBounds } from '../../services/composite/compositeScore'
+import { computeComposite, type OpenPriceBounds } from '../../services/composite/compositeScore'
 import type { RiskStrengths } from '../../services/climateRisk/climateRisk'
 import { buildScoreFillColorForRange } from './scoreRamp'
 import { addLayerOrdered } from '../Map/layerOrder'
+import { FILL_LAYER_ID as BEST_ZONES_FILL_LAYER_ID } from '../BestZones/BestZonesLayer'
 
 export const SOURCE_ID = 'composite-h3'
 export const FILL_LAYER_ID = 'composite-fill'
@@ -80,35 +81,10 @@ function gapFilter(min: number, max: number): maplibregl.FilterSpecification {
   ] as maplibregl.FilterSpecification
 }
 
-function formatScore(v: number | null | undefined): string {
-  return v == null ? '—' : String(v)
-}
-
-function buildBreakdownHTML(
-  props: Record<string, unknown>,
-  weights: CompositeWeights,
-): string {
-  const rows: string[] = []
-  const row = (label: string, val: string) =>
-    `<tr><td style="padding-right:8px;color:#888">${label}</td><td style="text-align:right">${val}</td></tr>`
-
-  if (weights.poiAccess > 0)
-    rows.push(row('Walkability', formatScore(props.poiScore as number)))
-  if (weights.noise > 0)
-    rows.push(row('Noise', formatScore(props.noiseScore as number | null)))
-  if (weights.cityCore > 0)
-    rows.push(row('City Core', formatScore(props.cityScore as number)))
-  if (weights.openPrice > 0)
-    rows.push(row('Market Price', formatScore(props.openPriceScore as number | null)))
-  if ((props.floodPenalty as number) > 0)
-    rows.push(row('River flood', `−${props.floodPenalty as number}`))
-  if ((props.firePenalty as number) > 0)
-    rows.push(row('Wildfire', `−${props.firePenalty as number}`))
-  if ((props.streetPenalty as number) > 0)
-    rows.push(row('Street flooding', `−${props.streetPenalty as number}`))
-
-  if (rows.length === 0) return ''
-  return `<table style="width:100%;border-collapse:collapse;margin-top:4px">${rows.join('')}</table>`
+/** Inside a drawn best zone the zone owns hover and click (feature 038), not the hex underneath. */
+function inBestZone(map: maplibregl.Map, e: maplibregl.MapLayerMouseEvent): boolean {
+  return !!map.getLayer(BEST_ZONES_FILL_LAYER_ID) &&
+    map.queryRenderedFeatures(e.point, { layers: [BEST_ZONES_FILL_LAYER_ID] }).length > 0
 }
 
 export function CompositeLayer() {
@@ -122,10 +98,7 @@ export function CompositeLayer() {
 
   const bundlesRef = useRef<CellBundle[] | null>(null)
   const openPriceMetaRef = useRef<OpenPriceBounds | null>(null)
-  const weightsRef = useRef<CompositeWeights>(weights)
   const [dataLoaded, setDataLoaded] = useState(false)
-
-  useEffect(() => { weightsRef.current = weights }, [weights])
 
   // Lazy-load all data sources the first time the layer is enabled.
   useEffect(() => {
@@ -216,48 +189,26 @@ export function CompositeLayer() {
     if (!visible) setSelectedHexH3(null)
   }, [map, visible, dataLoaded, setSelectedHexH3])
 
-  // Hover tooltip + border highlight.
+  // Hover: white outline + pointer cursor. No tooltip (too noisy) — details open on click.
   useEffect(() => {
     if (!map) return
-    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 })
-
-    function onMove(e: maplibregl.MapLayerMouseEvent) {
-      if (!map) return
-      const props = e.features?.[0]?.properties
-      if (!props) return
+    const outline = (h3: string) =>
+      map.setFilter(HOVER_LAYER_ID, ['==', ['get', 'h3'], h3] as maplibregl.FilterSpecification)
+    const onMove = (e: maplibregl.MapLayerMouseEvent) => {
+      const h3 = e.features?.[0]?.properties?.h3 as string | undefined
+      if (!h3) return
       map.getCanvas().style.cursor = 'pointer'
-      if (map.getLayer(HOVER_LAYER_ID)) {
-        map.setFilter(HOVER_LAYER_ID, ['==', ['get', 'h3'], props.h3] as maplibregl.FilterSpecification)
-      }
-      const breakdown = buildBreakdownHTML(props, weightsRef.current)
-      const gapNote = props.hasGap
-        ? '<div style="color:#aaa;font-size:10px;margin-top:4px">⬤ Missing data for some components</div>'
-        : ''
-      popup
-        .setLngLat(e.lngLat)
-        .setHTML(
-          `<div style="font-size:11px;line-height:1.5;min-width:130px">
-             <strong>Livability: ${props.score}</strong>
-             ${breakdown}${gapNote}
-           </div>`,
-        )
-        .addTo(map)
+      outline(inBestZone(map, e) ? '' : h3)
     }
-    function onLeave() {
-      if (!map) return
+    const onLeave = () => {
       map.getCanvas().style.cursor = ''
-      if (map.getLayer(HOVER_LAYER_ID)) {
-        map.setFilter(HOVER_LAYER_ID, ['==', ['get', 'h3'], ''] as maplibregl.FilterSpecification)
-      }
-      popup.remove()
+      outline('')
     }
-
     map.on('mousemove', FILL_LAYER_ID, onMove)
     map.on('mouseleave', FILL_LAYER_ID, onLeave)
     return () => {
       map.off('mousemove', FILL_LAYER_ID, onMove)
       map.off('mouseleave', FILL_LAYER_ID, onLeave)
-      popup.remove()
     }
   }, [map])
 
@@ -266,7 +217,7 @@ export function CompositeLayer() {
     if (!map) return
     function onClick(e: maplibregl.MapLayerMouseEvent) {
       const h3 = e.features?.[0]?.properties?.h3 as string | undefined
-      if (!h3) return
+      if (!h3 || !map || inBestZone(map, e)) return
       useStore.getState().setSelectedHexH3(
         useStore.getState().selectedHexH3 === h3 ? null : h3
       )

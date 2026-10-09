@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { MultiPolygon, Polygon } from 'geojson'
 import { ALL_LANDMARK_IDS } from '../services/cityCore/landmarks'
 import { DEFAULT_RISK_STRENGTHS, type RiskStrengths } from '../services/climateRisk/climateRisk'
+import { DEFAULT_TOP_PCT, type Bounds } from '../services/bestZones'
 
 export interface CompositeWeights {
   poiAccess: number
@@ -25,10 +26,9 @@ export interface AppState {
   resultPolygon: Polygon | MultiPolygon | null
   noiseLayerVisible: boolean
   mapAttribution: string
-  hoveredAreaIndex: number | null
-  idealistaAreas: Polygon[]
-  idealistaUrls: string[]
-  idealistaZonesVisible: boolean
+  // Best zones — feature 038. Viewport captured by "Draw best zones"; null = no zones.
+  bestZonesBounds: Bounds | null
+  bestZonesTopPct: number
   // Landmark selection for city core component inside composite — feature 021/022
   enabledLandmarkIds: readonly string[]
   // Idealista price dots layer — feature 019
@@ -55,10 +55,8 @@ export interface AppState {
   setResultPolygon: (polygon: Polygon | MultiPolygon | null) => void
   setNoiseLayerVisible: (visible: boolean) => void
   setMapAttribution: (attribution: string) => void
-  setHoveredAreaIndex: (index: number | null) => void
-  setIdealistaAreas: (areas: Polygon[], urls: string[]) => void
-  clearIdealistaAreas: () => void
-  setIdealistaZonesVisible: (visible: boolean) => void
+  setBestZonesBounds: (bounds: Bounds | null) => void
+  setBestZonesTopPct: (topPct: number) => void
   setEnabledLandmarkIds: (ids: readonly string[]) => void
   setIdealistaPricesVisible: (visible: boolean) => void
   setIdealistaPriceRange: (range: [number, number]) => void
@@ -104,6 +102,7 @@ const COMPOSITE_RISK_STRENGTHS_KEY = 'bcn_composite_risk_strengths'
 const FLOOD_LAYER_KEY = 'bcn_flood_layer_visible'
 const WILDFIRE_LAYER_KEY = 'bcn_wildfire_layer_visible'
 const STREET_FLOODING_LAYER_KEY = 'bcn_street_flooding_layer_visible'
+const BEST_ZONES_TOP_PCT_KEY = 'bcn_best_zones_top_pct'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -209,16 +208,19 @@ export const useStore = create<AppState>((set) => {
     },
     mapAttribution: '',
     setMapAttribution: (mapAttribution) => set({ mapAttribution }),
-    hoveredAreaIndex: null,
-    setHoveredAreaIndex: (hoveredAreaIndex) => set({ hoveredAreaIndex }),
-    idealistaAreas: [],
-    idealistaUrls: [],
-    idealistaZonesVisible: true,
-    setIdealistaAreas: (idealistaAreas, idealistaUrls) =>
-      set({ idealistaAreas, idealistaUrls, idealistaZonesVisible: true }),
-    clearIdealistaAreas: () =>
-      set({ idealistaAreas: [], idealistaUrls: [], hoveredAreaIndex: null }),
-    setIdealistaZonesVisible: (idealistaZonesVisible) => set({ idealistaZonesVisible }),
+    bestZonesBounds: null,
+    setBestZonesBounds: (bestZonesBounds) => set({ bestZonesBounds }),
+    bestZonesTopPct: (() => {
+      try {
+        const v = Number(localStorage.getItem(BEST_ZONES_TOP_PCT_KEY))
+        if (v > 0 && v <= 100) return v
+      } catch { /* ignore */ }
+      return DEFAULT_TOP_PCT
+    })(),
+    setBestZonesTopPct: (topPct) => {
+      try { localStorage.setItem(BEST_ZONES_TOP_PCT_KEY, String(topPct)) } catch { /* ignore */ }
+      set({ bestZonesTopPct: topPct })
+    },
     setEnabledLandmarkIds: (ids) => {
       try { localStorage.setItem(CITY_CORE_LANDMARKS_KEY, JSON.stringify(ids)) } catch { /* ignore */ }
       set({ enabledLandmarkIds: ids })

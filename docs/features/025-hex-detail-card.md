@@ -3,7 +3,7 @@
 ## Goal
 
 Clicking any H3 hexagon on the Livability Index layer opens a detail card on the right side
-of the map with all raw and scored data for that cell. Hovering a hex highlights its border in white.
+of the map with all raw and scored data for that cell. Hovering a hex highlights its border in white (no tooltip since 038).
 
 ## User stories
 

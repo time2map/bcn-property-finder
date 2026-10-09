@@ -243,6 +243,26 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Best zones bar — bottom of the map (#038) */
+.best-zones-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  z-index: 10;
+}
+
+/* Mobile: leave room for the filter button on the left */
+@media (max-width: 768px) {
+  .best-zones-bar {
+    left: 72px;
+    right: 16px;
+    width: auto;
+    transform: none;
+  }
+}
+
 /* ─── Split layout ───────────────────────────────────────── */
 .app-split {
   display: flex;

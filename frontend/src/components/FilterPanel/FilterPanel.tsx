@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Text } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
-import { ExportButton } from '../ExportButton/ExportButton'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { ClimateLayerControls } from './ClimateLayerControls'
 import { CompositeControls } from './CompositeControls'
@@ -77,11 +76,7 @@ function IsochroneInfoModal({ opened, onClose }: { opened: boolean; onClose: () 
   )
 }
 
-interface FilterPanelProps {
-  isLoading?: boolean
-}
-
-export function FilterPanel({ isLoading = false }: FilterPanelProps) {
+export function FilterPanel() {
   const {
     minutes, setMinutes,
     noiseLayerVisible, setNoiseLayerVisible,
@@ -126,7 +121,6 @@ export function FilterPanel({ isLoading = false }: FilterPanelProps) {
                 />
               </div>
 
-              <ExportButton isLoading={isLoading} />
               <Divider />
             </>
           )}

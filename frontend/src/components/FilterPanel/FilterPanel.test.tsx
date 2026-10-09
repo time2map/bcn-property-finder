@@ -29,10 +29,6 @@ vi.mock('./CompositeControls', () => ({
   CompositeControls: () => <div data-testid="composite-controls" />,
 }))
 
-vi.mock('../ExportButton/ExportButton', () => ({
-  ExportButton: () => <button>Export</button>,
-}))
-
 vi.mock('@mantine/core', async () => {
   const actual = await vi.importActual<typeof import('@mantine/core')>('@mantine/core')
   return {

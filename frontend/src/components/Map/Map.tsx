@@ -18,7 +18,7 @@ import { WalkabilityLayer } from '../WalkabilityLayer/WalkabilityLayer'
 import { PoiLayer } from '../PoiLayer/PoiLayer'
 import { ExclusionLayer } from '../ExclusionLayer/ExclusionLayer'
 import { ExclusionDraw } from '../ExclusionDraw/ExclusionDraw'
-import { ExportAreasLayer } from '../ExportAreasLayer/ExportAreasLayer'
+import { BestZones } from '../BestZones/BestZones'
 import { IdealistaPricesLayer } from '../IdealistaPricesLayer/IdealistaPricesLayer'
 import { LandmarksLayer } from '../LandmarksLayer/LandmarksLayer'
 import { MapContextMenu } from './MapContextMenu'
@@ -167,7 +167,7 @@ export function Map() {
       <StreetFloodingLayer />
       {features.exclusions && <ExclusionLayer />}
       {features.exclusions && <ExclusionDraw />}
-      {features.isochrone && <ExportAreasLayer />}
+      {features.bestZones && <BestZones />}
       {features.idealistaPrices && <IdealistaPricesLayer />}
       {features.isochrone && <IsochroneLayer />}
       <MetroLayer />

@@ -1,5 +1,7 @@
 # 003 · Idealista export button
 
+> **Superseded by feature 038 (best zones).** The isochrone-based export was removed: the isochrone geometry is too complex for Idealista's `shape`. `services/idealista.ts` (URL encoding) is still used.
+
 ## Goal
 
 One button that opens Idealista filtered to the current isochrone zone.

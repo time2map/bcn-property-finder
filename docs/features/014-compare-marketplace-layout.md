@@ -19,7 +19,7 @@ a headline **Location** score.
 ## Product framing (three jobs)
 
 1. **Zone of interest** — commute isochrone → "Search by area on Idealista". Already
-   implemented (`FilterPanel` / `IsochroneLayer` / `ExportButton`). Not changed here.
+   implemented (`FilterPanel` / `IsochroneLayer` / `ExportButton` (removed in 038)). Not changed here.
 2. **Outdoor** — location quality: routes (walk/transit/cycle/drive), noise, walkability →
    composite **Location** score (`computeCompositeScore`, unchanged; only relabeled from "Score").
 3. **Indoor** — the flat itself: price, area, €/m², rooms, floor, year, photos, notes.

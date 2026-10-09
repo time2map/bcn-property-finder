@@ -23,7 +23,7 @@
 │  └────┬─────┘  │                   Hooks                 │       │ │
 │       │        │  useIsochrone ──► OTP2 + localStorage   │       │ │
 │       │        │  usePinAnalytics ──► OTP2 + noise       │◄──────┘ │
-│       │        │  useIdealistaAreas ──► effective area   │         │
+│       │        │  useBestZones ──► composite → zones     │         │
 │       │        │  useScreenshotDrop ──► Vision + Geocode │         │
 │       │        │  useSplitPane ──► resizable compare pane│         │
 │       │        │  useUrlState ──► URL sync               │         │
@@ -33,7 +33,7 @@
 │  │  otp.ts           geocoding.ts      vision/                   │ │
 │  │  analytics.ts     noise/            (Anthropic Vision)        │ │
 │  │  (travel score +  walkability/      idealista.ts              │ │
-│  │   composite)      cityCore/         idealistaAreas.ts         │ │
+│  │   composite)      cityCore/         bestZones.ts              │ │
 │  │                   composite/        idealista/                 │ │
 │  │                   livability/       parser/                    │ │
 │  └───────┬────────────────┬──────────────┬──────────────────────┘ │
@@ -103,7 +103,7 @@ src/
 │   ├── StreetFloodingLayer/ # RESCCUE street-flooding depth classes, T10/T100 switch (PMTiles) + legend + info modal
 │   ├── WildfireLayer/   # wildfire hazard 2024 classes + WUI outline (PMTiles) + legend + info modal
 │   ├── WalkabilityLayer/  # H3 hex choropleth (walkability only) + legend
-│   ├── CompositeLayer/    # H3 hex choropleth (4-factor composite index) + legend + hover
+│   ├── CompositeLayer/    # H3 hex choropleth (4-factor composite index) + legend; hover outline, click → detail card
 │   │   └── scoreRamp.ts         # shared RdYlGn colour ramp for hex layers
 │   ├── MetroLayer/      # TMB metro lines + station dots (API: api.tmb.cat)
 │   ├── FgcLayer/        # FGC suburban rail lines + stations (static GeoJSON)
@@ -112,13 +112,13 @@ src/
 │   ├── IdealistaPricesLayer/ # Idealista scraped price dots on the map
 │   │   ├── h3Index.ts           # aggregates price dots to H3 medians
 │   │   └── priceColors.ts       # price → colour ramp
-│   ├── HexDetailCard/   # hover / click detail card for a single H3 cell
+│   ├── HexDetailCard/   # click detail card for a single H3 cell
 │   ├── FilterPanel/     # travel time slider + layer toggles + composite/exclusion controls
 │   │   ├── CompositeControls.tsx  # composite index toggle + weight sliders
 │   │   └── ExclusionControls.tsx  # exclusion zone picker + draw mode buttons
-│   ├── ExportButton/    # builds Idealista URL from the effective area
+│   ├── BestZones/       # floating "Draw best zones" bar + zones on the map (feature 038)
+│   │   ├── BestZonesLayer.tsx     # zone outlines + click → Idealista link popup
 │   │   └── BaseUrlInput.tsx       # Idealista base URL input + validation
-│   ├── ExportAreasLayer/ # visual overlay of the decomposed export polygons
 │   ├── ExclusionLayer/  # red fill + outline for no-go zones
 │   ├── ExclusionDraw/   # terra-draw integration (polygon / freehand)
 │   └── PropertyPins/    # apartment pins: map markers, comparison table, photo lightbox
@@ -133,10 +133,10 @@ src/
 ├── hooks/
 │   ├── useIsochrone.ts       # fetches isochrone from OTP2; caches in localStorage
 │   ├── usePinAnalytics.ts    # walk/cycle/drive/transit times + noise Lden per pin
-│   ├── useIdealistaAreas.ts  # computes + stores Idealista export polygon set
+│   ├── useBestZones.ts       # composite scores + captured viewport → best zones + Idealista URLs
 │   ├── useScreenshotDrop.ts  # screenshot drop → Vision parse → geocode → pin
 │   ├── useSplitPane.ts       # resizable split-pane width + collapse state
-│   ├── useEffectiveArea.ts   # isochrone − exclusion zones (shared by mask + export)
+│   ├── useEffectiveArea.ts   # isochrone − exclusion zones (isochrone mask)
 │   └── useUrlState.ts        # syncs Zustand store ↔ URL search params
 ├── store/
 │   ├── index.ts                  # Zustand: workplace, minutes, resultPolygon,
@@ -156,7 +156,7 @@ src/
     ├── analytics.ts     # travelIndex + per-pin compositeScore (travel × noise × walkability)
     ├── imageUtils.ts    # image compression + base64 helpers
     ├── idealista.ts     # GeoJSON → Google Encoded Polyline → Idealista URL; base URL parse
-    ├── idealistaAreas.ts # effective area → simple hole-free polygon set for export
+    ├── bestZones.ts     # H3 scores → up to 3 simple zones (smoothing, percentile, components)
     ├── exclusions.ts    # subtractExclusions (turf union+difference), isPointInExclusions
     ├── areas.ts         # loads areas.geojson; grouped picker options; geometry lookup
     ├── noise/
@@ -228,7 +228,7 @@ H3 hex grid coloured by a **4-factor composite index**: walkability (POI access)
 - **Data**: joins `livability-h3.geojson` + `city-core-h3.geojson` + INCASOL price data into `CellBundle[]` (`services/composite/compositeData.ts`).
 - **Score**: `computeComposite(bundle, weights, enabledLandmarkIds, priceBounds, riskStrengths)` → weighted average (missing data = 0, see feature 022), then climate-risk penalties.
 - **Climate-risk penalties (036, 037)**: `score = base × (1 − sFlood/10 · floodRisk) × (1 − sFire/10 · fireRisk) × (1 − sStreet/10 · streetFloodRisk)` — safe cells keep their score. Raw exposure (`flood_t10/t100/t500`, `fire_wui`, `fire_hazard`, `fire_class`, `fire_dist_m`, `street_t10/t100` — Barcelona only, null elsewhere) is baked into `livability-h3.geojson` by `scripts/climate_risk.py`; risks and penalties are computed in `services/climateRisk`. ENV: `VITE_FLOOD_PENALTY_T10/T100/T500`, `VITE_RISK_STRENGTH_FLOOD/FIRE/STREET`, `VITE_STREET_FLOOD_SATURATION`.
-- **Client**: `CompositeLayer` renders the choropleth; `HexDetailCard` shows per-factor breakdown and the climate-risk explanation on hover/click. `FilterPanel/CompositeControls` hosts the layer toggle + per-factor weight sliders + risk-penalty strengths + landmark selection. `FilterPanel/ClimateLayerControls` toggles the River flood zones / Street flooding / Wildfire hazard view layers.
+- **Client**: `CompositeLayer` renders the choropleth; `HexDetailCard` shows per-factor breakdown and the climate-risk explanation on click. `FilterPanel/CompositeControls` hosts the layer toggle + per-factor weight sliders + risk-penalty strengths + landmark selection. `FilterPanel/ClimateLayerControls` toggles the River flood zones / Street flooding / Wildfire hazard view layers.
 - **State**: `compositeVisible`, `compositeWeights`, `compositeScoreRange`, `compositeRiskStrengths`, `floodLayerVisible`, `wildfireLayerVisible`, `streetFloodingLayerVisible`, `streetFloodingReturnPeriod`, `selectedHexH3`, `enabledLandmarkIds` in Zustand store.
 
 ## Idealista Prices layer (feature 019)
@@ -251,10 +251,10 @@ Statically subtracted from the exported area (feature 015). Zones are defined by
 persist in `localStorage` (`bcn_exclusion_zones`) independent of workplace/isochrone.
 
 - **Data**: `frontend/public/data/areas.geojson` — BCN districtes + barris ([martgnz/bcn-geodata](https://github.com/martgnz/bcn-geodata)) + AMB municipalities ([opendatasoft georef-spain-municipio](https://public.opendatasoft.com)). Built by `scripts/prepare-areas-data.sh`.
-- **Effective area** (`useEffectiveArea`): `subtractExclusions(isochrone, zones)` = `@turf/difference` over `@turf/union`. Shared by the isochrone mask (preview) and the Idealista export so they always match.
-- **Export** (`services/idealistaAreas.ts`, `useIdealistaAreas`): Idealista's `shape` accepts only **one simple, hole-free polygon per search** (multiple polygons → 400, holes → silently filled — probed in a real browser). So the effective area is **decomposed** into the minimal set of simple polygons — holes cut into vertical strips via `@turf/intersect`, slivers dropped by `@turf/area`, rings shortened by `@turf/simplify` — and the UI offers **one `((ring))` link per area** (ENV `VITE_IDEALISTA_*`). `ExportAreasLayer` visualises the decomposed polygons on the map.
+- **Effective area** (`useEffectiveArea`): `subtractExclusions(isochrone, zones)` = `@turf/difference` over `@turf/union`. Used by the isochrone mask.
+- **Export**: the isochrone-based Idealista export was removed in feature 038 (geometry too complex for Idealista's `shape`). Idealista links now come from **best zones** — see `docs/features/038-best-zones.md`.
 - **Pins**: `isPointInExclusions` flags pins inside a zone — "excluded" badge in the compare grid + dimmed map marker (kept, not removed).
-- **Deps**: `terra-draw`, `terra-draw-maplibre-gl-adapter`, `@turf/difference`, `@turf/union`, `@turf/intersect`, `@turf/area`, `@turf/simplify`.
+- **Deps**: `terra-draw`, `terra-draw-maplibre-gl-adapter`, `@turf/difference`, `@turf/union`.
 
 ## Scoring weights (ENV)
 

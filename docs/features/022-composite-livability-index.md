@@ -127,7 +127,7 @@ components/CompositeLayer/
 - Cells with missing data: same fill colour + **black stroke** (`line-width: 1.5`).
 - Toggle: separate switch in FilterPanel ("Livability Index").
 - Opacity: 0.6.
-- Hover: white border highlight (`composite-hover-outline` layer).
+- Hover: white border highlight (`composite-hover-outline` layer) + pointer cursor. The hover tooltip was removed in 038 (too noisy) — details open on click.
 - Click: opens `HexDetailCard` with full breakdown (feature 025).
 
 ---
@@ -204,7 +204,7 @@ Clicking ℹ next to "Livability Index" opens a modal explaining:
 - [x] `CompositeLayer` — integration test: renders on toggle, repaints on weight change.
 - [x] `CompositeControls` — unit tests: checkbox toggle, slider, weight reset/restore, gear modals.
 - [x] `LandmarksLayer` — renders pins for enabled landmarks when composite is active.
-- [x] Hover tooltip shows livability score + per-component breakdown (active components only).
+- [x] ~~Hover tooltip shows livability score + per-component breakdown~~ — removed in 038; breakdown lives in the click card (025).
 - [x] Score range filter: RangeSlider hides cells outside range; legend remaps colour scale.
 - [x] Hover white-border highlight on hex.
 - [x] Click hex → `HexDetailCard` with full breakdown (feature 025).

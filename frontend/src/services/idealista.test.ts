@@ -43,6 +43,46 @@ describe('largestPolygon', () => {
   })
 })
 
+/** Google Encoded Polyline → [lat, lng] pairs (reference decoder for round-trip checks). */
+function decodePolyline(str: string): [number, number][] {
+  const out: [number, number][] = []
+  let i = 0, lat = 0, lng = 0
+  while (i < str.length) {
+    const deltas: number[] = []
+    for (let k = 0; k < 2; k++) {
+      let shift = 0, result = 0, b: number
+      do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5 } while (b >= 0x20)
+      deltas.push(result & 1 ? ~(result >> 1) : result >> 1)
+    }
+    lat += deltas[0]
+    lng += deltas[1]
+    out.push([lat / 1e5, lng / 1e5])
+  }
+  return out
+}
+
+describe('polyline encoding', () => {
+  // Unrounded float coordinates (as produced by turf buffer/simplify): rounding each *delta*
+  // separately accumulates error, so the ring no longer closed and Idealista rejected the link.
+  const ring = Array.from({ length: 40 }, (_, i) => {
+    const a = (i / 40) * 2 * Math.PI
+    return [2.17 + 0.0123456789 * Math.cos(a) + 0.0000049 * i, 41.39 + 0.0098765432 * Math.sin(a) + 0.0000051 * i]
+  })
+  ring.push(ring[0])
+  const polygon = { type: 'Polygon' as const, coordinates: [ring] }
+
+  it('round-trips every vertex to 5 decimals and keeps the ring closed', () => {
+    const shape = decodeURIComponent(new URL(buildIdealistaUrl(polygon)).search.split('shape=')[1]).slice(2, -2)
+    const decoded = decodePolyline(shape)
+    expect(decoded).toHaveLength(ring.length)
+    decoded.forEach(([lat, lng], i) => {
+      expect(lat).toBeCloseTo(Math.round(ring[i][1] * 1e5) / 1e5, 6)
+      expect(lng).toBeCloseTo(Math.round(ring[i][0] * 1e5) / 1e5, 6)
+    })
+    expect(decoded.at(-1)).toEqual(decoded[0])
+  })
+})
+
 describe('buildIdealistaUrl', () => {
   it('returns a valid Idealista URL', () => {
     const url = buildIdealistaUrl(POLYGON)

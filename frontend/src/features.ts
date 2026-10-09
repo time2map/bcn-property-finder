@@ -4,4 +4,5 @@ export const features = {
   pins: import.meta.env.VITE_FEATURE_PINS === 'true',
   idealistaPrices: import.meta.env.VITE_FEATURE_IDEALISTA_PRICES === 'true',
   screenshot: import.meta.env.VITE_FEATURE_SCREENSHOT === 'true',
+  bestZones: import.meta.env.VITE_FEATURE_BEST_ZONES === 'true',
 } as const
