@@ -39,3 +39,6 @@ backend/otp/data/*.csv
 temp/
 /data/
 data/noise/*.geojson
+
+# ICP research (private)
+docs/icps/
