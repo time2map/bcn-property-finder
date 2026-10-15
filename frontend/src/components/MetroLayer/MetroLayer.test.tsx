@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render } from '@testing-library/react'
 import { MapContext } from '../Map/MapContext'
 import { MetroLayer } from './MetroLayer'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 
 const MOCK_LINES = {
   type: 'FeatureCollection',

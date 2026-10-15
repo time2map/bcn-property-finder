@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { useStore } from '../../store'
 import { usePinsStore } from '../../store/pinsStore'
 import { MapContext } from './MapContext'
@@ -24,6 +25,9 @@ import { LandmarksLayer } from '../LandmarksLayer/LandmarksLayer'
 import { MapContextMenu } from './MapContextMenu'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 import { features } from '../../features'
+
+// MapLibre v6 is ESM-only: bundlers must hand it the worker URL explicitly.
+maplibregl.setWorkerUrl(workerUrl)
 
 const PRIMARY_STYLE = 'https://geoserveis.icgc.cat/contextmaps/icgc_mapa_estandard_general.json'
 const FALLBACK_STYLE = 'https://tiles.openfreemap.org/styles/liberty'

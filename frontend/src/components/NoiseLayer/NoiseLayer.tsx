@@ -1,4 +1,5 @@
 import { useContext, useEffect } from 'react'
+import type * as maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { addLayerOrdered } from '../Map/layerOrder'

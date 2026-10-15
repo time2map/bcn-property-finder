@@ -1,4 +1,4 @@
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 
 /**
  * Canonical bottom-to-top z-order for all MapLibre layers in the app.

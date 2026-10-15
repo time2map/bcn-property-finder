@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render } from '@testing-library/react'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import type { Polygon } from 'geojson'
 import { MapContext } from '../Map/MapContext'
 import { ExclusionLayer } from './ExclusionLayer'

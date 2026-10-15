@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { MapContext } from '../Map/MapContext'
 import { IsochroneLayer } from './IsochroneLayer'
 import { useStore } from '../../store'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 
 const POLYGON = {
   type: 'Polygon' as const,

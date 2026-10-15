@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { usePinsStore } from '../../store/pinsStore'
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'

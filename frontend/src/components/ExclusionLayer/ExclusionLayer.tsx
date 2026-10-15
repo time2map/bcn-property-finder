@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { Feature, FeatureCollection } from 'geojson'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useExclusionsStore } from '../../store/exclusionsStore'
 import type { ExclusionZone } from '../../types/exclusions'

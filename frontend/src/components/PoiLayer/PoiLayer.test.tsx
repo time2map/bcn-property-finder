@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { MapContext } from '../Map/MapContext'
 import { PoiLayer } from './PoiLayer'
 import { svgToImage } from './poiUtils'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 
 // Mock all ?raw SVG imports from maki
 vi.mock('@mapbox/maki/icons/grocery.svg?raw',    { factory: () => ({ default: '<svg><path/></svg>' }) })

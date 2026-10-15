@@ -12,9 +12,7 @@ const mockMarker = {
 }
 
 vi.mock('maplibre-gl', () => ({
-  default: {
-    Marker: vi.fn(function () { return mockMarker }),
-  },
+  Marker: vi.fn(function () { return mockMarker }),
 }))
 
 function makeService(categoryId: string): ServiceResult {
@@ -29,7 +27,7 @@ function makeService(categoryId: string): ServiceResult {
   }
 }
 
-const fakeMap = {} as unknown as ReturnType<typeof import('maplibre-gl').default.Map>
+const fakeMap = {} as unknown as import('maplibre-gl').Map
 
 describe('WalkabilityLayer', () => {
   beforeEach(() => {
@@ -57,7 +55,7 @@ describe('WalkabilityLayer', () => {
 
   it('creates markers for each service when a pin with walkabilityServices is selected', async () => {
     const maplibregl = await import('maplibre-gl')
-    const MarkerMock = vi.mocked(maplibregl.default).Marker
+    const MarkerMock = vi.mocked(maplibregl.Marker)
 
     const services = [makeService('supermarket'), makeService('pharmacy')]
     const pinId = usePinsStore.getState().addPin([2.173, 41.385])

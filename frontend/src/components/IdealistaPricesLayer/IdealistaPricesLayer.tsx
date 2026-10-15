@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef } from 'react'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { PRICE_RAMP, buildIconImageExpression } from './priceColors'

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import { ActionIcon, Button, Group, Paper, Popover, Slider, Text } from '@mantine/core'
 import { IconSettings, IconX } from '@tabler/icons-react'
 import { useMap } from '../Map/MapContext'

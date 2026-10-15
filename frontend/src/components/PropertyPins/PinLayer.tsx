@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { usePinsStore } from '../../store/pinsStore'
 import { useStore } from '../../store'

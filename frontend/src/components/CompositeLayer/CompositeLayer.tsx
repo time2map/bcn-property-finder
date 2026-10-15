@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { loadBundles, loadOpenPriceMeta, type CellBundle } from '../../services/composite/compositeData'

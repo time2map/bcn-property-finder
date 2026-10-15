@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Feature, FeatureCollection, Polygon } from 'geojson'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { addLayerOrdered } from '../Map/layerOrder'

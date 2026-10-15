@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { useEffectiveArea } from '../../hooks/useEffectiveArea'

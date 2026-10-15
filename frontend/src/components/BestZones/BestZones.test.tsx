@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
-import type maplibregl from 'maplibre-gl'
+import type * as maplibregl from 'maplibre-gl'
 import { gridDisk, latLngToCell } from 'h3-js'
 import { MapContext } from '../Map/MapContext'
 import { BestZones } from './BestZones'
@@ -16,7 +16,7 @@ const { popup } = vi.hoisted(() => ({
     remove: vi.fn(),
   },
 }))
-vi.mock('maplibre-gl', () => ({ default: { Popup: vi.fn(function () { return popup }) } }))
+vi.mock('maplibre-gl', () => ({ Popup: vi.fn(function () { return popup }) }))
 
 // One 7-cell hot spot (score 90) on a zero-score grid; computeComposite returns `walk` as score.
 const HOT = new Set(gridDisk(latLngToCell(41.39, 2.17, 9), 1))

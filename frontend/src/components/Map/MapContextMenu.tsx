@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import { MapContext } from './MapContext'
 import { buildGoogleMapsUrl } from './googleMapsUrl'
 

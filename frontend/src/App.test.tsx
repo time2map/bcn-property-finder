@@ -30,16 +30,15 @@ vi.mock('@mantine/core', async () => {
 })
 
 vi.mock('maplibre-gl', () => ({
-  default: {
-    Map: vi.fn(function () {
-      return { addControl: vi.fn(), on: vi.fn(), remove: vi.fn() }
-    }),
-    NavigationControl: vi.fn(function () { return {} }),
-    AttributionControl: vi.fn(function () { return {} }),
-    Marker: vi.fn(function () {
-      return { setLngLat: vi.fn().mockReturnThis(), addTo: vi.fn().mockReturnThis(), remove: vi.fn() }
-    }),
-  },
+  setWorkerUrl: vi.fn(),
+  Map: vi.fn(function () {
+    return { addControl: vi.fn(), on: vi.fn(), remove: vi.fn() }
+  }),
+  NavigationControl: vi.fn(function () { return {} }),
+  AttributionControl: vi.fn(function () { return {} }),
+  Marker: vi.fn(function () {
+    return { setLngLat: vi.fn().mockReturnThis(), addTo: vi.fn().mockReturnThis(), remove: vi.fn() }
+  }),
 }))
 
 vi.mock('./hooks/useIsochrone', () => ({
