@@ -42,7 +42,7 @@ feature 018, other factors) slot into the same list of checkboxes that appears u
 
 - Each H3 cell is a filled hexagon coloured by its index (sequential colour scale; green = high).
 - Legend maps colour → score band.
-- Cells with no data (e.g. outside coverage) are not rendered.
+- Cells with no data (e.g. outside coverage, or non-residential land — feature 039) are not rendered.
 - Hover a cell → tooltip with the cell's index and per-factor breakdown (walkability, noise).
 
 ### Index definition
@@ -69,6 +69,8 @@ scripts/
   prepare-livability-grid.(py|sh)
     1. Generate H3 cells covering the coverage area (default: Barcelona city + AMB;
        extendable to a wider Catalonia extent via config) at resolution VITE_LIVABILITY_H3_RES.
+       Cells that are mostly non-residential land (parks, forest, industry, port…) are dropped —
+       see feature 039 (residential mask).
     2. For each cell centroid: compute walkability index (reuse POI pmtiles + walkability logic).
     3. For each cell: compute representative Lden from the noise dataset → noise index.
     4. Emit each cell as a GeoJSON polygon (hex boundary baked in) with

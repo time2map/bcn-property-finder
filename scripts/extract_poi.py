@@ -41,7 +41,7 @@ other_tags=no
 [multipolygons]
 osm_id=yes
 osm_way_id=yes
-attributes=name,amenity,shop,leisure,landuse,natural
+attributes=name,amenity,shop,leisure,landuse,natural,aeroway
 ignore=created_by,converted_by,source,time,note,fixme,FIXME
 other_tags=no
 

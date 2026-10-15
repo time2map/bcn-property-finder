@@ -210,7 +210,7 @@ src/
 
 H3 hex grid coloured by **walkability only** — nearby POI access via distance-decay + per-category saturation. Workplace-independent, precomputed offline.
 
-- **Data**: `frontend/public/data/livability-h3.geojson` — one hexagon per H3 cell (res 9 ≈ 170 m) covering BCN + AMB. Each cell: `{ h3, walk, lden }`.
+- **Data**: `frontend/public/data/livability-h3.geojson` — one hexagon per H3 cell (res 9 ≈ 170 m) covering residential BCN + AMB (non-residential land masked out, feature 039). Each cell: `{ h3, walk, lden }`.
 - **Score**: `computeWalkabilityScore` (services/walkability) — sums `exp(-d/DECAY)` per nearby POI, saturation-capped per category.
 - **Client**: `WalkabilityLayer` renders a GeoJSON fill choropleth (RdYlGn ramp). `livabilityIndex` (services/livability) optionally blends walkability + noise when a "Consider noise" toggle is on.
 - **Precompute** (`scripts/prepare-livability-grid.py`): fills H3 cells, scores walkability from OSM PBF via shapely STRtree, reads `lden` from noise GPKG.

@@ -2,7 +2,8 @@
 """
 Build the static H3 livability grid.
 
-For every H3 cell covering Barcelona + AMB (from frontend/public/data/areas.geojson) compute:
+For every H3 cell covering Barcelona + AMB (from frontend/public/data/areas.geojson), minus cells
+that are mostly non-residential OSM land (feature 039), compute:
   - walk        : walkability index 0-100 (feature 010)
   - lden        : area-average noise level (dB) sampled across H3 child cells (feature 009)
   - sale_eur_m2 : open market sale price €/m² — barri level, muni fallback (INCASOL data)
@@ -32,7 +33,8 @@ import tempfile
 import geopandas as gpd
 import h3
 import numpy as np
-from shapely.geometry import Point, shape
+from shapely.geometry import Point, Polygon, shape
+from shapely.ops import unary_union
 from shapely.strtree import STRtree
 
 # Reuse POI extraction constants/helpers from the feature-010 script (no duplication of OSM config).
@@ -87,6 +89,18 @@ CATEGORIES = {
 }
 TOTAL_WEIGHT = sum(w for _, _, w in CATEGORIES.values())
 
+# Residential mask (feature 039): drop a cell when more than NONRES_MAX_SHARE of its area is clearly
+# non-residential OSM land. Inverse mask because landuse=residential is badly mapped in Barcelona.
+NONRES_MAX_SHARE = float(os.environ.get("NONRES_MAX_SHARE", "0.7"))
+NONRES_WHERE = (
+    "landuse IN ('forest','farmland','meadow','industrial','port','railway','cemetery','military',"
+    "'quarry','vineyard','orchard','allotments','greenhouse_horticulture','landfill','brownfield',"
+    "'greenfield','farmyard','reservoir','basin','salt_pond','plant_nursery','construction')"
+    " OR natural IN ('wood','scrub','heath','grassland','water','wetland','beach','bare_rock','sand')"
+    " OR leisure IN ('park','nature_reserve','golf_course','stadium','marina')"
+    " OR aeroway = 'aerodrome'"
+)
+
 
 def run(cmd, env=None):
     print(f"  $ {' '.join(cmd)}")
@@ -127,12 +141,45 @@ def coverage_cells():
     return cells
 
 
-# ── POI extraction (reuses feature-010 ogr2ogr config) ───────────────────────
-def load_pois(tmp):
+def osm_env(tmp):
     osmconf = os.path.join(tmp, "osmconf.ini")
     with open(osmconf, "w") as f:
         f.write(OSMCONF)
-    env = {"OSM_CONFIG_FILE": osmconf}
+    return {"OSM_CONFIG_FILE": osmconf}
+
+
+# ── Residential mask (feature 039) ───────────────────────────────────────────
+def nonres_share(cell, tree, geoms, land):
+    """Share (0-1) of the cell's land area covered by the non-residential polygons.
+
+    Measured against land only — the sea is no OSM polygon, so a half-sea port cell would
+    otherwise look half residential.
+    """
+    hexagon = Polygon([(lng, lat) for lat, lng in h3.cell_to_boundary(cell)]).intersection(land)
+    hits = [geoms[i] for i in tree.query(hexagon)]
+    if not hits or hexagon.is_empty:
+        return 0.0
+    return unary_union(hits).intersection(hexagon).area / hexagon.area
+
+
+def residential_cells(cells, tmp):
+    # ponytail: untagged empty land stays in; Catastro INSPIRE buildings (currentUse) if that matters.
+    path = os.path.join(tmp, "nonres.geojson")
+    print("Extracting non-residential land from PBF…")
+    run(["ogr2ogr", "-f", "GeoJSON", path, PBF_PATH, "multipolygons", "-where", NONRES_WHERE], osm_env(tmp))
+    with open(path) as f:
+        geoms = [shape(feat["geometry"]).buffer(0) for feat in json.load(f)["features"]]
+    with open(AREAS_PATH) as f:  # municipal boundaries follow the coastline → land mask
+        land = unary_union([shape(feat["geometry"]).buffer(0) for feat in json.load(f)["features"]])
+    tree = STRtree(geoms)
+    kept = {c for c in cells if nonres_share(c, tree, geoms, land) <= NONRES_MAX_SHARE}
+    print(f"   {len(geoms)} polygons; dropped {len(cells) - len(kept)} non-residential cells")
+    return kept
+
+
+# ── POI extraction (reuses feature-010 ogr2ogr config) ───────────────────────
+def load_pois(tmp):
+    env = osm_env(tmp)
 
     poi_pts = os.path.join(tmp, "poi.geojson")
     parks = os.path.join(tmp, "parks.geojson")
@@ -365,6 +412,8 @@ def main():
     print(f"Coverage: {len(cells)} H3 cells")
 
     with tempfile.TemporaryDirectory() as tmp:
+        cells = residential_cells(cells, tmp)
+        print(f"Residential: {len(cells)} H3 cells")
         pois = load_pois(tmp)
         noise = load_noise(tmp)
 
