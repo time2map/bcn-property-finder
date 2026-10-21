@@ -1,7 +1,7 @@
-import { cellsToMultiPolygon, cellToBoundary, gridDisk } from 'h3-js'
+import { cellsToMultiPolygon, cellToBoundary, gridDisk, polygonToCellsExperimental, POLYGON_TO_CELLS_FLAGS } from 'h3-js'
 import buffer from '@turf/buffer'
 import { simplify } from '@turf/simplify'
-import type { Feature, Polygon } from 'geojson'
+import type { Feature, MultiPolygon, Polygon } from 'geojson'
 import { buildIdealistaUrl } from './idealista'
 
 // Feature 038: up to MAX_ZONES compact zones of the best-scoring hexes in the viewport, each simple
@@ -27,6 +27,8 @@ const MAX_VERTICES = Number(import.meta.env.VITE_BEST_ZONES_MAX_VERTICES ?? 20)
 // Idealista 400s on over-long shapes (probed: ~600 chars works, ~1800 fails).
 const MAX_URL_CHARS = Number(import.meta.env.VITE_IDEALISTA_MAX_URL_CHARS ?? 900)
 const MAX_SIMPLIFY_STEPS = 12
+// Livability grid resolution (scripts/prepare-livability-grid.py).
+const RES = 9
 
 /** Mean score over each cell and its 6 neighbours (known cells only) — kills salt-and-pepper. */
 export function smoothScores(scores: Map<string, number>): Map<string, number> {
@@ -46,6 +48,21 @@ export function smoothScores(scores: Map<string, number>): Map<string, number> {
 /** Whole hex inside the viewport — so zones sit inside the view instead of grazing its edge. */
 function inBounds(h3: string, [w, s, e, n]: Bounds): boolean {
   return cellToBoundary(h3).every(([lat, lng]) => lng >= w && lng <= e && lat >= s && lat <= n)
+}
+
+type Poly = Polygon | MultiPolygon
+const cellsOf = (g: Poly, flag: string) =>
+  (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).flatMap((p) => polygonToCellsExperimental(p, RES, flag, true))
+
+/**
+ * Hexes zones may use: whole hex inside the isochrone (when there is one) and not touching any
+ * exclusion zone. Undefined = no restriction.
+ */
+export function allowedCells(isochrone: Poly | null, exclusions: Poly[]): ((h3: string) => boolean) | undefined {
+  if (!isochrone && exclusions.length === 0) return undefined
+  const inside = isochrone && new Set(cellsOf(isochrone, POLYGON_TO_CELLS_FLAGS.containmentFull))
+  const banned = new Set(exclusions.flatMap((g) => cellsOf(g, POLYGON_TO_CELLS_FLAGS.containmentOverlapping)))
+  return (h) => (!inside || inside.has(h)) && !banned.has(h)
 }
 
 /** Connected components of a cell set (H3 adjacency). */
@@ -114,6 +131,8 @@ export interface BestZonesInput {
    * only narrowing/widening inside their own area — so moving the slider doesn't make zones jump.
    */
   sticky?: string[][]
+  /** Only these hexes may be in a zone (see `allowedCells`). */
+  allowed?: (h3: string) => boolean
 }
 
 /**
@@ -141,11 +160,12 @@ export function growZone(core: string[], free: (h: string) => boolean, score: (h
 }
 
 /** Hexes of the best zones in the viewport, best first. Algorithm: docs/features/038-best-zones.md. */
-export function findZoneCells({ scores, bounds, scoreRange, topPct, sticky = [] }: BestZonesInput): string[][] {
+export function findZoneCells({ scores, bounds, scoreRange, topPct, sticky = [], allowed }: BestZonesInput): string[][] {
   const smooth = smoothScores(scores)
   const score = (h: string) => smooth.get(h)!
   const [min, max] = scoreRange
-  const candidates = new Set([...scores].filter(([h, s]) => s >= min && s <= max && inBounds(h, bounds)).map(([h]) => h))
+  const candidates = new Set([...scores]
+    .filter(([h, s]) => s >= min && s <= max && inBounds(h, bounds) && (!allowed || allowed(h))).map(([h]) => h))
   if (candidates.size === 0) return []
 
   const sorted = [...candidates].map(score).sort((a, b) => a - b)

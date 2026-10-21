@@ -2,14 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Polygon } from 'geojson'
 import { useStore } from '../store'
 import { useIdealistaBaseUrlStore } from '../store/idealistaBaseUrlStore'
+import { useExclusionsStore } from '../store/exclusionsStore'
+import { features } from '../features'
 import { loadBundles, loadOpenPriceMeta, type CellBundle } from '../services/composite/compositeData'
 import { computeComposite, type OpenPriceBounds } from '../services/composite/compositeScore'
-import { findZoneCells, zoneOutline } from '../services/bestZones'
+import { allowedCells, findZoneCells, zoneOutline } from '../services/bestZones'
 import { buildIdealistaUrl } from '../services/idealista'
 
 /**
  * Best zones (feature 038) for the captured viewport. Derived state: changing weights, risks,
- * landmarks or score range recomputes them from scratch; changing only strictness keeps them sticky.
+ * landmarks, score range or the isochrone/exclusion restriction recomputes them from scratch; changing
+ * only strictness keeps them sticky.
  * `ready` is false until the score data has loaded (so "no zones" isn't shown prematurely).
  */
 export function useBestZones(): { zones: Polygon[]; urls: string[]; labels: number[]; ready: boolean } {
@@ -20,6 +23,9 @@ export function useBestZones(): { zones: Polygon[]; urls: string[]; labels: numb
   const riskStrengths = useStore((s) => s.compositeRiskStrengths)
   const scoreRange = useStore((s) => s.compositeScoreRange)
   const baseUrl = useIdealistaBaseUrlStore((s) => s.baseUrl)
+  const restrict = useStore((s) => s.bestZonesRestrict)
+  const isochrone = useStore((s) => s.resultPolygon)
+  const exclusions = useExclusionsStore((s) => s.zones)
   const [data, setData] = useState<{ bundles: CellBundle[]; priceBounds: OpenPriceBounds } | null>(null)
 
   // Same module-cached loaders as CompositeLayer — usually already resolved.
@@ -37,19 +43,25 @@ export function useBestZones(): { zones: Polygon[]; urls: string[]; labels: numb
     computeComposite(b, weights, enabledLandmarkIds, data.priceBounds, riskStrengths).score,
   ])), [data, weights, enabledLandmarkIds, riskStrengths])
 
+  const allowed = useMemo(() => (restrict ? allowedCells(
+    features.isochrone ? isochrone : null,
+    features.exclusions ? exclusions.map((z) => z.geometry) : [],
+  ) : undefined), [restrict, isochrone, exclusions])
+
   // Everything but strictness. While it stays the same, the zones of the last fresh computation
   // (the anchor) are handed over as sticky — moving the strictness slider narrows/widens zones in
   // place instead of swapping them, and coming back to a strictness gives the same zones again.
   const key = JSON.stringify([bounds, weights, enabledLandmarkIds, riskStrengths, scoreRange])
-  const anchor = useRef<{ key: string; cells: string[][] } | null>(null)
-  const sticky = anchor.current?.key === key ? anchor.current.cells : undefined
+  const anchor = useRef<{ key: string; allowed: typeof allowed; cells: string[][] } | null>(null)
+  const same = anchor.current?.key === key && anchor.current.allowed === allowed
+  const sticky = same ? anchor.current!.cells : undefined
   const cells = useMemo(
-    () => (bounds && scores ? findZoneCells({ scores, bounds, scoreRange, topPct, sticky }) : []),
-    [bounds, scores, scoreRange, topPct, sticky],
+    () => (bounds && scores ? findZoneCells({ scores, bounds, scoreRange, topPct, sticky, allowed }) : []),
+    [bounds, scores, scoreRange, topPct, sticky, allowed],
   )
   useEffect(() => {
-    if (scores && anchor.current?.key !== key) anchor.current = { key, cells }
-  }, [key, cells, scores])
+    if (scores && !same) anchor.current = { key, allowed, cells }
+  }, [key, allowed, cells, scores, same])
 
   // A zone keeps its anchor's number; a vanished one leaves a gap; newcomers get the next numbers.
   const labels = useMemo(() => {

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type * as maplibregl from 'maplibre-gl'
-import { ActionIcon, Button, Group, Paper, Popover, Slider, Text } from '@mantine/core'
+import { ActionIcon, Button, Checkbox, Group, Paper, Popover, Slider, Text } from '@mantine/core'
 import { IconSettings, IconX } from '@tabler/icons-react'
 import { useMap } from '../Map/MapContext'
 import { useStore } from '../../store'
@@ -8,6 +8,7 @@ import { useBestZones } from '../../hooks/useBestZones'
 import { BestZonesLayer } from './BestZonesLayer'
 import { BaseUrlInput } from './BaseUrlInput'
 import type { Bounds } from '../../services/bestZones'
+import { features } from '../../features'
 
 // Strictness steps as "top X% of visible hexes" — slider left = loose, right = strict.
 // Above ~25% the good areas merge into one city-wide blob, so the loose end stops there.
@@ -50,6 +51,8 @@ export function BestZones() {
   const setBounds = useStore((s) => s.setBestZonesBounds)
   const topPct = useStore((s) => s.bestZonesTopPct)
   const setTopPct = useStore((s) => s.setBestZonesTopPct)
+  const restrict = useStore((s) => s.bestZonesRestrict)
+  const setRestrict = useStore((s) => s.setBestZonesRestrict)
   const { zones, urls, labels, ready } = useBestZones()
 
   // While zones are on, they follow the map: every pan/zoom redraws them for the new view.
@@ -112,6 +115,16 @@ export function BestZones() {
           />
           <Text size="xs" style={{ width: 52, textAlign: 'right' }}>top {topPct}%</Text>
         </Group>
+        {(features.isochrone || features.exclusions) && (
+          <Checkbox
+            mt={8}
+            size="xs"
+            color="#F06965"
+            label="Inside commute zone, outside exclusion zones"
+            checked={restrict}
+            onChange={(e) => setRestrict(e.currentTarget.checked)}
+          />
+        )}
         {ready && zones.length === 0 && (
           <Text size="xs" c="dimmed" mt={6}>No zones fit this view — zoom out</Text>
         )}

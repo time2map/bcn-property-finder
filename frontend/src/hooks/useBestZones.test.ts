@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { gridDisk, latLngToCell } from 'h3-js'
+import { cellsToMultiPolygon, gridDisk, latLngToCell } from 'h3-js'
 import { useBestZones } from './useBestZones'
 import { useStore } from '../store'
 import { useIdealistaBaseUrlStore } from '../store/idealistaBaseUrlStore'
+import { useExclusionsStore } from '../store/exclusionsStore'
 import { findZoneCells, type Bounds } from '../services/bestZones'
 
 // One 7-cell hot spot (score 90) on a zero-score grid. computeComposite is mocked to return
@@ -27,11 +28,13 @@ vi.mock('../services/bestZones', async (importActual) => {
 
 const BCN: Bounds = [2.0, 41.2, 2.4, 41.6]
 const lastSticky = () => vi.mocked(findZoneCells).mock.calls.at(-1)![0].sticky
+const lastAllowed = () => vi.mocked(findZoneCells).mock.calls.at(-1)![0].allowed
 
 describe('useBestZones', () => {
   beforeEach(() => {
-    useStore.setState({ bestZonesBounds: null, bestZonesTopPct: 3, compositeScoreRange: [0, 100] })
+    useStore.setState({ bestZonesBounds: null, bestZonesTopPct: 3, compositeScoreRange: [0, 100], bestZonesRestrict: true, resultPolygon: null })
     useIdealistaBaseUrlStore.setState({ baseUrl: null })
+    useExclusionsStore.setState({ zones: [] })
   })
 
   it('returns no zones until a viewport is captured', () => {
@@ -88,5 +91,24 @@ describe('useBestZones', () => {
     vi.mocked(findZoneCells).mockReturnValueOnce([a.slice(0, 3), c, a.slice(3)])
     act(() => useStore.getState().setBestZonesTopPct(5))
     expect(result.current.labels).toEqual([1, 3, 4])
+  })
+
+  it('restricts zones to the isochrone minus exclusion zones while the checkbox is on', async () => {
+    const hot = latLngToCell(41.39, 2.17, 9)
+    const { result } = renderHook(() => useBestZones())
+    act(() => useStore.getState().setBestZonesBounds(BCN))
+    await waitFor(() => expect(result.current.zones.length).toBeGreaterThan(0))
+    expect(lastAllowed()).toBeUndefined() // nothing to restrict to yet
+
+    act(() => useExclusionsStore.setState({ zones: [{
+      id: 'x', name: 'No-go', source: 'drawn',
+      geometry: { type: 'MultiPolygon', coordinates: cellsToMultiPolygon([...HOT], true) },
+    }] }))
+    expect(lastAllowed()!(hot)).toBe(false)
+    expect(lastSticky()).toBeUndefined() // a new restriction is a fresh computation
+    expect(vi.mocked(findZoneCells).mock.results.at(-1)!.value.flat()).not.toContain(hot)
+
+    act(() => useStore.getState().setBestZonesRestrict(false))
+    expect(lastAllowed()).toBeUndefined()
   })
 })

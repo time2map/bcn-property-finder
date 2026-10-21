@@ -36,6 +36,10 @@ optionally `sticky` (zones to keep, see step 6).
    score range (= the cells the user actually sees). Whole hexes, not centres — so a zone sits inside
    the view (only the ~55 m buffer can stick out) instead of grazing its edge. The visible area is the
    map viewport minus the left filter panel and the right hex detail card when it is open.
+   With **Inside commute zone, outside exclusion zones** ticked (default), a candidate must also lie
+   entirely inside the isochrone (when one is drawn) and not touch any exclusion zone (015) —
+   `allowedCells(isochrone, exclusions)` via H3 `polygonToCellsExperimental` (full containment for
+   the isochrone, overlap for exclusions).
 3. **Threshold (strictness).** `T` = the `(1 − topPct/100)` quantile of `s̄` over candidates — the
    top `topPct`% of visible hexes. Percentile, not an absolute score, so it works for any weights.
 4. **Cores.** Hexes with `s̄ ≥ T` are grouped into connected components (H3 adjacency) and ranked by
@@ -98,6 +102,8 @@ viewport), shown only while the Livability Index is on:
 │ [Draw best zones]          [⚙] │   ← zones off
 │ [× Clear zones]            [⚙] │   ← zones on
 │ Strictness ────●──── top 15%   │
+│ ☑ Inside commute zone, outside │
+│   exclusion zones              │
 └────────────────────────────────┘
 ```
 
@@ -109,11 +115,15 @@ viewport), shown only while the Livability Index is on:
 - **⚙** — popover with the saved Idealista filter URL (`BaseUrlInput`, feature 016).
 - **Strictness** — steps `top 25 / 20 / 15 / 10 / 7 / 5 %` (right = stricter), persisted. Above ~25%
   the good areas merge into one city-wide blob.
+- **Inside commute zone, outside exclusion zones** — checkbox, on by default, persisted
+  (`bestZonesRestrict`). Shown when the isochrone or exclusions feature is on. Toggling it, or a
+  change of the isochrone / exclusion zones, recomputes the zones fresh (not sticky). The exclusion
+  zones are drawn in the left panel (015, `VITE_FEATURE_EXCLUSIONS`).
 - No zone fits (view smaller than one zone): `No zones fit this view — zoom out`.
 - Mobile: bar sits at the bottom, right of the filters button.
 
 Zones are **derived state**: the store keeps only the captured view (`bestZonesBounds`, null = off)
-and the strictness (`bestZonesTopPct`).
+the strictness (`bestZonesTopPct`) and the restriction checkbox (`bestZonesRestrict`).
 
 On the map (`BestZonesLayer`): dashed violet outline + light fill + zone number; hover highlights the
 zone; **click a zone → popup `Open zone N in Idealista ↗`** (uses the saved filters).
@@ -158,7 +168,7 @@ Kept: `services/idealista.ts` (`buildIdealistaUrl`, `parseIdealistaBaseUrl`),
 ```
 frontend/src/
   services/bestZones.ts            — findZoneCells (smoothing, percentile, cores, ties, sticky, growth),
-                                     growZone, zoneOutline, findBestZones
+                                     growZone, zoneOutline, findBestZones, allowedCells
   services/idealista.ts            — polyline encoding fix
   hooks/useBestZones.ts            — composite scores (loadBundles + computeComposite) → zones, URLs,
                                      stable numbers; sticky anchor for strictness-only changes
@@ -171,7 +181,7 @@ frontend/src/
   components/Map/Map.tsx           — renders <BestZones /> inside MapContext (behind features.bestZones)
   components/Map/layerOrder.ts     — best-zones-* layers replace export-areas-*
   components/FilterPanel/          — ExportButton removed
-  store/index.ts                   — bestZonesBounds, bestZonesTopPct (persisted)
+  store/index.ts                   — bestZonesBounds, bestZonesTopPct, bestZonesRestrict (persisted)
   index.css                        — .best-zones-bar (desktop + mobile)
 ```
 
@@ -196,9 +206,11 @@ frontend/src/
 - [x] Unit tests — `bestZones`: smoothing, lone spike ignored, mass ranking, near-ties (up to 5, weak
       4th hidden), viewport + whole-hex rule, score range, stricter = smaller, compact growth,
       never 0 (tiny core grown, boxed-in fallback), uniform area = one zone, zones never touch,
-      sticky (keeps place, adds tie, disappears), hole-free closed rings ≤ 20 vertices, URL budget.
+      sticky (keeps place, adds tie, disappears), hole-free closed rings ≤ 20 vertices, URL budget,
+      `allowedCells` (isochrone + exclusions, exclusions only) and no zone on a disallowed hex.
       `idealista`: polyline round-trip keeps the ring closed. `useBestZones`: anchor stickiness, new
-      view starts fresh, stable numbers (gap, split). `BestZones`: toggle + Esc, auto-redraw on pan,
+      view starts fresh, stable numbers (gap, split), isochrone/exclusion restriction on ↔ off.
+      `BestZones`: restriction checkbox (on by default), toggle + Esc, auto-redraw on pan,
       side panels excluded, strictness slider, empty state, hover, cleanup. `CompositeLayer`: hover
       outline without tooltip, zone priority for hover and click.
 - [x] Integration test: **Draw best zones** → zone on the map → click → popup link with `shape=` and

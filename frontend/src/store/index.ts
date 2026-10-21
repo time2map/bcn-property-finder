@@ -29,6 +29,8 @@ export interface AppState {
   // Best zones — feature 038. Viewport captured by "Draw best zones"; null = no zones.
   bestZonesBounds: Bounds | null
   bestZonesTopPct: number
+  /** Best zones only inside the isochrone and outside exclusion zones. */
+  bestZonesRestrict: boolean
   // Landmark selection for city core component inside composite — feature 021/022
   enabledLandmarkIds: readonly string[]
   // Idealista price dots layer — feature 019
@@ -57,6 +59,7 @@ export interface AppState {
   setMapAttribution: (attribution: string) => void
   setBestZonesBounds: (bounds: Bounds | null) => void
   setBestZonesTopPct: (topPct: number) => void
+  setBestZonesRestrict: (restrict: boolean) => void
   setEnabledLandmarkIds: (ids: readonly string[]) => void
   setIdealistaPricesVisible: (visible: boolean) => void
   setIdealistaPriceRange: (range: [number, number]) => void
@@ -103,6 +106,7 @@ const FLOOD_LAYER_KEY = 'bcn_flood_layer_visible'
 const WILDFIRE_LAYER_KEY = 'bcn_wildfire_layer_visible'
 const STREET_FLOODING_LAYER_KEY = 'bcn_street_flooding_layer_visible'
 const BEST_ZONES_TOP_PCT_KEY = 'bcn_best_zones_top_pct'
+const BEST_ZONES_RESTRICT_KEY = 'bcn_best_zones_restrict'
 
 export function readWorkplaceFromStorage(): [number, number] | null {
   try {
@@ -220,6 +224,13 @@ export const useStore = create<AppState>((set) => {
     setBestZonesTopPct: (topPct) => {
       try { localStorage.setItem(BEST_ZONES_TOP_PCT_KEY, String(topPct)) } catch { /* ignore */ }
       set({ bestZonesTopPct: topPct })
+    },
+    bestZonesRestrict: (() => {
+      try { return localStorage.getItem(BEST_ZONES_RESTRICT_KEY) !== 'false' } catch { return true }
+    })(),
+    setBestZonesRestrict: (restrict) => {
+      try { localStorage.setItem(BEST_ZONES_RESTRICT_KEY, String(restrict)) } catch { /* ignore */ }
+      set({ bestZonesRestrict: restrict })
     },
     setEnabledLandmarkIds: (ids) => {
       try { localStorage.setItem(CITY_CORE_LANDMARKS_KEY, JSON.stringify(ids)) } catch { /* ignore */ }

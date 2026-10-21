@@ -170,6 +170,15 @@ describe('BestZones', () => {
     expect(useStore.getState().bestZonesTopPct).toBe(10)
   })
 
+  it('checkbox: search inside the commute zone and outside exclusion zones, on by default', () => {
+    useStore.setState({ bestZonesRestrict: true })
+    renderBar()
+    const box = screen.getByLabelText('Inside commute zone, outside exclusion zones')
+    expect(box).toBeChecked()
+    fireEvent.click(box)
+    expect(useStore.getState().bestZonesRestrict).toBe(false)
+  })
+
   it('says so when nothing qualifies', async () => {
     useStore.setState({ compositeScoreRange: [95, 100] })
     renderBar()

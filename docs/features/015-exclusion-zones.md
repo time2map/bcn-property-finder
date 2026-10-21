@@ -65,6 +65,8 @@ A pin whose coordinates fall inside any exclusion zone is **flagged**, not remov
 > **Idealista export sections below are superseded by feature 038 (best zones).** The decomposition
 > (`idealistaAreas.ts`, `useIdealistaAreas`, `ExportButton`, `ExportAreasLayer`) and its `VITE_IDEALISTA_*`
 > variables (except `MAX_URL_CHARS`) were removed. The URL constraints below still apply.
+> Exclusion zones (and the isochrone) now restrict the best zones instead — checkbox **Inside commute
+> zone, outside exclusion zones** in the best-zones bar (038).
 
 ## Idealista export — URL constraints
 

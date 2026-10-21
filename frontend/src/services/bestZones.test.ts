@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { cellToLatLng, gridDisk, gridDistance, gridPathCells, latLngToCell } from 'h3-js'
+import { cellsToMultiPolygon, cellToLatLng, gridDisk, gridDistance, gridPathCells, latLngToCell } from 'h3-js'
 import { booleanPointInPolygon } from '@turf/boolean-point-in-polygon'
-import type { Polygon } from 'geojson'
-import { findBestZones, findZoneCells, growZone, smoothScores, type Bounds } from './bestZones'
+import type { MultiPolygon, Polygon } from 'geojson'
+import { allowedCells, findBestZones, findZoneCells, growZone, smoothScores, type Bounds } from './bestZones'
 import { buildIdealistaUrl } from './idealista'
 
 const RES = 9
@@ -46,6 +46,31 @@ describe('growZone', () => {
     expect(zone).toHaveLength(5)
     const span = Math.max(...zone.flatMap((a) => zone.map((b) => gridDistance(a, b))))
     expect(span).toBeLessThanOrEqual(2) // a 5-hex strip would span 4
+  })
+})
+
+/** Outline of the hexes within `k` of a point, as GeoJSON. */
+const area = ([lat, lng]: [number, number], k: number): MultiPolygon =>
+  ({ type: 'MultiPolygon', coordinates: cellsToMultiPolygon(gridDisk(latLngToCell(lat, lng, RES), k), true) })
+
+describe('allowedCells', () => {
+  const cell = ([lat, lng]: [number, number]) => latLngToCell(lat, lng, RES)
+
+  it('no isochrone and no exclusions = no restriction', () => {
+    expect(allowedCells(null, [])).toBeUndefined()
+  })
+
+  it('allows hexes inside the isochrone that do not touch an exclusion zone', () => {
+    const allowed = allowedCells(area(A, 8), [area(A, 1)])!
+    expect(allowed(cell(A))).toBe(false) // inside the exclusion
+    expect(allowed(gridDisk(cell(A), 4).find((h) => gridDistance(cell(A), h) === 4)!)).toBe(true)
+    expect(allowed(cell(B))).toBe(false) // outside the isochrone
+  })
+
+  it('without an isochrone, only exclusions apply', () => {
+    const allowed = allowedCells(null, [area(A, 1)])!
+    expect(allowed(cell(A))).toBe(false)
+    expect(allowed(cell(B))).toBe(true)
   })
 })
 
@@ -166,6 +191,15 @@ describe('findBestZones', () => {
     })
     expect(contains(zones[0], ...A)).toBe(true)
     expect(zones.some((z) => contains(z, ...B))).toBe(false)
+  })
+
+  it('never puts a zone on a disallowed hex', () => {
+    const scores = grid([[...A, 3, 90], [...B, 2, 80]])
+    const allowed = allowedCells(null, [area(A, 3)])
+    const cells = findZoneCells({ ...base, scores, allowed }).flat()
+    expect(cells.length).toBeGreaterThan(0)
+    expect(cells.every(allowed!)).toBe(true)
+    expect(cells).toContain(latLngToCell(B[0], B[1], RES)) // the next best area instead
   })
 
   it('stricter = smaller zone', () => {
