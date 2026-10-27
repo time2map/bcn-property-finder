@@ -42,3 +42,7 @@ data/noise/*.geojson
 
 # ICP research (private)
 docs/icps/
+
+# Idealista scrape (private: kept locally, never published)
+frontend/public/data/idealista_prices.geojson
+scripts/har_to_geojson.py
