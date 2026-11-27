@@ -3,13 +3,15 @@ import { render, screen } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
 import { useStore } from '../../store'
 import { CompositeLegend } from './CompositeLegend'
+import { MobileLegend } from '../MobileMap/MobileLegend'
 
 const renderLegend = () => render(<MantineProvider><CompositeLegend /></MantineProvider>)
+const square = { type: 'Polygon' as const, coordinates: [[[2, 41], [2.1, 41], [2.1, 41.1], [2, 41.1], [2, 41]]] }
 
-describe('CompositeLegend (TODO-050)', () => {
-  beforeEach(() => useStore.setState({ contrastBoost: false, compositeColorRange: [0, 100] }))
+describe('CompositeLegend (TODO-050, 077)', () => {
+  beforeEach(() => useStore.setState({ resultPolygon: null }))
 
-  it('shows the four match bands by default, without numbers', () => {
+  it('shows the four match bands, without numbers or a gradient', () => {
     renderLegend()
     for (const label of ['Great match', 'Good match', 'Partial match', 'Poor match']) {
       expect(screen.getByText(label)).toBeInTheDocument()
@@ -18,13 +20,27 @@ describe('CompositeLegend (TODO-050)', () => {
     expect(screen.queryByText(/85/)).not.toBeInTheDocument()
   })
 
-  it('shows the fitted gradient and its range with Boost contrast on', () => {
-    useStore.setState({ contrastBoost: true, compositeColorRange: [42, 88] })
+  it('with an isochrone: a worse → better gradient stretched over the commute zone, no numbers', () => {
+    useStore.setState({ resultPolygon: square })
     renderLegend()
     expect(screen.getByLabelText('Composite score colour scale')).toBeInTheDocument()
-    expect(screen.getByText('42')).toBeInTheDocument()
-    expect(screen.getByText('88')).toBeInTheDocument()
-    expect(screen.getByText(/relative to the visible area/)).toBeInTheDocument()
+    expect(screen.getByText('Worse')).toBeInTheDocument()
+    expect(screen.getByText('Better')).toBeInTheDocument()
+    expect(screen.getByText('Colours stretched over your commute zone')).toBeInTheDocument()
     expect(screen.queryByText('Great match')).not.toBeInTheDocument()
+  })
+})
+
+describe('MobileLegend (TODO-062, 077)', () => {
+  beforeEach(() => useStore.setState({ resultPolygon: null, compositeVisible: true }))
+
+  it('the bands, or with an isochrone the worse → better gradient', () => {
+    const { unmount } = render(<MobileLegend />)
+    expect(screen.getByLabelText('Match bands')).toBeInTheDocument()
+    unmount()
+    useStore.setState({ resultPolygon: square })
+    render(<MobileLegend />)
+    expect(screen.getByLabelText('Composite score colour scale')).toBeInTheDocument()
+    expect(screen.getByText('Worse')).toBeInTheDocument()
   })
 })

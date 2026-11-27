@@ -23,6 +23,8 @@ export function BestAreasControls() {
   const count = useStore((s) => s.bestZonesCount)
   const restrict = useStore((s) => s.bestZonesRestrict)
   const setRestrict = useStore((s) => s.setBestZonesRestrict)
+  // With an isochrone the zones cover all of it, and the restriction is always on (077).
+  const commute = useStore((s) => features.isochrone && s.resultPolygon !== null)
 
   const heading = (
     <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.06em' }}>{t('best.title')}</Text>
@@ -64,10 +66,10 @@ export function BestAreasControls() {
         </Popover>
       </Group>
       <Text size="sm" fw={600}>
-        {count === null ? t('best.looking') : t('best.count', { count })}
+        {count === null ? t('best.looking') : t(commute ? 'best.countCommute' : 'best.count', { count })}
       </Text>
       {count === 0 ? (
-        <Text size="xs" c="dimmed">{t('best.none')}</Text>
+        <Text size="xs" c="dimmed">{t(commute ? 'best.noneCommute' : 'best.none')}</Text>
       ) : (
         <Text size="xs" c="dimmed">{t('best.top', { pct: topPct })}</Text>
       )}
@@ -82,7 +84,7 @@ export function BestAreasControls() {
         </Button>
         <Button variant="subtle" color="gray" size="sm" onClick={() => setBounds(null)} title="Esc">{t('best.hide')}</Button>
       </Group>
-      {(features.isochrone || features.exclusions) && (
+      {(features.isochrone || features.exclusions) && !commute && (
         <Checkbox
           size="xs"
           className="ink-control"

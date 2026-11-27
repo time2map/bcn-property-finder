@@ -1,5 +1,12 @@
 # 032 — Colour scale fitted to the visible area
 
+**Status: Deprecated 2026-11-27 (077).** "Boost contrast for this view" was removed: the colours are always on the
+fixed 0–100 scale (050), so a green means the same anywhere, and with an isochrone the commute zone (077) is what
+narrows the map. Don't bring back a fitted scale unless users ask to tell apart homes inside one band.
+
+**Partly back (077, 2026-11-27):** `fitScoreRange` stretches the colours over the commute zone when an isochrone is
+drawn; it never follows the visible area.
+
 **Superseded by TODO-046 (2026-11-04):** computed per residential building; the H3 hex version described below was removed.
 
 **Status:** Done 2026-10-27. Default off since 050 (2026-11-11); available as "Boost contrast for this view".

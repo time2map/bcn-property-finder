@@ -111,7 +111,7 @@ describe('BuildingCard (TODO-046)', () => {
     useStore.setState({
       compositeWeights: DEFAULT_COMPOSITE_WEIGHTS, enabledWalkCategories: ['supermarket', 'park'],
       enabledLandmarkIds: ['sagrada'], compositeRiskStrengths: { flood: 5, fire: 5, street: 5 },
-      compositeColorRange: [0, 100], ageEras: ['before-1900', '1900-1939', '1940-1979', '1980-2006', '2007-on'],
+      ageEras: ['before-1900', '1900-1939', '1940-1979', '1980-2006', '2007-on'],
       conditions: DEFAULT_CONDITIONS, buildingScores: null,
     })
   })

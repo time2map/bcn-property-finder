@@ -24,7 +24,7 @@ describe('settings in the URL (TODO-053)', () => {
     expect(JSON.parse(localStorage.getItem('bcn_walk_categories')!)).toEqual(['park', 'school'])
   })
 
-  it('reads the conditions that are on, their order, the risks, the flat size and the contrast', async () => {
+  it('reads the conditions that are on, their order, the risks and the flat size; an old cb key is ignored (077)', async () => {
     localStorage.clear()
     const s = await loadStoreAt('?c=on:price,noise,risk;r:5,8,0;fa:90;cb:1')
     const st = s.getState()
@@ -32,7 +32,6 @@ describe('settings in the URL (TODO-053)', () => {
     expect(st.compositeWeights).toMatchObject({ openPrice: 1, noise: 1, poiAccess: 0, cityCore: 0 })
     expect(st.compositeRiskStrengths).toEqual({ flood: 5, fire: 8, street: 0 })
     expect(st.flatAreaM2).toBe(90)
-    expect(st.contrastBoost).toBe(true)
     expect(localStorage.getItem('bcn_flat_area_m2')).toBe('90')
     expect(JSON.parse(localStorage.getItem('bcn_condition_order')!)).toEqual(['openPrice', 'noise', 'risk'])
   })

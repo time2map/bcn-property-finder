@@ -11,7 +11,7 @@ They are build-time values: changing one needs a rebuild or a dev-server restart
 
 | Flag | What it gates in the code | Production | Plan |
 |------|---------------------------|------------|------|
-| `VITE_FEATURE_ISOCHRONE` | workplace click + draggable marker, `IsochroneLayer`, commute slider and info modal, `useIsochrone` (OTP2) | off | needs a hosted OTP2 |
+| `VITE_FEATURE_ISOCHRONE` | the Daily trip condition (078: "+ Daily trip", pick on the map, draggable marker), `IsochroneLayer`, `useIsochrone` (OTP2); with an isochrone drawn, buildings, area ranks and best zones cover only the commute zone and the colours are stretched over it (077) | off | needs a hosted OTP2 |
 | `VITE_FEATURE_EXCLUSIONS` | `ExclusionLayer`, `ExclusionDraw`, `ExclusionControls`; exclusions in best zones | off | soon |
 | `VITE_FEATURE_PINS` | `ComparePane`, `AddPinButton`, `PinLayer`, `PinAccuracyLayer`, `WalkabilityLayer`, add-pin click mode, mobile Map/Compare toggle | off | later |
 | `VITE_FEATURE_SCREENSHOT` | `ScreenshotDropZone` around the map; the Claude Vision call (the SDK is left out of the bundle when off) | off | later: the API key must not reach the browser |
@@ -25,6 +25,6 @@ They are build-time values: changing one needs a rebuild or a dev-server restart
 | `VITE_COMMERCIAL_USE` | commercial launch: turns off street flooding (layer and penalty) until its licence is confirmed (TODO-066) | off | off until licences are confirmed |
 
 The "Inside commute zone, outside exclusion zones" option of best zones is shown only when `ISOCHRONE` or
-`EXCLUSIONS` is on.
+`EXCLUSIONS` is on, and hidden while an isochrone is drawn: then the restriction is always on (077).
 
 When a feature goes fully public, remove its flag from the code and delete its row here.

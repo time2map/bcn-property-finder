@@ -35,7 +35,7 @@ function buildSourceData(
 
   const outline: Feature = {
     type: 'Feature',
-    properties: { layer: 'outline', text: `${minutes} min from work` },
+    properties: { layer: 'outline', text: `${minutes} min by public transport` },
     geometry: polygon,
   }
 

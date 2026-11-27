@@ -56,6 +56,7 @@
     "localsOpinion": "Residents rate the area at least <limit/> out of 10",
     "age": "Built in <eras/>",
     "risk": "<level/> flood and wildfire risk",
+    "commute": "<place/> within <limit/> by public transport",
     "noiseTitle": "How quiet should the street side be?",
     "walkTitle": "How far would you walk for daily errands?",
     "centreTitle": "How close to the centre?",
@@ -82,6 +83,15 @@
     "riskTitle": "How much should flood and wildfire risk count?",
     "avoid": "Avoid",
     "strong": "Strongly avoid",
-    "custom": "Custom"
+    "custom": "Custom",
+    "commuteTitle": "How long a trip by public transport?",
+    "commuteNote": "Public transport and walking, leaving at 9:00 on a weekday.",
+    "commutePlaceTitle": "Where do you go every day?",
+    "commuteCentre": "The centre",
+    "commuteCentreOption": "The centre ({{name}})",
+    "commutePick": "Pick on the map",
+    "commutePicking": "Click the map…",
+    "commuteSpot": "Your spot",
+    "commuteSpotMarker": "Your spot"
   }
 }

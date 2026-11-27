@@ -40,6 +40,9 @@ import { PHONE_QUERY } from '../../services/phoneConfig'
 import { loadMapStyle, type MapStyle } from '../../services/mapStyle'
 import { registerPmtilesProtocol } from '../../services/noise/pmtilesProtocol'
 import { constrainToBounds, MAP_MIN_ZOOM } from './mapBounds'
+import { useCommutePick } from './useCommutePick'
+import { commutePlaceName, isCommuteCentre } from '../../services/conditionOptions'
+import i18n from '../../i18n'
 
 // MapLibre v6 is ESM-only: bundlers must hand it the worker URL explicitly.
 maplibregl.setWorkerUrl(workerUrl)
@@ -95,14 +98,12 @@ export function Map() {
   // Keep refs current so the stable map click handler can read latest values
   const isAddingPinRef = useRef(isAddingPin)
   const addPinRef = useRef(addPin)
-  const workplaceRef = useRef(workplace)
   const zoomRef = useRef(zoom)
   const mapCenterRef = useRef(mapCenter)
   const drawingModeRef = useRef(drawingMode)
   useEffect(() => { drawingModeRef.current = drawingMode }, [drawingMode])
   useEffect(() => { isAddingPinRef.current = isAddingPin }, [isAddingPin])
   useEffect(() => { addPinRef.current = addPin }, [addPin])
-  useEffect(() => { workplaceRef.current = workplace }, [workplace])
   useEffect(() => { zoomRef.current = zoom }, [zoom])
   useEffect(() => { mapCenterRef.current = mapCenter }, [mapCenter])
 
@@ -127,8 +128,6 @@ export function Map() {
       if (features.pins && isAddingPinRef.current) {
         addPinRef.current([e.lngLat.lng, e.lngLat.lat])
         setIsAddingPin(false)
-      } else if (features.isochrone && !workplaceRef.current) {
-        setWorkplace([e.lngLat.lng, e.lngLat.lat])
       }
     })
     map.on('moveend', () => {
@@ -196,7 +195,10 @@ export function Map() {
     return () => window.removeEventListener('keydown', handler)
   }, [setIsAddingPin])
 
-  // Sync workplace marker (draggable)
+  // The daily trip place is picked with a click on the map (078); the first click no longer sets it.
+  useCommutePick(features.isochrone ? mapInstance : null)
+
+  // Sync the marker of the daily trip place (draggable). Not "Work": the place may be a university or a school (078).
   useEffect(() => {
     if (!features.isochrone) return
     if (!mapInstance) return
@@ -204,7 +206,9 @@ export function Map() {
     if (!workplace) return
     const el = document.createElement('div')
     el.className = 'work-marker'
-    el.innerHTML = '<span class="work-marker__label">Work</span><div class="work-marker__dot"></div>'
+    el.innerHTML = '<span class="work-marker__label"></span><div class="work-marker__dot"></div>'
+    el.querySelector('.work-marker__label')!.textContent = isCommuteCentre(workplace)
+      ? commutePlaceName() : i18n.t('editor:sentence.commuteSpotMarker')
     const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', draggable: true })
       .setLngLat(workplace)
       .addTo(mapInstance)

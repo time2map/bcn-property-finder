@@ -68,7 +68,7 @@ describe('AreasLayer (TODO-051)', () => {
     popups.length = 0
     join = new Map([[0, polygon('Raval')], [3, polygon('Gòtic')]])
     useSearchStore.setState({ selection: null })
-    useStore.setState({ compositeVisible: true, compositeWeights: DEFAULT_COMPOSITE_WEIGHTS, compositeColorRange: [0, 100], areaRanks: null })
+    useStore.setState({ compositeVisible: true, compositeWeights: DEFAULT_COMPOSITE_WEIGHTS, areaRanks: null, resultPolygon: null })
   })
 
   it('adds nothing until the polygons are matched', () => {
@@ -115,12 +115,31 @@ describe('AreasLayer (TODO-051)', () => {
     expect(map.states.get(3)).toMatchObject({ incomplete: false })
   })
 
-  it('follows the colour range of the buildings (Boost contrast)', () => {
+  it('an area that drops out of the ranks (outside the isochrone, 077) is cleared, with no tooltip or click', () => {
     const map = makeFakeMap()
     renderLayer(map)
-    map.setPaintProperty.mockClear()
-    act(() => useStore.setState({ compositeColorRange: [40, 80] }))
-    expect(map.setPaintProperty).toHaveBeenCalledWith(AREAS_FILL_ID, 'fill-color', expect.anything())
+    act(() => useStore.setState({ areaRanks: [rank(0), rank(3)] }))
+    act(() => useStore.setState({ areaRanks: [rank(0, { mean: 55 })] }))
+    expect(map.states.get(0)).toEqual({ score: 55, incomplete: false })
+    expect(map.states.get(3)).toEqual({ score: null, incomplete: false })
+    handler(map, 'mousemove')({ features: [{ id: 3 }], lngLat: { lng: 2, lat: 41 } })
+    expect(popups).toHaveLength(0)
+    handler(map, 'click')({ features: [{ id: 3 }] })
+    expect(useSearchStore.getState().selection).toBeNull()
+  })
+
+  it('with an isochrone the colours stretch over the means of the areas inside; without it, 0–100 (077)', () => {
+    const map = makeFakeMap()
+    renderLayer(map)
+    const stops = () => {
+      const call = map.setPaintProperty.mock.calls.filter(([l, p]) => l === AREAS_FILL_ID && p === 'fill-color').at(-1)!
+      return ((call[2] as unknown[][])[2].slice(3) as number[]).filter((_, i) => i % 2 === 0)
+    }
+    const square = { type: 'Polygon' as const, coordinates: [[[2, 41], [2.1, 41], [2.1, 41.1], [2, 41.1], [2, 41]]] }
+    act(() => useStore.setState({ resultPolygon: square, areaRanks: [rank(0, { mean: 50 }), rank(3, { mean: 70 })] }))
+    expect(stops()).toEqual([50, 55, 60, 65, 70])
+    act(() => useStore.setState({ resultPolygon: null }))
+    expect(stops()).toEqual([0, 25, 50, 75, 100])
   })
 
   it('hides with the index and shows with it', () => {
@@ -161,6 +180,15 @@ describe('AreasLayer (TODO-051)', () => {
     expect(useSearchStore.getState().selection).toMatchObject({ kind: 'area', label: 'Gòtic' })
     useSearchStore.setState({ selection: null })
     handler(map, 'click')({ features: [{ id: 99 }] })
+    expect(useSearchStore.getState().selection).toBeNull()
+  })
+
+  it('while the daily trip place is being picked a click doesn\'t fly to the area (078)', () => {
+    const map = makeFakeMap()
+    renderLayer(map)
+    useStore.setState({ commutePicking: true })
+    handler(map, 'click')({ features: [{ id: 3 }] })
+    useStore.setState({ commutePicking: false })
     expect(useSearchStore.getState().selection).toBeNull()
   })
 

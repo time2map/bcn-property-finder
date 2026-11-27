@@ -25,10 +25,10 @@ export interface UrlSettings {
   /** The conditions that are on, in priority order, with the risk line (`risk`) among them. */
   order: ConditionKey[]
   flatAreaM2: number
-  contrastBoost: boolean
 }
 
-const SHORT: Record<ConditionKey, string> = {
+// The daily trip (078) is never in a link: its place is someone's work or school.
+const SHORT: Record<Exclude<ConditionKey, 'commute'>, string> = {
   noise: 'noise', poiAccess: 'poi', cityCore: 'core', openPrice: 'price', localsOpinion: 'locals', age: 'age', risk: 'risk',
 }
 const FROM_SHORT = Object.fromEntries(Object.entries(SHORT).map(([k, v]) => [v, k as ConditionKey])) as Record<string, ConditionKey>
@@ -102,11 +102,6 @@ export function decodeConfig(raw: string | null | undefined, defaults: UrlSettin
     const ids = pairs.has(key) ? pickIds(pairs.get(key)!, all) : null
     if (ids) s[field] = ids
   }
-  if (pairs.has('cb')) {
-    const cb = pairs.get('cb')
-    if (cb === '1') s.contrastBoost = true
-    else if (cb === '0') s.contrastBoost = false
-  }
 
   // Which conditions are on, in which order, and how hard the risks count.
   let order: ConditionKey[] | null = null
@@ -136,7 +131,7 @@ const canonical = (all: readonly string[], picked: readonly string[]) => all.fil
 export function encodeConfig(s: UrlSettings, defaults: UrlSettings): string {
   const parts: string[] = []
   const active = activeConditions(s.weights, s.riskStrengths, s.order)
-  if (!same(active, defaults.order)) parts.push(`on:${active.map((k) => SHORT[k]).join(',')}`)
+  if (!same(active, defaults.order)) parts.push(`on:${active.map((k) => SHORT[k as keyof typeof SHORT]).join(',')}`)
   for (const key of ['n', 'w', 'cc', 'p', 'l'] as const) {
     const field = LIMIT_KEY[key]
     if (s.conditions[field] !== defaults.conditions[field]) parts.push(`${key}:${Math.round(s.conditions[field] * 100) / 100}`)
@@ -154,7 +149,6 @@ export function encodeConfig(s: UrlSettings, defaults: UrlSettings): string {
   const r = s.riskStrengths
   const d = defaults.riskStrengths
   if (r.flood !== d.flood || r.fire !== d.fire || r.street !== d.street) parts.push(`r:${r.flood},${r.fire},${r.street}`)
-  if (s.contrastBoost !== defaults.contrastBoost) parts.push(`cb:${s.contrastBoost ? 1 : 0}`)
   return parts.join(';')
 }
 

@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store'
 import { features } from '../../features'
 import {
-  CONDITION_KEYS, SHORT_LABEL, activeConditions, strengthsFor, type ConditionKey, type SettingsPatch,
+  CONDITION_KEYS, DEFAULT_COMMUTE_MINUTES, SHORT_LABEL, activeConditions, commutePlace, strengthsFor,
+  type ConditionKey, type SettingsPatch,
 } from '../../services/conditionOptions'
 import { SentenceRow } from './SentenceRow'
 import { AddConditionChips } from './AddConditionChips'
@@ -45,14 +46,22 @@ export function ConditionsEditor() {
   const weights = useStore((s) => s.compositeWeights)
   const strengths = useStore((s) => s.compositeRiskStrengths)
   const order = useStore((s) => s.conditionOrder)
+  // The daily trip (078) is on while it has a place: it is a filter, not a weight.
+  const commute = useStore((s) => features.isochrone && s.workplace !== null)
   const applySettings = useStore((s) => s.applySettings)
   const [openId, setOpenId] = useState<string | null>(null)
-  const active = useMemo(() => activeConditions(weights, strengths, order), [weights, strengths, order])
-  const missing = CONDITION_KEYS.filter((k) => !active.includes(k) && (k !== 'localsOpinion' || features.localsOpinion))
+  const active = useMemo(() => activeConditions(weights, strengths, order, commute), [weights, strengths, order, commute])
+  const missing = CONDITION_KEYS.filter((k) => !active.includes(k)
+    && (k !== 'localsOpinion' || features.localsOpinion) && (k !== 'commute' || features.isochrone))
 
   const change = (key: ConditionKey, on: boolean) => {
     const patch: SettingsPatch = { order: on ? [...active, key] : active.filter((k) => k !== key) }
-    if (key === 'risk') patch.riskStrengths = strengthsFor(on ? 'avoid' : 'off')
+    if (key === 'commute') {
+      // A new trip goes to the centre in the default time; × drops the place and its commute zone.
+      const st = useStore.getState()
+      if (on) st.setMinutes(DEFAULT_COMMUTE_MINUTES)
+      st.setWorkplace(on ? commutePlace() : null)
+    } else if (key === 'risk') patch.riskStrengths = strengthsFor(on ? 'avoid' : 'off')
     else patch.weights = { ...weights, [key]: on ? 1 : 0 }
     applySettings(patch)
   }

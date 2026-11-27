@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   BUDGET_OPTIONS, BUDGET_RANGE, CENTRE_OPTIONS, DEFAULT_FLAT_AREA_M2, FLAT_AREA_OPTIONS, FLAT_AREA_RANGE, LOCALS_OPTIONS,
   NOISE_OPTIONS, WALK_OPTIONS,
-  activeConditions, budgetFor, formatEuro, formatEuroM2, optionFor, parseNumberList, priceAfterAreaChange,
+  COMMUTE_OPTIONS, DEFAULT_COMMUTE_MINUTES, activeConditions, budgetFor, commutePlace, isCommuteCentre, formatEuro, formatEuroM2, optionFor, parseNumberList, priceAfterAreaChange,
   priceForBudget, profileToPatch, riskLevel, shareUnder, sortedPrices, strengthsFor,
 } from './conditionOptions'
 import { CONDITION_RANGES, DEFAULT_CONDITIONS } from './buildings/conditions'
@@ -178,5 +178,26 @@ describe('budget shares', () => {
     const prices = sortedPrices(data)
     const shares = [1500, 2500, 3500, 4500, 6000].map((v) => shareUnder(prices, v))
     expect([...shares].sort((a, b) => a - b)).toEqual(shares)
+  })
+})
+
+describe('daily trip (078)', () => {
+  const weights = { poiAccess: 1, noise: 0, cityCore: 0, openPrice: 0, localsOpinion: 0, age: 0 }
+  const off = { flood: 0, fire: 0, street: 0 }
+
+  it('is on only when asked: a filter, not a weight; kept in the person\'s order', () => {
+    expect(activeConditions(weights, off, ['commute', 'poiAccess'])).toEqual(['poiAccess'])
+    expect(activeConditions(weights, off, ['commute', 'poiAccess'], true)).toEqual(['commute', 'poiAccess'])
+    expect(activeConditions(weights, off, [], true)).toEqual(['poiAccess', 'commute'])
+  })
+
+  it('defaults: the centre (Plaça de Catalunya), 30 min, steps of 15 / 30 / 45 / 60', () => {
+    expect(commutePlace()).toEqual([2.17, 41.387])
+    expect(isCommuteCentre(commutePlace())).toBe(true)
+    expect(isCommuteCentre([2.1, 41.4])).toBe(false)
+    expect(isCommuteCentre(null)).toBe(false)
+    expect(DEFAULT_COMMUTE_MINUTES).toBe(30)
+    expect(COMMUTE_OPTIONS.map((o) => o.value)).toEqual([15, 30, 45, 60])
+    expect(COMMUTE_OPTIONS[1].label).toBe('30 min')
   })
 })

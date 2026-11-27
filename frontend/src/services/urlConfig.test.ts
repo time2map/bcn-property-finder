@@ -19,7 +19,6 @@ const DEFAULTS: UrlSettings = {
   riskStrengths: DEFAULT_RISK_STRENGTHS,
   order: activeConditions(DEFAULT_WEIGHTS, DEFAULT_RISK_STRENGTHS, []),
   flatAreaM2: 70,
-  contrastBoost: false,
 }
 const decode = (raw: string | null) => decodeConfig(raw, DEFAULTS)!
 
@@ -41,10 +40,9 @@ describe('encodeConfig', () => {
       riskStrengths: { flood: 5, fire: 8, street: 0 },
       order: ['openPrice', 'noise', 'poiAccess', 'risk'],
       flatAreaM2: 90,
-      contrastBoost: true,
     }
     expect(encodeConfig(s, DEFAULTS)).toBe(
-      'on:price,noise,poi,risk;n:58;w:15;p:3571.43;l:8;fa:90;svc:supermarket,pharmacy,park;lm:sagrada,placa_cat;era:1900-1939,1940-1979;r:5,8,0;cb:1',
+      'on:price,noise,poi,risk;n:58;w:15;p:3571.43;l:8;fa:90;svc:supermarket,pharmacy,park;lm:sagrada,placa_cat;era:1900-1939,1940-1979;r:5,8,0',
     )
   })
 
@@ -86,9 +84,9 @@ describe('decodeConfig', () => {
     expect(decode(`${key}:${value}`).conditions[field]).toBe(value)
   })
 
-  it('reads the flat size and the contrast boost', () => {
-    expect(decode('fa:90;cb:1')).toMatchObject({ flatAreaM2: 90, contrastBoost: true })
-    expect(decode('cb:0').contrastBoost).toBe(false)
+  it('reads the flat size; the old Boost contrast key (cb) is ignored (077)', () => {
+    expect(decode('fa:90;cb:1')).toEqual(decode('fa:90'))
+    expect(decode('fa:90')).toMatchObject({ flatAreaM2: 90 })
   })
 
   it('reads which conditions are on, in priority order', () => {
@@ -134,7 +132,6 @@ describe('decodeConfig', () => {
     expect(s.conditions).toEqual({ ...DEFAULT_CONDITIONS, walkMaxMin: 15 })
     expect(s.flatAreaM2).toBe(70)
     expect(s.riskStrengths).toEqual(strengthsFor('off')) // "on" lists no risks and "r" is invalid
-    expect(s.contrastBoost).toBe(false)
     expect(s.order).toEqual(['noise'])
   })
 
@@ -184,7 +181,7 @@ describe('round trip', () => {
       conditions: { noiseMaxDb: 52, walkMaxMin: 7, cityCoreMaxMin: 20, priceMaxEurM2: 2777.78, localsMin: 7.8 },
       walkCategories: ['metro', 'cafe'], landmarkIds: ['sagrada'], eras: ['2007-on'],
       riskStrengths: { flood: 1, fire: 10, street: 3 },
-      order: ['age', 'risk', 'cityCore', 'noise', 'localsOpinion'], flatAreaM2: 120, contrastBoost: true,
+      order: ['age', 'risk', 'cityCore', 'noise', 'localsOpinion'], flatAreaM2: 120,
     }],
   ]
   it.each(states)('%s survives encode → decode', (_n, state) => {
@@ -219,5 +216,12 @@ describe('shareUrl', () => {
   })
   it('opens with its own defaults when read back', () => {
     expect(decodeConfig(new URL(shareUrl('https://x.test/', '')).searchParams.get('c'), DEFAULTS)).toEqual(DEFAULTS)
+  })
+})
+
+describe('the daily trip is never in a link (078)', () => {
+  it('commute in the order is left out of `on:`; `on:` never turns it on', () => {
+    expect(encodeConfig({ ...DEFAULTS, order: [...DEFAULTS.order, 'commute'] }, DEFAULTS)).toBe('')
+    expect(decode('on:noise,commute').order).toEqual(['noise'])
   })
 })

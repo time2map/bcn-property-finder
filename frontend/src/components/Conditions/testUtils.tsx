@@ -19,6 +19,7 @@ export function resetStore(): void {
     compositeRiskStrengths: { flood: 5, fire: 5, street: 5 },
     conditionOrder: ['noise', 'poiAccess', 'cityCore', 'openPrice', 'risk'],
     buildingScores: null,
+    workplace: null, resultPolygon: null, commutePicking: false, minutes: 30,
     onboarded: false,
     onboardingOpen: true,
   })

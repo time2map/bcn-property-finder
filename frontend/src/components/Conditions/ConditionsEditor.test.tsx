@@ -65,7 +65,7 @@ describe('ConditionsEditor', () => {
     }))
     renderWithMantine(<ConditionsEditor />)
     expect(screen.getByText(/No conditions yet/)).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: /^\+ / })).toHaveLength(7)
+    expect(screen.getAllByRole('button', { name: /^\+ / })).toHaveLength(8) // the daily trip too (078)
   })
 
   it('shows the match bar once the map has scores', () => {
@@ -125,6 +125,56 @@ describe('ConditionsEditor', () => {
       expect(panel).toBeTruthy()
       expect(panel.querySelector('.option-list__custom-head b')!.textContent).toBe('64 dB')
       expect(panel.querySelectorAll('.option-list__custom-range span')).toHaveLength(2)
+    })
+  })
+
+  describe('daily trip (078)', () => {
+    const tripRow = () => screen.getByRole('button', { name: 'Remove Daily trip' }).parentElement!
+    const SQUARE = { type: 'Polygon' as const, coordinates: [[[2, 41], [2.1, 41], [2.1, 41.1], [2, 41.1], [2, 41]]] }
+
+    it('"+ Daily trip" adds the trip to the centre, 30 min by public transport, at the end of the order', () => {
+      act(() => useStore.setState({ minutes: 60 }))
+      renderWithMantine(<ConditionsEditor />)
+      fireEvent.click(screen.getByRole('button', { name: '+ Daily trip' }))
+      const st = useStore.getState()
+      expect(st.workplace).toEqual([2.17, 41.387])
+      expect(st.minutes).toBe(30)
+      expect(st.conditionOrder.at(-1)).toBe('commute')
+      const row = screen.getByRole('button', { name: 'Remove Daily trip' }).parentElement!
+      expect(row.textContent).toMatch(/The centre within 30 min by public transport/)
+      expect(within(row).getByLabelText('Priority 6')).toBeTruthy()
+      expect(screen.queryByRole('button', { name: '+ Daily trip' })).toBeNull()
+    })
+
+    it('× removes the trip and its commute zone', () => {
+      act(() => useStore.setState({ workplace: [2.17, 41.387], resultPolygon: SQUARE }))
+      renderWithMantine(<ConditionsEditor />)
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Daily trip' }))
+      expect(useStore.getState().workplace).toBeNull()
+      expect(useStore.getState().resultPolygon).toBeNull()
+      expect(useStore.getState().conditionOrder).not.toContain('commute')
+      expect(screen.getByRole('button', { name: '+ Daily trip' })).toBeTruthy()
+    })
+
+    it('the time word: steps and a custom value', () => {
+      act(() => useStore.setState({ workplace: [2.17, 41.387] }))
+      renderWithMantine(<ConditionsEditor />)
+      fireEvent.click(within(tripRow()).getByRole('button', { name: '30 min' }))
+      fireEvent.click(screen.getByRole('radio', { name: /15 min/ }))
+      expect(useStore.getState().minutes).toBe(15)
+    })
+
+    it('the place word: "Pick on the map" waits for a click; a picked place reads "Your spot"; back to the centre', () => {
+      act(() => useStore.setState({ workplace: [2.17, 41.387] }))
+      renderWithMantine(<ConditionsEditor />)
+      fireEvent.click(within(tripRow()).getByRole('button', { name: 'The centre' }))
+      fireEvent.click(screen.getByRole('radio', { name: /Pick on the map/ }))
+      expect(useStore.getState().commutePicking).toBe(true)
+      expect(within(tripRow()).getByRole('button', { name: 'Click the map…' })).toBeTruthy()
+      act(() => useStore.setState({ workplace: [2.1, 41.4], commutePicking: false }))
+      fireEvent.click(within(tripRow()).getByRole('button', { name: 'Your spot' }))
+      fireEvent.click(screen.getByRole('radio', { name: /The centre \(Plaça de Catalunya\)/ }))
+      expect(useStore.getState().workplace).toEqual([2.17, 41.387])
     })
   })
 })

@@ -8,17 +8,19 @@ import type { BuildingData } from './buildings/buildingData'
 import { buildingArea } from './buildings/buildingScore'
 import { homeWeight } from './buildings/buildingRank'
 import type { RiskStrengths } from './climateRisk/climateRisk'
+import { LANDMARKS } from './cityCore/landmarks'
 import type { CompositeWeights } from '../store'
 
 // Verbal steps for the sentence editor (TODO-031): the words a person taps, and the limits behind them. The
 // steps come from ENV (VITE_QUIZ_*); "Custom…" in the picker covers everything between them.
 
 /** The conditions a person can switch on: the six scored ones plus the flood / wildfire line. */
-export type ConditionKey = keyof CompositeWeights | 'risk'
+/** `commute` (078) is the daily trip: a filter (the commute zone), not a score, so it is not a weight. */
+export type ConditionKey = keyof CompositeWeights | 'risk' | 'commute'
 
 /** Default order of the rows (the order the card lists them in, risks last). */
 export const CONDITION_KEYS: readonly ConditionKey[] = [
-  'noise', 'poiAccess', 'cityCore', 'openPrice', 'localsOpinion', 'age', 'risk',
+  'noise', 'poiAccess', 'cityCore', 'openPrice', 'localsOpinion', 'age', 'risk', 'commute',
 ]
 
 /** Short name for the "Your conditions" row. */
@@ -67,6 +69,23 @@ function step(value: number, label: () => string, hint?: () => string | undefine
 
 export const NOISE_OPTIONS: WordOption[] = parseNumberList(import.meta.env.VITE_QUIZ_NOISE_OPTIONS, [50, 58, 65])
   .map((v) => step(v, () => named('noiseName', v) ?? unit('db', v), () => unit('db', v)))
+// ---- the daily trip (078) ----
+
+/** Minutes by public transport the trip starts with (it was 60 before 078). */
+export const DEFAULT_COMMUTE_MINUTES = Number(import.meta.env.VITE_COMMUTE_DEFAULT_MINUTES ?? 30)
+export const COMMUTE_OPTIONS: WordOption[] = parseNumberList(import.meta.env.VITE_QUIZ_COMMUTE_OPTIONS, [15, 30, 45, 60])
+  .map((v) => step(v, () => unit('min', v)))
+/** The range the isochrone takes (`isValidMinutes` in the store). */
+export const COMMUTE_RANGE = { min: 15, max: 120, step: 5 } as const
+
+const COMMUTE_PLACE = LANDMARKS.find((l) => l.id === (import.meta.env.VITE_COMMUTE_DEFAULT_PLACE ?? 'placa_cat')) ?? LANDMARKS[0]
+/** Where a new daily trip goes: "the centre" (a landmark, `VITE_COMMUTE_DEFAULT_PLACE`). */
+export const commutePlace = (): [number, number] => [COMMUTE_PLACE.lng, COMMUTE_PLACE.lat]
+export const commutePlaceName = (): string => COMMUTE_PLACE.name
+export function isCommuteCentre(p: readonly [number, number] | null): boolean {
+  return p !== null && p[0] === COMMUTE_PLACE.lng && p[1] === COMMUTE_PLACE.lat
+}
+
 export const WALK_OPTIONS: WordOption[] = parseNumberList(import.meta.env.VITE_QUIZ_WALK_OPTIONS, [5, 10, 15])
   .map((v) => step(v, () => unit('min', v)))
 export const CENTRE_OPTIONS: WordOption[] = parseNumberList(import.meta.env.VITE_QUIZ_CENTRE_OPTIONS, [25, 30, 45])
@@ -134,20 +153,26 @@ export function riskLevel(s: RiskStrengths): RiskLevel {
 
 // ---- which rows are on, and in what order ----
 
-function isOn(key: ConditionKey, weights: CompositeWeights, strengths: RiskStrengths): boolean {
+function isOn(key: ConditionKey, weights: CompositeWeights, strengths: RiskStrengths, commute: boolean): boolean {
+  if (key === 'commute') return commute
   if (key === 'risk') return riskLevel(strengths) !== 'off'
   if (key === 'localsOpinion' && !features.localsOpinion) return false
   return weights[key] > 0
 }
 
-/** The conditions that are on: first in the order the person added them, then the rest in the default order. */
+/**
+ * The conditions that are on: first in the order the person added them, then the rest in the default order.
+ * `commute`: a daily trip is set (078); it is not a weight, so the caller says so.
+ */
 export function activeConditions(
   weights: CompositeWeights,
   strengths: RiskStrengths,
   order: readonly ConditionKey[],
+  commute = false,
 ): ConditionKey[] {
-  const first = [...new Set(order)].filter((k) => isOn(k, weights, strengths))
-  return [...first, ...CONDITION_KEYS.filter((k) => !first.includes(k) && isOn(k, weights, strengths))]
+  const on = (k: ConditionKey) => isOn(k, weights, strengths, commute)
+  const first = [...new Set(order)].filter(on)
+  return [...first, ...CONDITION_KEYS.filter((k) => !first.includes(k) && on(k))]
 }
 
 // ---- profiles and one-shot settings ----

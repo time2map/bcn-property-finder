@@ -1,5 +1,8 @@
 # 050 — Match score: "meets N of M of your conditions"
 
+**Changed by 077 (2026-11-27):** "Boost contrast for this view" removed (store, URL key `cb`, switches, gradient legend);
+the fixed 0–100 scale is the only one. 032 is deprecated.
+
 **Changed 2026-11-16:** "Meets N of M" count removed everywhere (2026-11-16): card header, phone peek, hover tooltip. A condition counts as met only at 100, so a building at 92 read "Great match · Meets 1 of 3": the count argued with the band and repeated the rows below. No replacement.
 
 **Changed by 073 (2026-11-16):** the budget caps the score (`budgetCeiling`, card line "Over your budget: at most a partial match"); the band shares count homes (dwellings).

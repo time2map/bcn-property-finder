@@ -11,7 +11,7 @@ import { DEFAULT_CONDITIONS } from '../services/buildings/conditions'
 import { useStartAreaRanks } from './useStartAreaRanks'
 
 const RANKS = [{ index: 0, name: 'el Raval', mean: 61 }] as unknown as AreaRank[]
-const firstVisit = () => useStore.setState({ ...settingsState(), areaRanks: null, contrastBoost: false })
+const firstVisit = () => useStore.setState({ ...settingsState(), areaRanks: null, resultPolygon: null })
 function settingsState() {
   const s = firstVisitSettings()
   return {
@@ -32,14 +32,14 @@ describe('useStartAreaRanks (058)', () => {
     await waitFor(() => expect(useStore.getState().areaRanks).toBe(RANKS))
   })
 
-  it('leaves the areas alone with other settings, Boost contrast, ranks already there, or no file', async () => {
+  it('leaves the areas alone with other settings, an isochrone (077), ranks already there, or no file', async () => {
     useStore.setState({ conditions: { ...DEFAULT_CONDITIONS, walkMaxMin: DEFAULT_CONDITIONS.walkMaxMin + 5 } })
     renderHook(() => useStartAreaRanks())
     await flush()
     expect(useStore.getState().areaRanks).toBeNull()
 
     firstVisit()
-    useStore.setState({ contrastBoost: true })
+    useStore.setState({ resultPolygon: { type: 'Polygon', coordinates: [[[2, 41], [2.1, 41], [2.1, 41.1], [2, 41]]] } })
     renderHook(() => useStartAreaRanks())
     await flush()
     expect(useStore.getState().areaRanks).toBeNull()

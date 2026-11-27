@@ -14,7 +14,7 @@ import type { AreaRank } from '../services/areas/areaRank'
 import { allowLocals, decodeConfig, type UrlSettings } from '../services/urlConfig'
 import type { WishId } from '../services/funnel/funnelWishes'
 import {
-  CONDITION_KEYS, DEFAULT_FLAT_AREA_M2, FLAT_AREA_RANGE, activeConditions, priceAfterAreaChange,
+  CONDITION_KEYS, DEFAULT_COMMUTE_MINUTES, DEFAULT_FLAT_AREA_M2, FLAT_AREA_RANGE, activeConditions, priceAfterAreaChange,
   type ConditionKey, type SettingsPatch,
 } from '../services/conditionOptions'
 
@@ -56,10 +56,8 @@ export interface AppState {
   // Composite Index layer — feature 022
   compositeVisible: boolean
   compositeWeights: CompositeWeights
-  /** Colour scale of the map, fitted to the buildings in view (TODO-032); set by BuildingsLayer. */
+  /** Colour scale of the buildings: 0–100, or stretched over the commute zone (077); set by BuildingsLayer. */
   compositeColorRange: [number, number]
-  /** "Boost contrast for this view" (TODO-050): fit the colour scale to the visible area; off = fixed 0–100. */
-  contrastBoost: boolean
   // Climate risk penalties + view layers — feature 036
   compositeRiskStrengths: RiskStrengths
   floodLayerVisible: boolean
@@ -101,7 +99,11 @@ export interface AppState {
   buildingScores: Uint8Array | null
   /** Areas ranked by how many of their homes fit (TODO-051), set by BuildingsLayer after each rescoring. */
   areaRanks: AreaRank[] | null
+  /** Null removes the daily trip (078), and its commute zone with it. */
   setWorkplace: (wp: [number, number] | null) => void
+  /** The next click on the map sets the place of the daily trip (078). */
+  commutePicking: boolean
+  setCommutePicking: (on: boolean) => void
   setMinutes: (minutes: number) => void
   setZoom: (zoom: number) => void
   setMapCenter: (center: [number, number]) => void
@@ -120,7 +122,6 @@ export interface AppState {
   setCompositeVisible: (visible: boolean) => void
   setCompositeWeights: (weights: CompositeWeights) => void
   setCompositeColorRange: (range: [number, number]) => void
-  setContrastBoost: (on: boolean) => void
   setCompositeRiskStrengths: (strengths: RiskStrengths) => void
   setFloodLayerVisible: (visible: boolean) => void
   setWildfireLayerVisible: (visible: boolean) => void
@@ -174,7 +175,6 @@ const STREET_FLOODING_LAYER_KEY = 'bcn_street_flooding_layer_visible'
 const BEST_ZONES_TOP_PCT_KEY = 'bcn_best_zones_top_pct'
 const BEST_ZONES_RESTRICT_KEY = 'bcn_best_zones_restrict'
 const WALK_CATEGORIES_KEY = 'bcn_walk_categories'
-const CONTRAST_BOOST_KEY = 'bcn_contrast_boost'
 const AGE_ERAS_KEY = 'bcn_age_eras'
 const CONDITIONS_KEY = 'bcn_conditions'
 const CONDITION_ORDER_KEY = 'bcn_condition_order'
@@ -267,7 +267,7 @@ export function readUrlParams(): Pick<AppState, 'minutes' | 'zoom' | 'mapCenter'
 
   return {
     mapCenter: !isNaN(cx) && !isNaN(cy) ? [cx, cy] : DEFAULT_CENTER,
-    minutes: isValidMinutes(rawMinutes) ? rawMinutes : 60,
+    minutes: isValidMinutes(rawMinutes) ? rawMinutes : DEFAULT_COMMUTE_MINUTES,
     zoom: !isNaN(rawZoom) && rawZoom >= 1 && rawZoom <= 22 ? rawZoom : DEFAULT_ZOOM,
   }
 }
@@ -327,7 +327,6 @@ export const URL_DEFAULTS: UrlSettings = {
   riskStrengths: DEFAULT_RISK_STRENGTHS,
   order: activeConditions(DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_RISK_STRENGTHS, []),
   flatAreaM2: DEFAULT_FLAT_AREA_M2,
-  contrastBoost: false,
 }
 
 /** The settings that define the map, as a link carries them (TODO-053). */
@@ -343,7 +342,7 @@ export function settingsOf(s: AppState): UrlSettings {
   return {
     weights: s.compositeWeights, conditions: s.conditions, walkCategories: s.enabledWalkCategories,
     landmarkIds: s.enabledLandmarkIds, eras: s.ageEras, riskStrengths: s.compositeRiskStrengths,
-    order: s.conditionOrder, flatAreaM2: s.flatAreaM2, contrastBoost: s.contrastBoost,
+    order: s.conditionOrder, flatAreaM2: s.flatAreaM2,
   }
 }
 
@@ -375,10 +374,7 @@ function saveUrlSettings(s: UrlSettings): void {
   persist(AGE_ERAS_KEY, s.eras)
   persist(COMPOSITE_RISK_STRENGTHS_KEY, s.riskStrengths)
   persist(CONDITION_ORDER_KEY, s.order)
-  try {
-    localStorage.setItem(FLAT_AREA_KEY, String(s.flatAreaM2))
-    localStorage.setItem(CONTRAST_BOOST_KEY, String(s.contrastBoost))
-  } catch { /* ignore */ }
+  try { localStorage.setItem(FLAT_AREA_KEY, String(s.flatAreaM2)) } catch { /* ignore */ }
 }
 
 export const useStore = create<AppState>((set, get) => {
@@ -411,8 +407,10 @@ export const useStore = create<AppState>((set, get) => {
         if (workplace) localStorage.setItem(WORKPLACE_KEY, JSON.stringify(workplace))
         else localStorage.removeItem(WORKPLACE_KEY)
       } catch { /* ignore */ }
-      set({ workplace })
+      set(workplace ? { workplace } : { workplace, resultPolygon: null })
     },
+    commutePicking: false,
+    setCommutePicking: (commutePicking) => set({ commutePicking }),
     setMinutes: (minutes) => set({ minutes }),
     setZoom: (zoom) => set({ zoom }),
     setMapCenter: (mapCenter) => set({ mapCenter }),
@@ -469,6 +467,7 @@ export const useStore = create<AppState>((set, get) => {
     compositeVisible: loadBoolKey(COMPOSITE_VISIBLE_KEY, true),
     compositeWeights: weights,
     compositeColorRange: [0, 100],
+    setCompositeColorRange: (compositeColorRange) => set({ compositeColorRange }),
     setCompositeVisible: (visible) => {
       try { localStorage.setItem(COMPOSITE_VISIBLE_KEY, String(visible)) } catch { /* ignore */ }
       set({ compositeVisible: visible })
@@ -476,13 +475,6 @@ export const useStore = create<AppState>((set, get) => {
     setCompositeWeights: (weights) => {
       try { localStorage.setItem(COMPOSITE_WEIGHTS_KEY, JSON.stringify(weights)) } catch { /* ignore */ }
       set({ compositeWeights: weights })
-    },
-    setCompositeColorRange: (compositeColorRange) => set({ compositeColorRange }),
-    contrastBoost: url ? url.contrastBoost : loadBoolKey(CONTRAST_BOOST_KEY),
-    setContrastBoost: (contrastBoost) => {
-      try { localStorage.setItem(CONTRAST_BOOST_KEY, String(contrastBoost)) } catch { /* ignore */ }
-      // Off: the scale is the fixed one at once; on: BuildingsLayer fits it to the view.
-      set(contrastBoost ? { contrastBoost } : { contrastBoost, compositeColorRange: [0, 100] })
     },
     compositeRiskStrengths: riskStrengths,
     setCompositeRiskStrengths: (strengths) => {
@@ -530,7 +522,7 @@ export const useStore = create<AppState>((set, get) => {
       persist(CONDITIONS_KEY, next)
       set({ flatAreaM2: areaM2, conditions: next })
     },
-    conditionOrder: url ? url.order : activeConditions(weights, riskStrengths, loadConditionOrder()),
+    conditionOrder: url ? url.order : activeConditions(weights, riskStrengths, loadConditionOrder(), features.isochrone && workplace !== null),
     onboarded,
     onboardingOpen: features.onboarding && !onboarded && !url && !hasSavedSettings(),
     applySettings: (patch) => {

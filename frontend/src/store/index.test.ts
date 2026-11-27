@@ -19,25 +19,6 @@ describe('layer visibility defaults', () => {
   })
 })
 
-describe('contrast boost (TODO-050)', () => {
-  it('is off by default, remembered, and switching it off resets the colour range to 0–100', async () => {
-    localStorage.clear()
-    vi.resetModules()
-    const { useStore: fresh } = await import('./index')
-    expect(fresh.getState().contrastBoost).toBe(false)
-    fresh.getState().setContrastBoost(true)
-    fresh.getState().setCompositeColorRange([45, 80])
-    expect(localStorage.getItem('bcn_contrast_boost')).toBe('true')
-    fresh.getState().setContrastBoost(false)
-    expect(localStorage.getItem('bcn_contrast_boost')).toBe('false')
-    expect(fresh.getState().compositeColorRange).toEqual([0, 100])
-    localStorage.setItem('bcn_contrast_boost', 'true')
-    vi.resetModules()
-    const { useStore: again } = await import('./index')
-    expect(again.getState().contrastBoost).toBe(true)
-  })
-})
-
 function setSearch(search: string) {
   Object.defineProperty(window, 'location', {
     value: { ...window.location, search },
@@ -48,7 +29,7 @@ function setSearch(search: string) {
 describe('readUrlParams', () => {
   it('returns defaults when URL is empty', () => {
     setSearch('')
-    expect(readUrlParams()).toEqual({ mapCenter: DEFAULT_CENTER, minutes: 60, zoom: 12 })
+    expect(readUrlParams()).toEqual({ mapCenter: DEFAULT_CENTER, minutes: 30, zoom: 12 }) // the daily trip default (078)
   })
 
   it('does not read workplace from URL (lng/lat ignored)', () => {
@@ -68,22 +49,22 @@ describe('readUrlParams', () => {
 
   it('falls back to default for minutes above 120', () => {
     setSearch('?minutes=150')
-    expect(readUrlParams().minutes).toBe(60)
+    expect(readUrlParams().minutes).toBe(30)
   })
 
   it('falls back to default for minutes below 15', () => {
     setSearch('?minutes=10')
-    expect(readUrlParams().minutes).toBe(60)
+    expect(readUrlParams().minutes).toBe(30)
   })
 
   it('falls back to default for non-multiple-of-5 minutes', () => {
     setSearch('?minutes=17')
-    expect(readUrlParams().minutes).toBe(60)
+    expect(readUrlParams().minutes).toBe(30)
   })
 
   it('falls back to default for out-of-range minutes', () => {
     setSearch('?minutes=99')
-    expect(readUrlParams().minutes).toBe(60)
+    expect(readUrlParams().minutes).toBe(30)
   })
 
   it('reads map center from cx/cy', () => {
@@ -360,5 +341,15 @@ describe('funnel (TODO-076)', () => {
   it('opens and closes', () => {
     useStore.getState().setFunnelOpen(false)
     expect(useStore.getState().funnelOpen).toBe(false)
+  })
+})
+
+describe('daily trip state (078)', () => {
+  it('removing the place removes its commute zone too; picking on the map is a flag', () => {
+    useStore.setState({ workplace: [2.17, 41.387], resultPolygon: { type: 'Polygon', coordinates: [[[2, 41], [2.1, 41], [2, 41.1], [2, 41]]] } })
+    useStore.getState().setWorkplace(null)
+    expect(useStore.getState().resultPolygon).toBeNull()
+    useStore.getState().setCommutePicking(true)
+    expect(useStore.getState().commutePicking).toBe(true)
   })
 })

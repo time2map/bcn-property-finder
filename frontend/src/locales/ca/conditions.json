@@ -6,7 +6,8 @@
     "openPrice": "Pressupost",
     "localsOpinion": "Veïns",
     "age": "Edificis",
-    "risk": "Riscos"
+    "risk": "Riscos",
+    "commute": "Trajecte diari"
   },
   "add": {
     "noise": "Poc soroll",
@@ -15,7 +16,8 @@
     "openPrice": "Dins del meu pressupost",
     "localsOpinion": "Què en pensen els veïns",
     "age": "Tipus d'edifici",
-    "risk": "Evitar riscos"
+    "risk": "Evitar riscos",
+    "commute": "Trajecte diari"
   },
   "label": {
     "noise": "Poc soroll",

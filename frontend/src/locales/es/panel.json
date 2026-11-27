@@ -19,12 +19,11 @@
   },
   "advanced": {
     "head": "Avanzado",
-    "intro": "Los valores exactos están en cada frase, en «Personalizado…». Aquí: cuánto cuenta cada riesgo climático y la escala de color.",
+    "intro": "Los valores exactos están en cada frase, en «Personalizado…». Aquí: cuánto cuenta cada riesgo climático.",
     "howMuch": "Cuánto cuenta cada riesgo",
     "flood": "Riesgo de inundación de río",
     "fire": "Riesgo de incendio",
-    "street": "Riesgo de inundación en la calle",
-    "boost": "Aumentar el contraste en esta vista"
+    "street": "Riesgo de inundación en la calle"
   },
   "strength": {
     "enable": "Activar {{label}}",
@@ -39,7 +38,9 @@
     "bands": "Niveles de encaje",
     "caption": "Cuánto cumplen las viviendas tus condiciones",
     "scale": "Escala de color de la puntuación compuesta",
-    "relative": "Cuánto cumplen las viviendas tus condiciones, respecto a la zona visible",
+    "stretched": "Colores estirados sobre tu zona de desplazamiento",
+    "worse": "Peor",
+    "better": "Mejor",
     "great": "Excelente",
     "good": "Bueno",
     "partial": "Parcial",
@@ -55,7 +56,11 @@
     "count_one": "{{count}} mejor zona a la vista",
     "count_many": "{{count}} mejores zonas a la vista",
     "count_other": "{{count}} mejores zonas a la vista",
+    "countCommute_one": "{{count}} mejor zona en tu zona de desplazamiento",
+    "countCommute_many": "{{count}} mejores zonas en tu zona de desplazamiento",
+    "countCommute_other": "{{count}} mejores zonas en tu zona de desplazamiento",
     "none": "Ninguna zona encaja en esta vista. Aleja el mapa o pide más zonas.",
+    "noneCommute": "Ninguna zona encaja en tu zona de desplazamiento. Pide más zonas.",
     "top": "El {{pct}}% mejor de las viviendas, numeradas en el mapa.",
     "fewer": "Menos zonas",
     "more": "Más zonas",

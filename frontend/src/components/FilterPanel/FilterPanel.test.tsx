@@ -59,26 +59,10 @@ vi.mock('@mantine/core', async () => {
 })
 
 describe('FilterPanel', () => {
-  it('renders commute heading and info button', () => {
+  it('has no separate commute block: the daily trip is one of the conditions (078)', () => {
     render(<MantineProvider><FilterPanel /></MantineProvider>)
-    expect(screen.getByText('Commute from work')).toBeTruthy()
-    expect(screen.getByLabelText('About the commute zone')).toBeTruthy()
-  })
-
-  it('opens the isochrone info modal on info button click', () => {
-    render(<MantineProvider><FilterPanel /></MantineProvider>)
-    expect(screen.queryByRole('dialog')).toBeNull()
-    fireEvent.click(screen.getByLabelText('About the commute zone'))
-    expect(screen.getByRole('dialog')).toBeTruthy()
-    expect(screen.getByText('What the zone shows')).toBeTruthy()
-  })
-
-  it('closes the modal via onClose', () => {
-    render(<MantineProvider><FilterPanel /></MantineProvider>)
-    fireEvent.click(screen.getByLabelText('About the commute zone'))
-    expect(screen.getByRole('dialog')).toBeTruthy()
-    fireEvent.click(screen.getByLabelText('Close'))
-    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByText('Commute from work')).toBeNull()
+    expect(screen.queryByLabelText('About the commute zone')).toBeNull()
   })
 
   it('the new panel: the sentences, the match colours, one map layer at a time, best areas, advanced (TODO-052)', () => {

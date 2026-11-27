@@ -92,7 +92,7 @@ describe('BestZones', () => {
   beforeEach(() => {
     map = makeMap()
     popup.setDOMContent.mockClear()
-    useStore.setState({ compositeVisible: true, bestZonesBounds: null, bestZonesTopPct: 3, buildingScores: SCORES })
+    useStore.setState({ compositeVisible: true, bestZonesBounds: null, bestZonesTopPct: 3, buildingScores: SCORES, resultPolygon: null })
     useIdealistaBaseUrlStore.setState({ baseUrl: null })
   })
 
@@ -185,6 +185,19 @@ describe('BestZones', () => {
     renderBar()
     fireEvent.click(screen.getByRole('button', { name: /draw best zones/i }))
     expect(await screen.findByText('No zones fit this view — zoom out')).toBeInTheDocument()
+  })
+
+  it('with an isochrone (077): zones stay put on pan, no checkbox, and the empty text names the commute zone', async () => {
+    // An isochrone with no buildings in it: nothing can fit.
+    useStore.setState({ resultPolygon: { type: 'Polygon', coordinates: [[[10, 10], [10.1, 10], [10.1, 10.1], [10, 10.1], [10, 10]]] } })
+    renderBar()
+    fireEvent.click(screen.getByRole('button', { name: 'Draw best zones' }))
+    const drawn = useStore.getState().bestZonesBounds
+    map.view = [2.1, 41.3, 2.3, 41.5]
+    act(() => map.handlers.moveend?.({}))
+    expect(useStore.getState().bestZonesBounds).toBe(drawn)
+    expect(screen.queryByLabelText('Inside commute zone, outside exclusion zones')).toBeNull()
+    expect(await screen.findByText('No zones fit — the commute zone is too small')).toBeInTheDocument()
   })
 
   it('highlights the hovered zone', () => {

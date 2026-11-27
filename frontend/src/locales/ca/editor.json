@@ -56,6 +56,7 @@
     "localsOpinion": "Els veïns valoren la zona amb almenys <limit/> sobre 10",
     "age": "Construït en <eras/>",
     "risk": "<level/> el risc d'inundació i d'incendi",
+    "commute": "<place/> a menys de <limit/> en transport públic",
     "noiseTitle": "Quant soroll acceptes a la façana exterior?",
     "walkTitle": "Quant caminaries per als teus encàrrecs diaris?",
     "centreTitle": "A quina distància del centre?",
@@ -82,6 +83,15 @@
     "riskTitle": "Quant ha de pesar el risc d'inundació i d'incendi?",
     "avoid": "Evitar",
     "strong": "Evitar a tota costa",
-    "custom": "Personalitzat"
+    "custom": "Personalitzat",
+    "commuteTitle": "Quant temps de trajecte en transport públic?",
+    "commuteNote": "Transport públic i a peu, sortint a les 9:00 un dia feiner.",
+    "commutePlaceTitle": "On vas cada dia?",
+    "commuteCentre": "El centre",
+    "commuteCentreOption": "El centre ({{name}})",
+    "commutePick": "Tria al mapa",
+    "commutePicking": "Fes clic al mapa…",
+    "commuteSpot": "El teu punt",
+    "commuteSpotMarker": "El teu punt"
   }
 }
