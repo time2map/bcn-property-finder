@@ -56,6 +56,7 @@
     "localsOpinion": "Los vecinos valoran la zona con al menos <limit/> sobre 10",
     "age": "Construido en <eras/>",
     "risk": "<level/> el riesgo de inundación e incendio",
+    "commute": "<place/> a menos de <limit/> en transporte público",
     "noiseTitle": "¿Cuánto ruido aceptas en la fachada exterior?",
     "walkTitle": "¿Cuánto caminarías para tus recados diarios?",
     "centreTitle": "¿A qué distancia del centro?",
@@ -82,6 +83,15 @@
     "riskTitle": "¿Cuánto debe pesar el riesgo de inundación e incendio?",
     "avoid": "Evitar",
     "strong": "Evitar a toda costa",
-    "custom": "Personalizado"
+    "custom": "Personalizado",
+    "commuteTitle": "¿Cuánto tiempo de trayecto en transporte público?",
+    "commuteNote": "Transporte público y a pie, saliendo a las 9:00 un día laborable.",
+    "commutePlaceTitle": "¿Adónde vas cada día?",
+    "commuteCentre": "El centro",
+    "commuteCentreOption": "El centro ({{name}})",
+    "commutePick": "Elegir en el mapa",
+    "commutePicking": "Haz clic en el mapa…",
+    "commuteSpot": "Tu punto",
+    "commuteSpotMarker": "Tu punto"
   }
 }

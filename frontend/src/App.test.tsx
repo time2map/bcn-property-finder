@@ -81,9 +81,10 @@ describe('App (integration)', () => {
     expect(container.querySelector('[style*="width: 100%"]')).toBeTruthy()
   }, 20000)
 
-  it('renders the filter panel with title', () => {
+  it('renders the filter panel, the daily trip among the conditions (078)', () => {
     renderApp()
-    expect(screen.getByText('Commute from work')).toBeInTheDocument()
+    expect(screen.getByText(/by public transport/)).toBeInTheDocument()
+    expect(screen.queryByText('Commute from work')).not.toBeInTheDocument()
   })
 
   it('shows a search button, and the search field opens when it is pressed', () => {
@@ -91,11 +92,6 @@ describe('App (integration)', () => {
     expect(screen.queryByLabelText('Search an area or address', { selector: 'input' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Search an area or address' }))
     expect(screen.getByLabelText('Search an area or address', { selector: 'input' })).toBeInTheDocument()
-  })
-
-  it('renders the travel time slider label', () => {
-    renderApp()
-    expect(screen.getByText(/Travel time by public transport/)).toBeInTheDocument()
   })
 
   it('syncs default state to URL on mount', () => {
@@ -120,7 +116,7 @@ describe('App (integration) - first visit (TODO-031)', () => {
   it('shows the onboarding instead of the filter panel, with the search box still there', () => {
     renderApp()
     expect(screen.getByRole('heading', { name: 'Where in Barcelona would you like to live?' })).toBeInTheDocument()
-    expect(screen.queryByText('Commute from work')).not.toBeInTheDocument()
+    expect(screen.queryByText('Your conditions')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Search an area or address' })).toBeInTheDocument()
   })
 
@@ -128,7 +124,6 @@ describe('App (integration) - first visit (TODO-031)', () => {
     renderApp()
     fireEvent.click(screen.getByRole('button', { name: /^Family/ }))
     expect(screen.queryByRole('heading', { name: /Where in Barcelona/ })).not.toBeInTheDocument()
-    expect(screen.getByText('Commute from work')).toBeInTheDocument()
     expect(screen.getByText('Your conditions')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Start from a profile' })).toBeInTheDocument()
     // the new panel: the same sentences, now as the controls

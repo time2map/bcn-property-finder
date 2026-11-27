@@ -10,7 +10,8 @@ import { useStore } from '../../store'
 import { hasConditions } from '../../services/composite/compositeScore'
 import { useAreaJoin } from '../../hooks/useAreaJoin'
 import { useStartAreaRanks } from '../../hooks/useStartAreaRanks'
-import { buildStateColorForRange } from '../BuildingsLayer/scoreRamp'
+import { buildStateColorForRange, fitScoreRange, FIXED_RANGE } from '../BuildingsLayer/scoreRamp'
+import { features } from '../../features'
 import { AREA_VIEW_MAX_ZOOM } from '../../services/areas/areaRank'
 import { selectAreaFeature } from '../../services/areas/areaSelect'
 import { MAP_TEXT_FONT } from '../Map/mapFont'
@@ -35,7 +36,7 @@ export function AreasLayer() {
   // Hidden while the funnel (TODO-076) is open: it draws its own buildings.
   const visible = useStore((s) => s.compositeVisible && !s.funnelOpen && hasConditions(s.compositeWeights, s.compositeRiskStrengths))
   const ranks = useStore((s) => s.areaRanks)
-  const range = useStore((s) => s.compositeColorRange)
+  const commute = useStore((s) => features.isochrone && s.resultPolygon !== null)
 
   // Source and layers, once the polygons are matched to the areas of the score data.
   useEffect(() => {
@@ -49,7 +50,7 @@ export function AreasLayer() {
     const base = { source: AREAS_SOURCE_ID, maxzoom: AREA_VIEW_MAX_ZOOM }
     addLayerOrdered(map, {
       ...base, id: AREAS_FILL_ID, type: 'fill', layout,
-      paint: { 'fill-color': buildStateColorForRange(...useStore.getState().compositeColorRange), 'fill-opacity': 0.75 },
+      paint: { 'fill-color': buildStateColorForRange(...FIXED_RANGE), 'fill-opacity': 0.75 },
     }, AREAS_FILL_ID)
     ensureHatchImages(map)
     addLayerOrdered(map, {
@@ -72,19 +73,23 @@ export function AreasLayer() {
   }, [map, join])
 
   // Mean (max) score and the incomplete-data mark of every area → feature state (the same ramp as the buildings).
+  // An area missing from the ranks (no home inside the isochrone, 077) is cleared: transparent.
   useEffect(() => {
     if (!map || !join || !ranks || !map.getSource(AREAS_SOURCE_ID)) return
-    for (const r of ranks) {
-      if (join.has(r.index)) map.setFeatureState({ source: AREAS_SOURCE_ID, id: r.index }, { score: r.mean, incomplete: r.incomplete })
+    const ranked = new Map(ranks.map((r) => [r.index, r]))
+    for (const index of join.keys()) {
+      const r = ranked.get(index)
+      map.setFeatureState({ source: AREAS_SOURCE_ID, id: index }, r ? { score: r.mean, incomplete: r.incomplete } : { score: null, incomplete: false })
     }
     if (performance.getEntriesByName('areas-colored').length === 0) performance.mark('areas-colored')
   }, [map, join, ranks])
 
-  // Boost contrast changes the colour range of the buildings; the areas follow.
+  // Colour scale: 0–100, or with an isochrone stretched over the means of the areas inside it (077).
   useEffect(() => {
     if (!map || !map.getLayer(AREAS_FILL_ID)) return
+    const range = (commute && ranks ? fitScoreRange(ranks.map((r) => r.mean)) : null) ?? FIXED_RANGE
     map.setPaintProperty(AREAS_FILL_ID, 'fill-color', buildStateColorForRange(range[0], range[1]))
-  }, [map, range, join])
+  }, [map, join, ranks, commute])
 
   // Hidden together with the index.
   useEffect(() => {
@@ -100,9 +105,11 @@ export function AreasLayer() {
     const onMove = (e: maplibregl.MapLayerMouseEvent) => {
       const id = e.features?.[0]?.id
       if (typeof id !== 'number') return
-      const rank = useStore.getState().areaRanks?.find((r) => r.index === id)
-      map.getCanvas().style.cursor = 'pointer'
+      const ranks = useStore.getState().areaRanks
+      const rank = ranks?.find((r) => r.index === id)
       hide()
+      if (ranks && !rank) return onLeave() // outside the isochrone (077)
+      map.getCanvas().style.cursor = 'pointer'
       if (!rank) return
       popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8, className: 'match-tooltip' })
         .setLngLat(e.lngLat)
@@ -113,6 +120,9 @@ export function AreasLayer() {
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const id = e.features?.[0]?.id
       const feature = typeof id === 'number' ? join.get(id) : undefined
+      const { areaRanks: ranks, commutePicking } = useStore.getState()
+      if (commutePicking) return // the click sets the daily trip place (078)
+      if (ranks && !ranks.some((r) => r.index === id)) return // outside the isochrone (077)
       if (feature) selectAreaFeature(feature, id as number)
     }
     map.on('mousemove', AREAS_FILL_ID, onMove)

@@ -7,7 +7,7 @@ import { renderWithMantine } from '../Conditions/testUtils'
 describe('AdvancedSettings (TODO-052)', () => {
   beforeEach(() => {
     localStorage.clear()
-    useStore.setState({ compositeRiskStrengths: { flood: 5, fire: 5, street: 5 }, contrastBoost: false, compositeColorRange: [0, 100] })
+    useStore.setState({ compositeRiskStrengths: { flood: 5, fire: 5, street: 5 } })
   })
 
   it('is closed at first and opens and closes with its header', () => {
@@ -41,14 +41,9 @@ describe('AdvancedSettings (TODO-052)', () => {
     expect(useStore.getState().compositeRiskStrengths.street).toBe(5)
   })
 
-  it('has the Boost contrast switch', () => {
+  it('has no Boost contrast switch (077)', () => {
     renderWithMantine(<AdvancedSettings />)
     fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
-    const box = screen.getByLabelText('Boost contrast for this view') as HTMLInputElement
-    expect(box.checked).toBe(false)
-    fireEvent.click(box)
-    expect(useStore.getState().contrastBoost).toBe(true)
-    fireEvent.click(box)
-    expect(useStore.getState().contrastBoost).toBe(false)
+    expect(screen.queryByLabelText('Boost contrast for this view')).toBeNull()
   })
 })

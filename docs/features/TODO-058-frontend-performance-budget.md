@@ -165,7 +165,7 @@ pipeline run; every column reads back bit for bit). `build_building_tiles.py` wr
 still reads format 1.
 
 - `loadScores()` (scoring, budget shares) and `loadBuildings()` (adds the positions to the same object: the card,
-  the facade points, Boost contrast, best zones). The positions are asked for after the scores, and only when one of
+  the facade points, the isochrone (077), best zones). The positions are asked for after the scores, and only when one of
   these needs them: a first view never downloads them.
 - `main.tsx` starts `loadScores()` right after the first paint. It used to start when `BuildingsLayer` mounted, that
   is after MapLibre (270 KB) had arrived: 4.7 s on slow 4G.
@@ -179,7 +179,7 @@ ranks for the settings of a first visit. `index.html` preloads it.
 - The join always comes from the file: the area view needs neither the positions nor the scores.
 - The ranks are used while nothing is scored yet and the settings are those of a first visit (`settingsKey()` of
   `services/buildings/firstVisit.ts`, the defaults the store starts from too; a test checks that they agree).
-  The scoring replaces them a moment later with the same values. With other settings, Boost contrast, or a stale
+  The scoring replaces them a moment later with the same values. With other settings, an isochrone (077), or a stale
   file (`generated` / `count` differ from `buildings-meta.json`) the file's ranks are not used.
 - Generated at build time, not committed: it cannot go stale with a code change. The dev server has no file and
   computes as before.
@@ -197,7 +197,7 @@ Measured (production build, CPU 4× slower; a first visit at zoom 12, the area v
 
 Checked in the browser: the area view of a first visit from the file without the positions; with other settings
 (`?c=p:…`) the areas wait for the scoring and the positions are still not loaded; a click on a building loads the
-positions and opens the card; Boost contrast loads them and fits the scale.
+positions and opens the card. (Boost contrast, which also loaded them, was removed in 077.)
 
 Licences: `docs/DATA_LICENSES.md` lists the copy of the ICGC style, `buildings-positions.bin.gz` and
 `area-start.json`.

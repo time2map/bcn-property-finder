@@ -5,8 +5,8 @@ import { loadAreaStart } from '../services/areas/areaStart'
 
 /**
  * Colours the area view from area-start.json while the scores are on their way (TODO-058): only when nothing is
- * ranked yet and the settings are the ones the file was computed for (a first visit). The scoring replaces the
- * ranks a moment later.
+ * ranked yet, no isochrone is drawn (the file is city-wide, 077) and the settings are the ones the file was computed
+ * for (a first visit). The scoring replaces the ranks a moment later.
  */
 export function useStartAreaRanks(): void {
   useEffect(() => {
@@ -14,7 +14,7 @@ export function useStartAreaRanks(): void {
     void loadAreaStart().then((start) => {
       if (!live || !start) return
       const st = useStore.getState()
-      if (st.areaRanks || st.contrastBoost) return
+      if (st.areaRanks || st.resultPolygon) return
       if (settingsKey(scoreSettingsOf(st)) !== start.key) return
       st.setAreaRanks(start.ranks)
     })

@@ -5,6 +5,8 @@ import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
 import { hasConditions } from '../../services/composite/compositeScore'
 import { LivabilityInfoModal } from './LivabilityInfoModal'
+import { CompositeLegend } from '../BuildingsLayer/CompositeLegend'
+import { features } from '../../features'
 
 /** "Show match colours": the index on or off on the map, with the explanation behind (i) (TODO-052). */
 export function MatchColoursSwitch() {
@@ -13,6 +15,8 @@ export function MatchColoursSwitch() {
   const setVisible = useStore((s) => s.setCompositeVisible)
   const anyCondition = useStore((s) => hasConditions(s.compositeWeights, s.compositeRiskStrengths))
   const [info, setInfo] = useState(false)
+  // Inside the commute zone the colours are stretched (077): the bands of "Homes by match" no longer read them.
+  const stretched = useStore((s) => features.isochrone && s.resultPolygon !== null)
   return (
     <Stack gap={4}>
       <LivabilityInfoModal opened={info} onClose={() => setInfo(false)} />
@@ -29,6 +33,7 @@ export function MatchColoursSwitch() {
           <IconInfoCircle size={16} stroke={1.8} />
         </ActionIcon>
       </Group>
+      {anyCondition && visible && stretched && <CompositeLegend />}
       {anyCondition && <Text size="xs" c="dimmed">{t('matchSwitch.hatched')}</Text>}
     </Stack>
   )

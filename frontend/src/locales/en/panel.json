@@ -19,12 +19,11 @@
   },
   "advanced": {
     "head": "Advanced",
-    "intro": "Exact values live in each sentence under “Custom…”. Here: how much each climate risk counts, and the colour scale.",
+    "intro": "Exact values live in each sentence under “Custom…”. Here: how much each climate risk counts.",
     "howMuch": "How much each risk counts",
     "flood": "River flood risk",
     "fire": "Wildfire risk",
-    "street": "Street flooding risk",
-    "boost": "Boost contrast for this view"
+    "street": "Street flooding risk"
   },
   "strength": {
     "enable": "Enable {{label}}",
@@ -39,7 +38,9 @@
     "bands": "Match bands",
     "caption": "How well homes meet your conditions",
     "scale": "Composite score colour scale",
-    "relative": "How well homes meet your conditions, relative to the visible area",
+    "stretched": "Colours stretched over your commute zone",
+    "worse": "Worse",
+    "better": "Better",
     "great": "Great",
     "good": "Good",
     "partial": "Partial",
@@ -54,7 +55,10 @@
     "looking": "Looking for your best areas…",
     "count_one": "{{count}} best area in view",
     "count_other": "{{count}} best areas in view",
+    "countCommute_one": "{{count}} best area in your commute zone",
+    "countCommute_other": "{{count}} best areas in your commute zone",
     "none": "No area fits this view. Zoom out or ask for more areas.",
+    "noneCommute": "No area fits your commute zone. Ask for more areas.",
     "top": "Top {{pct}}% of homes, numbered on the map.",
     "fewer": "Fewer areas",
     "more": "More areas",

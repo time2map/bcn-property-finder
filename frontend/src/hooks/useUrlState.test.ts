@@ -64,7 +64,7 @@ describe('useUrlState: the configuration in the address (TODO-053)', () => {
     useStore.setState({
       workplace: null, minutes: 60, mapCenter: DEFAULT_CENTER,
       conditions: { noiseMaxDb: 65, priceMaxEurM2: 4000, cityCoreMaxMin: 30, walkMaxMin: 10, localsMin: 7.5 },
-      conditionOrder: ['noise', 'poiAccess', 'cityCore', 'openPrice', 'risk'], flatAreaM2: 70, contrastBoost: false,
+      conditionOrder: ['noise', 'poiAccess', 'cityCore', 'openPrice', 'risk'], flatAreaM2: 70,
     })
     vi.spyOn(window.history, 'replaceState')
   })

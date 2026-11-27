@@ -37,7 +37,6 @@ describe('CompositeControls', () => {
     useStore.setState({
       compositeVisible: false,
       compositeWeights: { ...DEFAULT_COMPOSITE_WEIGHTS },
-      compositeColorRange: [0, 100], contrastBoost: false,
       idealistaPriceBounds: null,
       enabledLandmarkIds: ['sagrada', 'barceloneta'],
       compositeRiskStrengths: { flood: 5, fire: 5, street: 5 },
@@ -59,17 +58,12 @@ describe('CompositeControls', () => {
     expect(JSON.parse(localStorage.getItem('bcn_conditions')!).noiseMaxDb).toBe(55)
   })
 
-  it('Boost contrast switch is under the legend, off by default (TODO-050)', () => {
-    useStore.setState({ compositeVisible: true, contrastBoost: false })
+  it('the legend shows the match bands and there is no Boost contrast switch (TODO-050, 077)', () => {
+    useStore.setState({ compositeVisible: true })
     renderControls()
     expect(screen.getByText('Great match')).toBeTruthy()
-    const toggle = screen.getByLabelText('Boost contrast for this view') as HTMLInputElement
-    expect(toggle.checked).toBe(false)
-    fireEvent.click(toggle)
-    expect(useStore.getState().contrastBoost).toBe(true)
-    expect(screen.getByLabelText('Composite score colour scale')).toBeTruthy()
-    fireEvent.click(toggle)
-    expect(useStore.getState().contrastBoost).toBe(false)
+    expect(screen.queryByLabelText('Boost contrast for this view')).toBeNull()
+    expect(screen.queryByText('Score range')).toBeNull()
   })
 
   it('a subset of services or places is said so', () => {
@@ -149,15 +143,6 @@ describe('CompositeControls', () => {
     expect(screen.queryByLabelText('Noise on the street side limit')).toBeNull()
     fireEvent.click(screen.getByLabelText('Enable Noise on the street side'))
     expect(useStore.getState().compositeWeights.noise).toBe(1)
-  })
-
-  it('with Boost contrast on, the legend shows the colour range of the visible area; no score range slider (TODO-032, 050)', () => {
-    useStore.setState({ compositeVisible: true, contrastBoost: true, compositeColorRange: [58, 84] })
-    renderControls()
-    expect(screen.getByText('58')).toBeTruthy()
-    expect(screen.getByText('84')).toBeTruthy()
-    expect(screen.getByText('How well homes meet your conditions, relative to the visible area')).toBeTruthy()
-    expect(screen.queryByText('Score range')).toBeNull()
   })
 
   it('shows gear button for City Core when enabled', () => {

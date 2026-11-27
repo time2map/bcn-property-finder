@@ -15,7 +15,7 @@ vi.mock('@mantine/core', async () => {
 })
 
 describe('MatchColoursSwitch (TODO-052)', () => {
-  beforeEach(() => { localStorage.clear(); useStore.setState({ compositeVisible: true }) })
+  beforeEach(() => { localStorage.clear(); useStore.setState({ compositeVisible: true, resultPolygon: null }) })
 
   it('shows and hides the match colours on the map', () => {
     renderWithMantine(<MatchColoursSwitch />)
@@ -31,6 +31,16 @@ describe('MatchColoursSwitch (TODO-052)', () => {
   it('says what the hatch means (060)', () => {
     renderWithMantine(<MatchColoursSwitch />)
     expect(screen.getByText('Hatched = incomplete data (score is a range, colour shows the best case)')).toBeTruthy()
+  })
+
+  it('with an isochrone the colours are stretched: a worse → better gradient under the switch (077)', () => {
+    const { unmount } = renderWithMantine(<MatchColoursSwitch />)
+    expect(screen.queryByLabelText('Composite score colour scale')).toBeNull()
+    unmount()
+    useStore.setState({ resultPolygon: { type: 'Polygon', coordinates: [[[2, 41], [2.1, 41], [2.1, 41.1], [2, 41]]] } })
+    renderWithMantine(<MatchColoursSwitch />)
+    expect(screen.getByLabelText('Composite score colour scale')).toBeTruthy()
+    expect(screen.getByText('Colours stretched over your commute zone')).toBeTruthy()
   })
 
   it('opens and closes the explanation of the index', () => {

@@ -27,7 +27,7 @@ The product has two modes in one codebase, separated by feature flags (`docs/FEA
    setting means in words, for example "Up to 65 dB is OK for me — like a busy street" or "I'm ready to pay up
    to €4,000/m²".
 3. The map recolours on a fixed 0–100 scale with four bands (Great / Good / Partial / Poor match), so green means
-   "fits me" anywhere. An optional **Boost contrast** switch fits the scale to the visible area.
+   "fits me" anywhere. With a workplace set (flag), only the homes inside the commute zone are shown and ranked.
 4. A click on a building opens its card. It opens with the match ("83 of 100 · Good match", one row per condition) and, where the building stands out, an award ("Top 10% / Top 20% of homes in the barri / the city"); then, under "Details about this building" (folded), it shows Catastro facts, the photo (flag), noise by facade side, walking
    times, climate risks, and a clearly labelled **Barri-level** block (price, what locals say).
 5. **Draw best zones** outlines up to 3–5 compact best areas in view. Each zone opens as an Idealista search

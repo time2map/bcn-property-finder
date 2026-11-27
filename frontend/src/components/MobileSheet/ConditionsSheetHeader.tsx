@@ -18,7 +18,8 @@ export function ConditionsSheetHeader() {
   const picked = useSheetStore((s) => s.pickedArea)
   const backToList = useSheetStore((s) => s.backToList)
   const openOnboarding = useStore((s) => s.openOnboarding)
-  const names = useMemo(() => conditionNames(weights, risks), [weights, risks])
+  const commute = useStore((s) => features.isochrone && s.workplace !== null)
+  const names = useMemo(() => conditionNames(weights, risks, commute), [weights, risks, commute])
   const peek = position === 'peek'
 
   if (picked && peek) {

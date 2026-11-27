@@ -118,7 +118,7 @@ describe('Phone: a building in the sheet (TODO-062)', () => {
     useStore.setState({
       selectedBuilding: null, compositeWeights: DEFAULT_COMPOSITE_WEIGHTS, enabledWalkCategories: ['supermarket', 'park'],
       enabledLandmarkIds: ['sagrada'], compositeRiskStrengths: { flood: 5, fire: 5, street: 5 },
-      compositeColorRange: [0, 100], ageEras: ['before-1900'], conditions: DEFAULT_CONDITIONS,
+      ageEras: ['before-1900'], conditions: DEFAULT_CONDITIONS,
     })
     useSheetStore.setState({ position: 'half', mapInset: 0, tab: 'settings', pickedArea: null, restore: null })
   })

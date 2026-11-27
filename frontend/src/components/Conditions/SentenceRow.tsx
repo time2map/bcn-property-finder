@@ -4,8 +4,9 @@ import { formatNumber } from '../../i18n/format'
 import { useStore } from '../../store'
 import { useBudgetShares } from '../../hooks/useBudgetShares'
 import {
-  BUDGET_OPTIONS, BUDGET_RANGE, CENTRE_OPTIONS, FLAT_AREA_OPTIONS, FLAT_AREA_RANGE, LOCALS_OPTIONS, NOISE_OPTIONS,
-  WALK_OPTIONS, budgetFor, formatEuro, optionFor, priceForBudget, riskLevel, strengthsFor,
+  BUDGET_OPTIONS, BUDGET_RANGE, CENTRE_OPTIONS, COMMUTE_OPTIONS, COMMUTE_RANGE, FLAT_AREA_OPTIONS, FLAT_AREA_RANGE,
+  LOCALS_OPTIONS, NOISE_OPTIONS, WALK_OPTIONS, budgetFor, commutePlace, commutePlaceName, isCommuteCentre, formatEuro,
+  optionFor, priceForBudget, riskLevel, strengthsFor,
   type ConditionKey, type WordOption,
 } from '../../services/conditionOptions'
 import { CONDITION_RANGES, PRICE_FALLOFF_PCT, type Conditions } from '../../services/buildings/conditions'
@@ -188,6 +189,51 @@ function RiskWord() {
   )
 }
 
+/** "30 min": the daily trip by public transport (078); bound to the isochrone minutes, not to a scored limit. */
+function CommuteMinutesWord() {
+  const { t } = useTranslation('editor')
+  const minutes = useStore((s) => s.minutes)
+  const setMinutes = useStore((s) => s.setMinutes)
+  const format = (v: number) => i18n.t('conditions:unit.min', { value: v })
+  return (
+    <WordPicker label={optionFor(COMMUTE_OPTIONS, minutes)?.label ?? format(minutes)} title={t('sentence.commuteTitle')} note={t('sentence.commuteNote')}>
+      {(close) => (
+        <OptionList
+          options={COMMUTE_OPTIONS}
+          value={minutes}
+          onChange={(v) => { setMinutes(v); close() }}
+          custom={{ ...COMMUTE_RANGE, format, onChange: setMinutes }}
+        />
+      )}
+    </WordPicker>
+  )
+}
+
+/** "The centre" / "Your spot": where the daily trip goes (078). Another spot is picked with a click on the map. */
+function CommutePlaceWord() {
+  const { t } = useTranslation('editor')
+  const workplace = useStore((s) => s.workplace)
+  const picking = useStore((s) => s.commutePicking)
+  const centre = isCommuteCentre(workplace)
+  const label = picking ? t('sentence.commutePicking') : centre ? t('sentence.commuteCentre') : t('sentence.commuteSpot')
+  const choices: Choice<'centre' | 'pick'>[] = [
+    { value: 'centre', label: t('sentence.commuteCentreOption', { name: commutePlaceName() }) },
+    { value: 'pick', label: t('sentence.commutePick') },
+  ]
+  const pick = (v: 'centre' | 'pick') => {
+    const st = useStore.getState()
+    if (v === 'pick') st.setCommutePicking(true)
+    else { st.setCommutePicking(false); st.setWorkplace(commutePlace()) }
+  }
+  return (
+    <WordPicker label={label} title={t('sentence.commutePlaceTitle')}>
+      {(close) => (
+        <OptionList options={choices} value={centre ? 'centre' : 'pick'} onChange={(v) => { pick(v); close() }} />
+      )}
+    </WordPicker>
+  )
+}
+
 /**
  * One condition as a sentence whose highlighted words are the controls (TODO-031). The sentence is one string of
  * the language files with the controls as tags (`<limit/>`), so each language puts them where its grammar wants.
@@ -225,5 +271,7 @@ export function SentenceRow({ condition }: { condition: ConditionKey }) {
       return sentence('age', { eras: <ErasWord /> })
     case 'risk':
       return sentence('risk', { level: <RiskWord /> })
+    case 'commute':
+      return sentence('commute', { place: <CommutePlaceWord />, limit: <CommuteMinutesWord /> })
   }
 }

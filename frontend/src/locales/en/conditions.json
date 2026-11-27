@@ -6,7 +6,8 @@
     "openPrice": "Budget",
     "localsOpinion": "Locals",
     "age": "Buildings",
-    "risk": "Risks"
+    "risk": "Risks",
+    "commute": "Daily trip"
   },
   "add": {
     "noise": "Quiet",
@@ -15,7 +16,8 @@
     "openPrice": "Within my budget",
     "localsOpinion": "What locals think",
     "age": "Kind of building",
-    "risk": "Avoid risks"
+    "risk": "Avoid risks",
+    "commute": "Daily trip"
   },
   "label": {
     "noise": "Quiet",

@@ -77,10 +77,11 @@ src/
 ├── features.ts              feature flags from VITE_FEATURE_* (see docs/FEATURE_FLAGS.md)
 ├── components/
 │   ├── Map/
-│   │   ├── Map.tsx                basemap (services/mapStyle.ts), click handling, workplace marker,
+│   │   ├── Map.tsx                basemap (services/mapStyle.ts), click handling, Daily trip marker (078),
 │   │   │                          mounts every layer component (those that are off at start: when first shown)
 │   │   ├── MapContext.ts          React context with the MapLibre map instance (useMap)
 │   │   ├── MapContextMenu.tsx     right-click → "Open in Google Maps" popup
+│   │   ├── useCommutePick.ts      "Pick on the map" for the Daily trip place: crosshair, next click, Esc (078)
 │   │   ├── googleMapsUrl.ts       Google Maps URL for a coordinate
 │   │   ├── layerOrder.ts          canonical bottom-to-top z-order; addLayerOrdered()
 │   │   └── visibleBounds.ts       viewport minus the left panel, the right building card and the bottom onboarding sheet
@@ -99,7 +100,7 @@ src/
 │   ├── FilterPanel/
 │   │   ├── YourConditionsRow.tsx  "Your conditions … Start from a profile" at the top of the panel (flag)
 │   │   ├── MapLayersControl.tsx   None · Noise · River floods · Street flooding · Wildfire, one at a time, with its legend (052)
-│   │   ├── MatchColoursSwitch.tsx "Show match colours" + (i) → LivabilityInfoModal; AdvancedSettings.tsx: risk strengths, Boost contrast
+│   │   ├── MatchColoursSwitch.tsx "Show match colours" + (i) → LivabilityInfoModal; AdvancedSettings.tsx: risk strengths
 │   │   ├── StrengthRow.tsx, LivabilityInfoModal.tsx   moved out of CompositeControls (shared by both panels)
 │   │   ├── FilterPanel.tsx        commute slider (flag), Idealista price controls (flag), exclusion controls (flag),
 │   │   │                          noise switch + legend, climate layers, Livability controls, map attribution
@@ -112,8 +113,8 @@ src/
 │   │   ├── BuildingsLayer.tsx     Livability Index on buildings: dots at z≤13, footprints from z14, colour from
 │   │   │                          feature state; gap outline (missing data), hover/selected outline; click → card
 │   │   ├── FacadeNoiseLayer.tsx   noise circles at the facades of the selected building (z≥15)
-│   │   ├── CompositeLegend.tsx    legend: four match bands (050); gradient of the fitted range with Boost contrast
-│   │   └── scoreRamp.ts           RdYlGn ramp; colorRange(): fixed 0–100, or fitScoreRange() with Boost contrast (032, 050)
+│   │   ├── CompositeLegend.tsx    legend: four match bands (050)
+│   │   └── scoreRamp.ts           RdYlGn ramp on the fixed 0–100 (`FIXED_RANGE`, 050)
 │   ├── MobileSheet/               phone bottom sheet (TODO-062): MobileSheet.tsx (peek / half / full, native pointer
 │   │                              drag, slots for the card), ConditionsSheetHeader.tsx, sheetSlots.ts
 │   ├── MobileTop/                 MobileTopBar.tsx (search pill), AboutSheet.tsx
@@ -153,7 +154,7 @@ src/
 ├── hooks/
 │   ├── useUrlState.ts        store → URL: minutes, zoom, cx, cy at once, `c` (all settings) 300 ms after a change (replaceState). Read once at startup by the store
 │   ├── useIsochrone.ts       (flag) workplace + minutes → OTP isochrone, 300 ms debounce, localStorage cache
-│   ├── useEffectiveArea.ts   isochrone minus exclusion zones (for the mask)
+│   ├── useEffectiveArea.ts   isochrone minus exclusion zones (the mask, the commute zone of 077); null with the flag off
 │   ├── usePinAnalytics.ts    per pin: OTP walk / bike / car / transit times, noise Lden, nearby services
 │   ├── useScreenshotDrop.ts  drop an image (Claude Vision) or a saved Idealista .html page (HTML parser) → pin
 │   ├── useSplitPane.ts       compare-pane width + collapse
@@ -184,6 +185,7 @@ src/
 │   │   ├── buildingData.ts    loads buildings-meta.json, the scores file, then the positions file → decoded Float32 columns
 │   │   ├── firstVisit.ts      the settings of a first visit (store defaults, area-start.json) and settingsKey()
 │   │   ├── buildingScore.ts   columns → condition scores + risks for one building; scoreAll(); H3 cell means
+│   │   ├── inArea.ts          building centroids inside the commute zone → Uint8Array mask (077)
 │   │   ├── conditions.ts      conditions in real units (049): defaults, slider ranges, atMost / atLeast, minutesShare
 │   │   ├── buildingAge.ts     eras from VITE_AGE_ERA_BOUNDS, ageScore() (047)
 │   │   ├── buildingDetail.ts  one building's card fields + facade noise points from buildings-detail.pmtiles (z14)
@@ -285,10 +287,19 @@ buildings whose score changed get a new feature state. Changes to the settings a
      `64 + 36 × p / 100` (p = the budget score; 64 = the top of "Partial"), so a home over the budget is at most a
      partial match. `budgetCap` is the points it took.
 4. **Colour** (050): the RdYlGn ramp is fixed on 0–100, so a building is the same colour anywhere on the map.
-   The legend names four bands (Great ≥ 85, Good ≥ 65, Partial ≥ 40, Poor; `VITE_MATCH_BANDS`). The switch
-   **Boost contrast for this view** (`contrastBoost`, `bcn_contrast_boost`, off by default) brings back the
-   fit (032): the ramp spans the buildings whose centroid is in the visible area (`visibleBounds`), ignores the
-   extreme 2 % on each side, never spans fewer than 20 points, and is refitted after each map move.
+   The legend names four bands (Great ≥ 85, Good ≥ 65, Partial ≥ 40, Poor; `VITE_MATCH_BANDS`). It never follows
+   the visible area (032 deprecated, Boost contrast removed in 077); with an isochrone it is stretched over the
+   commute zone (`fitScoreRange`: buildings inside → `compositeColorRange`, areas over their means), and the legend
+   is a "Worse → Better" gradient (`CompositeLegend` under "Show match colours", `MobileLegend`).
+   **Commute zone** (077, `VITE_FEATURE_ISOCHRONE`): with an isochrone drawn, the area is `useEffectiveArea()` (the
+   isochrone minus exclusion zones). `inArea()` (`services/buildings/inArea.ts`) marks the buildings whose centroid
+   is inside (positions from `loadBuildings()`); the others get feature state `out` (opacity 0, no hatch, no hover,
+   click or tap), `rankAreas` gets a NaN area for them, so the area view and "Your areas" cover the commute zone
+   only (`AreasLayer` clears an area without a rank), and best zones search the whole isochrone and stay put.
+   **Daily trip** (078): the isochrone is a condition row of the editor (`ConditionKey` `commute`, not a weight; on =
+   `workplace` set). "+ Daily trip" starts at `VITE_COMMUTE_DEFAULT_PLACE` in `VITE_COMMUTE_DEFAULT_MINUTES`; the place
+   word offers "Pick on the map" (`commutePicking`, `components/Map/useCommutePick.ts`); × = `setWorkplace(null)`,
+   which drops `resultPolygon` too. Never in the shareable link.
 5. **Hover tooltip** (z14+, not on touch screens): "Good match · 78" (no "meets N of M" count), a MapLibre popup after
    60 ms of rest on a building.
 
@@ -356,7 +367,7 @@ the index settings, layer visibility, best-zones state, `selectedBuilding` and `
 `BuildingsLayer`, read by best zones).
 
 The index settings are `compositeVisible`, `compositeWeights` (on/off), `conditions`, `enabledWalkCategories`,
-`enabledLandmarkIds`, `ageEras`, `compositeRiskStrengths` and `compositeColorRange`.
+`enabledLandmarkIds`, `ageEras` and `compositeRiskStrengths`.
 
 `areaRanks` (TODO-051, flag `VITE_FEATURE_AREAS`) holds the per-area aggregation of `buildingScores`, set by
 `BuildingsLayer` after each rescoring.
@@ -385,7 +396,7 @@ flag and no saved settings (`hasSavedSettings()`); "Change" in the panel reopens
   `BuildingsLayer` sets the feature states when both are ready.
 - **The building data comes in two files** (format 2, `scripts/building_blob.py`): `buildings-scores.bin.gz` (1.0 MB,
   what the scoring reads) and `buildings-positions.bin.gz` (0.5 MB, `lng` / `lat`). `loadScores()` brings the first;
-  `loadBuildings()` adds the second to the same object, and only the card, Boost contrast, best zones and the
+  `loadBuildings()` adds the second to the same object, and only the card, the isochrone (077), best zones and the
   fallback area join ask for it (`useBuildingData` for components). Multi-byte columns are stored as byte planes
   (-15 % gzipped). `main.tsx` starts `loadScores()` right after the first paint, not when the map code is in.
 - **The page decodes only the columns it reads** (`lazyColumns` in `buildingData.ts`: area, the values of one
@@ -499,6 +510,11 @@ build, committed) and `frontend/.env.test` (all flags on). Every default below i
 | `VITE_RISK_STRENGTH_FLOOD` / `_FIRE` / `_STREET` | 5 / 5 / 5 | default risk strengths 0–10 |
 | `VITE_STREET_FLOOD_MIN_CM` / `_MAX_CM` | 10 / 50 | water at the door: counts from / fully at |
 | `VITE_MATCH_BANDS` | 85,65,40 | lower edges of Great / Good / Partial match (050) |
+| `VITE_SCORE_SCALE_TRIM_PCT` | 2 | commute zone colours (077): the scale ignores this % at each end |
+| `VITE_SCORE_SCALE_MIN_SPAN` | 20 | commute zone colours (077): the scale spans at least this many points |
+| `VITE_COMMUTE_DEFAULT_MINUTES` | 30 | Daily trip (078): minutes by public transport it starts with |
+| `VITE_COMMUTE_DEFAULT_PLACE` | placa_cat | Daily trip (078): the landmark it starts at |
+| `VITE_QUIZ_COMMUTE_OPTIONS` | 15,30,45,60 | Daily trip (078): the time steps of the sentence |
 | `VITE_QUIZ_NOISE_OPTIONS` | 50,58,65 | steps of the noise word, dB (031; 052 reuses them) |
 | `VITE_QUIZ_WALK_OPTIONS` / `_CENTRE_OPTIONS` | 5,10,15 / 25,30,45 | steps of the "within N min" words |
 | `VITE_QUIZ_BUDGET_OPTIONS` | 150000,250000,350000,500000 | steps of the budget word, € for a flat (÷ its size = the price per m²; each shows "≈ N % of homes") |
@@ -508,8 +524,6 @@ build, committed) and `frontend/.env.test` (all flags on). Every default below i
 | `VITE_AREA_MIN_BUILDINGS` | 50 | areas with fewer homes are listed after the ranked ones (051) |
 | `VITE_AREA_VIEW_MAX_ZOOM` | 13 | below this zoom the map shows areas, from it the buildings (051) |
 | `VITE_PRESET_FAMILY` / `_REMOTE` / `_CITY` / `_RETIREE` | (in code) | optional JSON overriding a profile's fields |
-| `VITE_SCORE_SCALE_TRIM_PCT` | 2 | Boost contrast: scale ignores this % at each end |
-| `VITE_SCORE_SCALE_MIN_SPAN` | 20 | Boost contrast: scale minimum span, points |
 | `VITE_BEST_ZONES_TOP_PCT` | 15 | default strictness |
 | `VITE_BEST_ZONES_MAX` / `_MAX_WITH_TIES` / `_TIE_RATIO` | 3 / 5 / 0.9 | zone count and near-ties |
 | `VITE_BEST_ZONES_MIN_CELLS` | 5 | minimum zone size, res-9 cells |

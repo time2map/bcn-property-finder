@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, act } from '@testing-library/react'
+import { render, act, screen, within } from '@testing-library/react'
 import { MapContext } from '../Map/MapContext'
 import { useStore, DEFAULT_COMPOSITE_WEIGHTS } from '../../store'
+import { useExclusionsStore } from '../../store/exclusionsStore'
 import { DEFAULT_CONDITIONS } from '../../services/buildings/conditions'
 import type { BuildingData } from '../../services/buildings/buildingData'
 
@@ -34,6 +35,8 @@ vi.mock('../../services/localsOpinion/localsOpinion', async (orig) => ({
   loadBarriVibe: vi.fn(() => Promise.resolve({ barris: { '01': { satisfAdj: 7.5, lowN: false } } })),
 }))
 
+vi.mock('../../hooks/useAreaJoin', () => ({ useAreaJoin: () => null }))
+
 const popups: { text: string; removed: boolean; lngLat?: unknown }[] = []
 vi.mock('maplibre-gl', () => ({
   Popup: class {
@@ -47,6 +50,7 @@ vi.mock('maplibre-gl', () => ({
 }))
 
 import { scoreClient } from '../../services/buildings/scoreClient'
+import { AreasList } from '../AreasList/AreasList'
 import { BuildingsLayer, SOURCE_ID, DOT_LAYER_ID, FILL_LAYER_ID, HATCH_LAYER_ID, HOVER_LAYER_ID } from './BuildingsLayer'
 
 function makeFakeMap() {
@@ -96,9 +100,10 @@ describe('BuildingsLayer (TODO-046)', () => {
     useStore.setState({
       compositeVisible: true, compositeWeights: DEFAULT_COMPOSITE_WEIGHTS, selectedBuilding: null,
       enabledWalkCategories: ['supermarket', 'park'], enabledLandmarkIds: ['sagrada'],
-      compositeRiskStrengths: { flood: 5, fire: 5, street: 5 }, compositeColorRange: [0, 100], contrastBoost: false,
+      compositeRiskStrengths: { flood: 5, fire: 5, street: 5 }, resultPolygon: null, compositeColorRange: [0, 100],
       ageEras: ['before-1900', '1900-1939', '1940-1979', '1980-2006', '2007-on'], conditions: DEFAULT_CONDITIONS,
     })
+    useExclusionsStore.setState({ zones: [] })
   })
 
   it('adds the vector source with dots, footprints and outlines', async () => {
@@ -106,11 +111,9 @@ describe('BuildingsLayer (TODO-046)', () => {
     await renderLayer(map)
     expect(map.addSource).toHaveBeenCalledWith(SOURCE_ID, expect.objectContaining({ type: 'vector' }))
     expect([...map.layers.keys()]).toEqual([DOT_LAYER_ID, FILL_LAYER_ID, HATCH_LAYER_ID, HOVER_LAYER_ID])
-    // incomplete data (060): a hatch layer gated by the `gap` feature state, no black outline
+    // incomplete data (060): a hatch layer gated by the `gap` feature state (and not `out`, 077), no black outline
     expect(map.addImage).toHaveBeenCalledWith('hatch-thin', expect.objectContaining({ width: expect.any(Number) }))
-    expect(map.layers.get(HATCH_LAYER_ID)).toMatchObject({
-      type: 'fill', paint: { 'fill-pattern': 'hatch-thin', 'fill-opacity': ['case', ['boolean', ['feature-state', 'gap'], false], 1, 0] },
-    })
+    expect(map.layers.get(HATCH_LAYER_ID)).toMatchObject({ type: 'fill', paint: { 'fill-pattern': 'hatch-thin' } })
     expect(map.layers.get(FILL_LAYER_ID)).toMatchObject({ 'source-layer': 'b', filter: ['==', ['geometry-type'], 'Polygon'] })
   })
 
@@ -254,40 +257,139 @@ describe('BuildingsLayer (TODO-046)', () => {
     }
   })
 
-  /** The interpolate stops of the last paint expression set on the fill layer. */
-  const lastStops = (map: FakeMap) => {
-    const call = map.setPaintProperty.mock.calls.filter(([l, p]) => l === FILL_LAYER_ID && p === 'fill-color').at(-1)!
-    return (call[2] as unknown[][])[2].slice(3) as (number | string)[]
-  }
-  const stopValues = (stops: (number | string)[]) => stops.filter((_, i) => i % 2 === 0) as number[]
-
-  it('colours on the fixed 0–100 scale by default and does not refit when the map moves (TODO-050)', async () => {
+  it('colours on the fixed 0–100 scale and never refits: no moveend handler (TODO-050, 077)', async () => {
     const map = makeFakeMap()
     await renderLayer(map)
-    expect(useStore.getState().compositeColorRange).toEqual([0, 100])
-    expect(stopValues(lastStops(map))).toEqual([0, 25, 50, 75, 100])
-    expect(lastStops(map)[9]).toBe('#1a9850')
-    handler(map, 'moveend')()
-    expect(useStore.getState().compositeColorRange).toEqual([0, 100])
-    expect(stopValues(lastStops(map))).toEqual([0, 25, 50, 75, 100])
+    const color = (map.layers.get(FILL_LAYER_ID)!.paint as Record<string, unknown[]>)['fill-color']
+    const stops = (color[2] as (number | string)[]).slice(3)
+    expect(stops.filter((_, i) => i % 2 === 0)).toEqual([0, 25, 50, 75, 100])
+    expect(stops[9]).toBe('#1a9850')
+    expect(map.on.mock.calls.some(([e]) => e === 'moveend')).toBe(false)
+    expect(map.setPaintProperty).not.toHaveBeenCalled()
   })
 
-  it('Boost contrast fits the scale to the buildings in view; switching it off restores the fixed one (TODO-032, 050)', async () => {
-    const map = makeFakeMap()
-    await renderLayer(map)
-    // The positions load when Boost contrast is switched on (058); the scale is fitted once they are in.
-    await act(async () => { useStore.getState().setContrastBoost(true) })
-    const [lo, hi] = useStore.getState().compositeColorRange
-    const scores = [map.states.get(0)!.score as number, map.states.get(1)!.score as number]
-    expect(lo).toBeLessThanOrEqual(Math.min(...scores))
-    expect(hi).toBeGreaterThanOrEqual(Math.max(...scores))
-    expect(stopValues(lastStops(map))[0]).toBe(lo)
-    expect(stopValues(lastStops(map))[4]).toBe(hi)
-    expect([lo, hi]).not.toEqual([0, 100])
-    expect(map.setPaintProperty).toHaveBeenCalledWith(DOT_LAYER_ID, 'circle-color', expect.anything())
-    act(() => useStore.getState().setContrastBoost(false))
-    expect(stopValues(lastStops(map))).toEqual([0, 25, 50, 75, 100])
-    expect(useStore.getState().compositeColorRange).toEqual([0, 100])
+  describe('the isochrone sets the area (077)', () => {
+    /** Covers building 0 (lng 0.2) only. */
+    const WEST = { type: 'Polygon' as const, coordinates: [[[0, 0], [0.5, 0], [0.5, 1], [0, 1], [0, 0]]] }
+
+    it('hides the buildings outside: opacity 0 and no hatch on `out`; removing the isochrone shows them again', async () => {
+      useStore.setState({ resultPolygon: WEST })
+      const map = makeFakeMap()
+      await renderLayer(map)
+      expect(map.states.get(1)!.out).toBe(true)
+      expect(map.states.get(0)!.out).toBeUndefined() // inside: never marked
+      const out = ['boolean', ['feature-state', 'out'], false]
+      expect(map.layers.get(FILL_LAYER_ID)!.paint).toMatchObject({ 'fill-opacity': ['case', out, 0, 0.75] })
+      expect(map.layers.get(DOT_LAYER_ID)!.paint).toMatchObject({ 'circle-opacity': ['case', out, 0, 0.85] })
+      expect((map.layers.get(HATCH_LAYER_ID)!.paint as Record<string, unknown>)['fill-opacity'])
+        .toEqual(['case', ['all', ['boolean', ['feature-state', 'gap'], false], ['!', out]], 1, 0])
+      act(() => useStore.setState({ resultPolygon: null }))
+      expect(map.states.get(1)!.out).toBe(false)
+    })
+
+    it('ranks the areas from the buildings inside only, and again when the isochrone goes', async () => {
+      useStore.setState({ resultPolygon: WEST })
+      const map = makeFakeMap()
+      await renderLayer(map)
+      expect(useStore.getState().areaRanks!.map((r) => r.name)).toEqual(['el Raval'])
+      act(() => useStore.setState({ resultPolygon: null }))
+      expect(useStore.getState().areaRanks!.map((r) => r.name).sort()).toEqual(['Hospitalet', 'el Raval'])
+    })
+
+    it('an exclusion zone over a building inside the isochrone hides it too', async () => {
+      useStore.setState({ resultPolygon: WEST })
+      useExclusionsStore.setState({
+        zones: [{ id: 'z', geometry: { type: 'Polygon', coordinates: [[[0.1, 0.4], [0.3, 0.4], [0.3, 0.6], [0.1, 0.6], [0.1, 0.4]]] } }] as never,
+      })
+      const map = makeFakeMap()
+      await renderLayer(map)
+      expect(map.states.get(0)!.out).toBe(true)
+      expect(useStore.getState().areaRanks).toEqual([])
+    })
+
+    it('hover, tooltip and click skip a building outside', async () => {
+      useStore.setState({ resultPolygon: WEST })
+      const map = makeFakeMap()
+      await renderLayer(map)
+      vi.useFakeTimers()
+      try {
+        act(() => handler(map, 'mousemove', FILL_LAYER_ID)({ features: [{ id: 1 }], lngLat: { lng: 0.8, lat: 0.5 } }))
+        act(() => { vi.advanceTimersByTime(100) })
+        expect(map.states.get(1)!.hover).toBeUndefined()
+        expect(popups).toHaveLength(0)
+        act(() => handler(map, 'click', FILL_LAYER_ID)({ features: [{ id: 1 }], point: { x: 0, y: 0 } }))
+        expect(useStore.getState().selectedBuilding).toBeNull()
+        act(() => handler(map, 'click', FILL_LAYER_ID)({ features: [{ id: 0 }], point: { x: 0, y: 0 } }))
+        expect(useStore.getState().selectedBuilding).toBe(0)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('a tap near a building outside picks nothing (TODO-062)', async () => {
+      useStore.setState({ resultPolygon: WEST })
+      const map = makeFakeMap()
+      await renderLayer(map)
+      vi.stubGlobal('matchMedia', (q: string) => ({ matches: q === '(pointer: coarse)' }))
+      vi.useFakeTimers()
+      try {
+        // The map-wide click (no layer) is the near tap.
+        const nearTap = map.on.mock.calls.find(([e, l]) => e === 'click' && typeof l === 'function')![1] as unknown as (e: unknown) => void
+        const near = (id: number) => map.queryRenderedFeatures.mockImplementation((p: unknown) => (Array.isArray(p) && Array.isArray(p[0]) ? [{ id }] : []))
+        near(1)
+        act(() => nearTap({ point: { x: 80, y: 50 }, lngLat: { lng: 0.8, lat: 0.5 } }))
+        act(() => { vi.advanceTimersByTime(1000) })
+        expect(useStore.getState().selectedBuilding).toBeNull()
+        near(0) // inside: picked as before
+        act(() => nearTap({ point: { x: 20, y: 50 }, lngLat: { lng: 0.2, lat: 0.5 } }))
+        act(() => { vi.advanceTimersByTime(1000) })
+        expect(useStore.getState().selectedBuilding).toBe(0)
+      } finally {
+        vi.useRealTimers()
+        vi.unstubAllGlobals()
+      }
+    })
+
+    it('stretches the colours over the buildings inside; without the isochrone the scale is 0–100 again', async () => {
+      useStore.setState({ resultPolygon: WEST })
+      const map = makeFakeMap()
+      await renderLayer(map)
+      const s = map.states.get(0)!.score as number // the only building inside: the scale is widened to 20 points
+      const range = useStore.getState().compositeColorRange
+      expect(range[1] - range[0]).toBe(20)
+      expect(range[0]).toBeLessThanOrEqual(s)
+      expect(range[1]).toBeGreaterThanOrEqual(s)
+      const stops = () => {
+        const call = map.setPaintProperty.mock.calls.filter(([l, p]) => l === FILL_LAYER_ID && p === 'fill-color').at(-1)!
+        return ((call[2] as unknown[][])[2].slice(3) as number[]).filter((_, i) => i % 2 === 0)
+      }
+      expect(stops()[0]).toBe(range[0])
+      expect(stops()[4]).toBe(range[1])
+      expect(map.setPaintProperty).toHaveBeenCalledWith(DOT_LAYER_ID, 'circle-color', expect.anything())
+      act(() => useStore.setState({ resultPolygon: null }))
+      expect(useStore.getState().compositeColorRange).toEqual([0, 100])
+      expect(stops()).toEqual([0, 25, 50, 75, 100])
+    })
+
+    it('while the daily trip place is being picked a click opens no card (078)', async () => {
+      const map = makeFakeMap()
+      await renderLayer(map)
+      useStore.setState({ commutePicking: true })
+      try {
+        act(() => handler(map, 'click', FILL_LAYER_ID)({ features: [{ id: 0 }], point: { x: 0, y: 0 } }))
+        expect(useStore.getState().selectedBuilding).toBeNull()
+      } finally {
+        useStore.setState({ commutePicking: false })
+      }
+    })
+
+    it('the card closes when a new isochrone leaves its building outside', async () => {
+      const map = makeFakeMap()
+      await renderLayer(map)
+      act(() => useStore.getState().setSelectedBuilding(1))
+      await act(async () => { useStore.setState({ resultPolygon: WEST }) }) // the positions load first (058)
+      expect(useStore.getState().selectedBuilding).toBeNull()
+    })
   })
 
   it('on a touch screen the card waits for a possible double-tap zoom (TODO-062)', async () => {
@@ -390,5 +492,52 @@ describe('BuildingsLayer (TODO-046)', () => {
       expect(popups).toHaveLength(0)
       vi.unstubAllGlobals()
     })
+  })
+})
+
+describe('integration: the commute zone in "Your areas" (077)', () => {
+  /** 60 homes in el Raval (lng 0.2) and 60 in Gràcia (lng 0.8): both over the minimum of 50 for a rank. */
+  const rep = (a: number, b: number) => Float32Array.from({ length: 120 }, (_, i) => (i < 60 ? a : b))
+  const BIG: BuildingData = {
+    meta: {
+      ...DATA.meta, count: 120,
+      areas: [{ code: '01', name: 'el Raval', kind: 'barri', price: 4000 }, { code: '02', name: 'Gràcia', kind: 'barri', price: 2500 }],
+    },
+    count: 120,
+    cols: {
+      lng: rep(0.2, 0.8), lat: rep(0.5, 0.5), min_supermarket: rep(3, 12), min_park: rep(8, 18), cc_sagrada: rep(10, 70),
+      lden_avg: rep(50, 72), area: rep(0, 1), river_zone: rep(NaN, NaN), fire_wui: rep(0, 0), fire_hazard: rep(0, 0),
+      street_t10_cm: rep(0, NaN), street_t100_cm: rep(0, NaN), year_built: rep(1925, 1968),
+    },
+  }
+  const WEST = { type: 'Polygon' as const, coordinates: [[[0, 0], [0.5, 0], [0.5, 1], [0, 1], [0, 0]]] }
+  const listed = () => within(screen.getByRole('region', { name: 'Barcelona' }))
+    .queryAllByRole('button', { name: /of homes are a good match/ }).map((b) => b.getAttribute('aria-label')!.replace(/,.*/, ''))
+
+  it('with an isochrone only the areas with homes inside are ranked; without it, the whole city again', async () => {
+    const { loadScores, loadBuildings } = await import('../../services/buildings/buildingData')
+    vi.mocked(loadScores).mockResolvedValueOnce(BIG)
+    vi.mocked(loadBuildings).mockResolvedValue(BIG)
+    useStore.setState({
+      compositeVisible: true, compositeWeights: DEFAULT_COMPOSITE_WEIGHTS, selectedBuilding: null, areaRanks: null,
+      enabledWalkCategories: ['supermarket', 'park'], enabledLandmarkIds: ['sagrada'],
+      compositeRiskStrengths: { flood: 5, fire: 5, street: 5 }, resultPolygon: WEST,
+      ageEras: ['before-1900', '1900-1939', '1940-1979', '1980-2006', '2007-on'], conditions: DEFAULT_CONDITIONS,
+    })
+    useExclusionsStore.setState({ zones: [] })
+    try {
+      render(
+        <>
+          <MapContext.Provider value={makeFakeMap() as never}><BuildingsLayer /></MapContext.Provider>
+          <AreasList />
+        </>,
+      )
+      await act(async () => {})
+      expect(listed()).toEqual(['1. el Raval'])
+      act(() => useStore.setState({ resultPolygon: null }))
+      expect(listed()).toHaveLength(2)
+    } finally {
+      vi.mocked(loadBuildings).mockResolvedValue(DATA)
+    }
   })
 })

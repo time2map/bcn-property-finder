@@ -19,12 +19,11 @@
   },
   "advanced": {
     "head": "Avançat",
-    "intro": "Els valors exactes són a cada frase, a «Personalitzat…». Aquí: quant compta cada risc climàtic i l'escala de color.",
+    "intro": "Els valors exactes són a cada frase, a «Personalitzat…». Aquí: quant compta cada risc climàtic.",
     "howMuch": "Quant compta cada risc",
     "flood": "Risc d'inundació de riu",
     "fire": "Risc d'incendi",
-    "street": "Risc d'inundació al carrer",
-    "boost": "Augmenta el contrast en aquesta vista"
+    "street": "Risc d'inundació al carrer"
   },
   "strength": {
     "enable": "Activa {{label}}",
@@ -39,7 +38,9 @@
     "bands": "Nivells d'encaix",
     "caption": "Com compleixen els habitatges les teves condicions",
     "scale": "Escala de color de la puntuació composta",
-    "relative": "Com compleixen els habitatges les teves condicions, respecte de la zona visible",
+    "stretched": "Colors estirats sobre la teva zona de desplaçament",
+    "worse": "Pitjor",
+    "better": "Millor",
     "great": "Excel·lent",
     "good": "Bo",
     "partial": "Parcial",
@@ -55,7 +56,11 @@
     "count_one": "{{count}} millor zona a la vista",
     "count_many": "{{count}} millors zones a la vista",
     "count_other": "{{count}} millors zones a la vista",
+    "countCommute_one": "{{count}} millor zona a la teva zona de desplaçament",
+    "countCommute_many": "{{count}} millors zones a la teva zona de desplaçament",
+    "countCommute_other": "{{count}} millors zones a la teva zona de desplaçament",
     "none": "Cap zona encaixa en aquesta vista. Allunya el mapa o demana més zones.",
+    "noneCommute": "Cap zona encaixa a la teva zona de desplaçament. Demana més zones.",
     "top": "El {{pct}}% millor dels habitatges, numerats al mapa.",
     "fewer": "Menys zones",
     "more": "Més zones",

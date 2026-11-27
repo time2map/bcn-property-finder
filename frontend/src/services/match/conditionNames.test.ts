@@ -19,4 +19,7 @@ describe('conditionNames', () => {
   it('is empty when nothing is on', () => {
     expect(conditionNames({ poiAccess: 0, noise: 0, cityCore: 0, openPrice: 0 }, NO_RISK)).toEqual([])
   })
+  it('adds the daily trip when it is set (078)', () => {
+    expect(conditionNames({ poiAccess: 0, noise: 1, cityCore: 0, openPrice: 0 }, NO_RISK, true)).toEqual(['Quiet', 'Daily trip'])
+  })
 })

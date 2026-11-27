@@ -29,6 +29,7 @@ vi.mock('../services/bestZones', async (importActual) => {
 
 const BCN: Bounds = [2.0, 41.2, 2.4, 41.6]
 const lastSticky = () => vi.mocked(findZoneCells).mock.calls.at(-1)![0].sticky
+const lastBounds = () => vi.mocked(findZoneCells).mock.calls.at(-1)![0].bounds
 const lastAllowed = () => vi.mocked(findZoneCells).mock.calls.at(-1)![0].allowed
 const lastScores = () => vi.mocked(findZoneCells).mock.calls.at(-1)![0].scores
 
@@ -135,5 +136,23 @@ describe('useBestZones', () => {
     act(() => useStore.setState({ buildingScores: scoresWithHot(80) }))
     expect(lastSticky()).toBeUndefined()
     expect(lastScores().get(CENTRE)).toBe(80)
+  })
+
+  it('with an isochrone (077): zones cover the whole isochrone, restricted even with the checkbox off, and the view doesn\'t matter', async () => {
+    const far = gridDisk(CENTRE, 8).find((h) => !gridDisk(CENTRE, 3).includes(h))!
+    useStore.setState({
+      bestZonesRestrict: false,
+      resultPolygon: { type: 'MultiPolygon', coordinates: cellsToMultiPolygon(gridDisk(CENTRE, 3), true) },
+    })
+    const { result } = renderHook(() => useBestZones())
+    act(() => useStore.getState().setBestZonesBounds(BCN))
+    await waitFor(() => expect(result.current.zones.length).toBe(1))
+    expect(lastBounds()).toEqual([-180, -90, 180, 90])
+    expect(lastAllowed()!(CENTRE)).toBe(true)
+    expect(lastAllowed()!(far)).toBe(false)
+
+    act(() => useStore.getState().setBestZonesTopPct(10))
+    act(() => useStore.getState().setBestZonesBounds([2.0, 41.2, 2.3, 41.5]))
+    expect(lastSticky()).toBeDefined() // another view is not a fresh draw
   })
 })

@@ -16,7 +16,7 @@ describe('BestAreasControls (TODO-052)', () => {
     localStorage.clear()
     document.body.innerHTML = ''
     useMapStore.setState({ map: fakeMap as never })
-    useStore.setState({ compositeVisible: true, bestZonesBounds: null, bestZonesTopPct: 15, bestZonesCount: null, bestZonesRestrict: true })
+    useStore.setState({ compositeVisible: true, bestZonesBounds: null, bestZonesTopPct: 15, bestZonesCount: null, bestZonesRestrict: true, resultPolygon: null })
   })
 
   it('one button to start: "Show my best areas" draws the zones for what is in view', () => {
@@ -65,6 +65,18 @@ describe('BestAreasControls (TODO-052)', () => {
     act(() => useStore.setState({ bestZonesCount: 1 }))
     renderWithMantine(<BestAreasControls />)
     expect(screen.getByText('1 best area in view')).toBeTruthy()
+  })
+
+  it('with an isochrone (077): counts the areas of the commute zone, no checkbox, its own empty text', () => {
+    const square = { type: 'Polygon' as const, coordinates: [[[2, 41], [2.1, 41], [2.1, 41.1], [2, 41.1], [2, 41]]] }
+    act(() => useStore.setState({ resultPolygon: square, bestZonesBounds: [2, 41.2, 2.4, 41.6], bestZonesCount: 2 }))
+    const { unmount } = renderWithMantine(<BestAreasControls />)
+    expect(screen.getByText('2 best areas in your commute zone')).toBeTruthy()
+    expect(screen.queryByLabelText('Inside commute zone, outside exclusion zones')).toBeNull()
+    unmount()
+    act(() => useStore.setState({ bestZonesCount: 0 }))
+    renderWithMantine(<BestAreasControls />)
+    expect(screen.getByText('No area fits your commute zone. Ask for more areas.')).toBeTruthy()
   })
 
   it('opens the search filters (the Idealista search to reuse) in a popover', () => {

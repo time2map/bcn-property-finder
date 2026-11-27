@@ -24,6 +24,8 @@ export function BestZones({ withBar = true }: { /** The floating bar; the new fi
   const setTopPct = useStore((s) => s.setBestZonesTopPct)
   const restrict = useStore((s) => s.bestZonesRestrict)
   const setRestrict = useStore((s) => s.setBestZonesRestrict)
+  // With an isochrone the zones cover all of it and stay put (077).
+  const commute = useStore((s) => features.isochrone && s.resultPolygon !== null)
   const setCount = useStore((s) => s.setBestZonesCount)
   const { zones, urls, labels, ready } = useBestZones()
 
@@ -32,13 +34,13 @@ export function BestZones({ withBar = true }: { /** The floating bar; the new fi
   useEffect(() => { setCount(count) }, [count, setCount])
   useEffect(() => () => setCount(null), [setCount])
 
-  // While zones are on, they follow the map: every pan/zoom redraws them for the new view.
+  // While zones are on, they follow the map: every pan/zoom redraws them for the new view (not with an isochrone).
   useEffect(() => {
-    if (!map) return
+    if (!map || commute) return
     const onMoveEnd = () => { if (useStore.getState().bestZonesBounds) setBounds(visibleBounds(map)) }
     map.on('moveend', onMoveEnd)
     return () => { map.off('moveend', onMoveEnd) }
-  }, [map, setBounds])
+  }, [map, setBounds, commute])
 
   useEffect(() => {
     if (!bounds) return
@@ -92,7 +94,7 @@ export function BestZones({ withBar = true }: { /** The floating bar; the new fi
           />
           <Text size="xs" style={{ width: 52, textAlign: 'right' }}>top {topPct}%</Text>
         </Group>
-        {(features.isochrone || features.exclusions) && (
+        {(features.isochrone || features.exclusions) && !commute && (
           <Checkbox
             mt={8}
             size="xs"
@@ -103,7 +105,9 @@ export function BestZones({ withBar = true }: { /** The floating bar; the new fi
           />
         )}
         {ready && zones.length === 0 && (
-          <Text size="xs" c="dimmed" mt={6}>No zones fit this view — zoom out</Text>
+          <Text size="xs" c="dimmed" mt={6}>
+            {commute ? 'No zones fit — the commute zone is too small' : 'No zones fit this view — zoom out'}
+          </Text>
         )}
       </Paper>}
     </>
