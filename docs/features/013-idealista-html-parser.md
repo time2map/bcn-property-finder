@@ -1,5 +1,8 @@
 # Feature 013 — Idealista HTML Parser
 
+> **Update (2026-11-11):** geocoding moved from Nominatim to Geoapify + Overpass (`services/geocoding.ts`);
+> see `docs/ARCHITECTURE.md`. The rest of this file is the record as implemented.
+
 ## Goal
 
 Allow users to import a property from Idealista by saving the listing page as an HTML file and dropping it onto the map or uploading it via the + menu. The parser extracts all available structured data without requiring API access or scraping.

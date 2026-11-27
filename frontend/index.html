@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>Barcelona livability map — compare neighbourhoods by price, core access, noise and walkability</title>
     <meta
@@ -11,11 +11,28 @@
     />
     <meta name="theme-color" content="#ffffff" />
 
+    <!-- Start loading what the map needs while the JavaScript is still on its way (TODO-058): the base map style
+         (services/mapStyle.ts), ICGC's tile host, and the description of the building scores
+         (services/buildings/buildingData.ts). The addresses and the crossorigin attribute must match the fetch()
+         calls, or the files are loaded twice. The scores themselves (1.8 MB) are not preloaded on purpose: they
+         would share the connection with the JavaScript and hold back the first paint. -->
+    <link rel="preconnect" href="https://geoserveis.icgc.cat" crossorigin />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%basemap/icgc-standard.json" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%data/buildings-meta.json" />
+
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%time2map-mark.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon-32.png" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
 
-    <!-- Open Graph / Twitter. Absolute URLs use the custom domain (livability.time2map.com). -->
+    <!-- "Add to Home Screen" opens the map as an app, without the Safari bars (TODO-062). -->
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Livability" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Open Graph / Twitter. Absolute URLs come from VITE_SITE_URL (.env.production, the deploy workflow for a fork). og-image.jpg is drawn at build time by
+         scripts/build-share-images.mjs (TODO-063); the copy in public/ is what the dev server serves. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="time2map livability" />
     <meta property="og:title" content="Barcelona livability map" />
@@ -23,18 +40,26 @@
       property="og:description"
       content="Compare Barcelona neighbourhoods by price, city-core access, noise and walkability — an interactive map for deciding where to live."
     />
-    <meta property="og:url" content="https://livability.time2map.com/" />
-    <meta property="og:image" content="https://livability.time2map.com/og-image.jpg" />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:image" content="%VITE_SITE_URL%/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Map of Barcelona coloured by how well each barri matches, with the question: how liveable is your street?"
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Barcelona livability map" />
     <meta
       name="twitter:description"
       content="Compare Barcelona neighbourhoods by price, city-core access, noise and walkability — an interactive map for deciding where to live."
     />
-    <meta name="twitter:image" content="https://livability.time2map.com/og-image.jpg" />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="Map of Barcelona coloured by how well each barri matches, with the question: how liveable is your street?"
+    />
   </head>
   <body>
     <div id="root"></div>

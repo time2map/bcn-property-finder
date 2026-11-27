@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useMap } from '../Map/MapContext'
 import { addLayerOrdered } from '../Map/layerOrder'
+import { MAP_TEXT_FONT } from '../Map/mapFont'
 
 const APP_ID  = import.meta.env.VITE_TMB_APP_ID  as string | undefined
 const APP_KEY = import.meta.env.VITE_TMB_APP_KEY as string | undefined
@@ -107,7 +108,7 @@ export function MetroLayer() {
           source: SOURCE_STATIONS,
           layout: {
             'text-field': ['get', 'NOM_ESTACIO'],
-            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-font': MAP_TEXT_FONT,
             'text-size': 9,
             'text-offset': [0, 1.0],
             'text-anchor': 'top',

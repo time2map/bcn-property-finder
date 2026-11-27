@@ -1,0 +1,149 @@
+{
+  "short": {
+    "noise": "Quiet",
+    "poiAccess": "On foot",
+    "cityCore": "Centre",
+    "openPrice": "Budget",
+    "localsOpinion": "Locals",
+    "age": "Buildings",
+    "risk": "Risks"
+  },
+  "add": {
+    "noise": "Quiet",
+    "poiAccess": "Everything on foot",
+    "cityCore": "Close to the centre",
+    "openPrice": "Within my budget",
+    "localsOpinion": "What locals think",
+    "age": "Kind of building",
+    "risk": "Avoid risks"
+  },
+  "label": {
+    "noise": "Quiet",
+    "poiAccess": "Everyday services",
+    "cityCore": "Centre",
+    "openPrice": "Budget",
+    "localsOpinion": "Locals' opinion",
+    "age": "Building age"
+  },
+  "noiseName": {
+    "50": "a courtyard",
+    "58": "a calm street",
+    "65": "normal city noise"
+  },
+  "localsName": {
+    "7": "Happy",
+    "7_5": "Very happy",
+    "8": "Among the happiest"
+  },
+  "unit": {
+    "min": "{{value}} min",
+    "db": "{{value}} dB",
+    "m2": "{{value}} m²"
+  },
+  "profile": {
+    "budget": "a {{area}} m² flat up to {{price}}",
+    "family": {
+      "name": "Family",
+      "blurb": "Quiet street, school and park on foot, {{budget}}"
+    },
+    "remote": {
+      "name": "Remote worker",
+      "blurb": "Café and park nearby, 30 min to the centre"
+    },
+    "city": {
+      "name": "City life",
+      "blurb": "25 min to the centre, bars and metro at the door"
+    },
+    "retiree": {
+      "name": "Retiree",
+      "blurb": "Clinic, pharmacy and shops within 5 min, a calm street"
+    }
+  },
+  "services": {
+    "supermarket": "Supermarket",
+    "pharmacy": "Pharmacy",
+    "park": "Park",
+    "school": "School",
+    "kindergarten": "Kindergarten",
+    "clinic": "Clinic",
+    "metro": "Metro station",
+    "cafe": "Cafe",
+    "restaurant": "Restaurant",
+    "beach": "Beach"
+  },
+  "landmarks": {
+    "sagrada": "Sagrada Família",
+    "placa_cat": "Plaça de Catalunya",
+    "barceloneta": "Barceloneta",
+    "barri_gotic": "Barri Gòtic",
+    "pg_gracia": "Passeig de Gràcia",
+    "arc_triomf": "Arc de Triomf",
+    "montjuic": "Montjuïc",
+    "placa_espanya": "Plaça d'Espanya",
+    "glories": "Torre Glòries",
+    "poblenou": "Rambla del Poblenou",
+    "parc_guell": "Parc Güell",
+    "eixample": "Eixample",
+    "waterfront": "Waterfront"
+  },
+  "band": {
+    "great": "Great match",
+    "good": "Good match",
+    "partial": "Partial match",
+    "poor": "Poor match"
+  },
+  "bandPossibly": {
+    "great": "Possibly a great match",
+    "good": "Possibly a good match",
+    "partial": "Possibly a partial match",
+    "poor": "Possibly a poor match"
+  },
+  "match": {
+    "noiseUnder": "{{db}} dB, under your {{limit}}",
+    "noiseOver": "{{db}} dB, {{diff}} dB over your {{limit}}",
+    "poi": "{{within}} of {{total}} within {{limit}} min",
+    "cityCore_one": "{{within}} of {{count}} place within {{limit}} min",
+    "cityCore_other": "{{within}} of {{count}} places within {{limit}} min",
+    "priceUnder": "{{price}}/m², under your {{budget}}",
+    "priceOver": "{{price}}/m², {{pct}}% over your {{budget}}",
+    "priceAlmost": "{{price}}/m², almost fits your {{budget}}",
+    "almostFits": "almost fits",
+    "locals": "rated {{rating}}, your minimum {{min}}",
+    "ageUnknown": "year of construction unknown",
+    "noData": "no data",
+    "risk": "Risk: −{{points}} points — {{names}}",
+    "of": "{{within}} of {{total}}",
+    "inMin": "in {{limit}} min",
+    "perM2": "{{budget}} per m²"
+  },
+  "risk": {
+    "flood": "river flooding",
+    "street": "street flooding",
+    "fire": "wildfire"
+  },
+  "era": {
+    "before": "before {{year}}",
+    "on": "{{year}} on",
+    "range": "{{from}}–{{to}}",
+    "e0": {
+      "name": "Historic",
+      "about": "Old town and village cores: thick masonry walls, often no lift, small windows."
+    },
+    "e1": {
+      "name": "Modernista & early 20th c.",
+      "about": "Eixample heyday: high ceilings, mosaic floors, big windows; often renovated."
+    },
+    "e2": {
+      "name": "Post-war boom",
+      "about": "Fast mass housing: thin walls, no insulation (no thermal standard until 1979); aluminous-cement floors in some 1950s–70s buildings."
+    },
+    "e3": {
+      "name": "First building standards",
+      "about": "First thermal (1979) and acoustic (1981–88) standards."
+    },
+    "e4": {
+      "name": "Current building code",
+      "about": "Código Técnico (2006): insulation, soundproofing, accessibility."
+    }
+  }
+}

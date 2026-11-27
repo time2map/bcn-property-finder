@@ -5,6 +5,7 @@ import { useStore } from '../../store'
 import { PRICE_RAMP, buildIconImageExpression } from './priceColors'
 import { addLayerOrdered } from '../Map/layerOrder'
 import { loadIdealistaFeatures } from '../../services/idealista/idealistaRawData'
+import { MAP_TEXT_FONT } from '../Map/mapFont'
 
 const DOTS_SOURCE = 'idealista-prices-dots'
 const DOTS_LAYER = 'idealista-prices-dots'
@@ -14,7 +15,6 @@ const DOT_ICON_PREFIX = 'idealista-dot-'
 const DOT_ICON_NAMES = PRICE_RAMP.map((_, i) => `${DOT_ICON_PREFIX}${i}`)
 const GEOJSON_URL = `${import.meta.env.BASE_URL}data/idealista_prices.geojson`
 const LABEL_MINZOOM = 15.3
-const TEXT_FONT = ['Noto Sans Regular', 'Arial Unicode MS Regular']
 
 function hexToRgb(hex: string): [number, number, number] {
   return [
@@ -128,7 +128,7 @@ export function IdealistaPricesLayer() {
         'icon-text-fit-padding': [3, 6, 3, 6] as [number, number, number, number],
         'text-field': ['get', 'priceText'] as maplibregl.ExpressionSpecification,
         'text-size': 8,
-        'text-font': TEXT_FONT,
+        'text-font': MAP_TEXT_FONT,
         'text-anchor': 'bottom',
         'text-offset': [0, -1.0] as [number, number],
         'icon-allow-overlap': false,

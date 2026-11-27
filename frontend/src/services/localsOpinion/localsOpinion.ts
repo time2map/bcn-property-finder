@@ -2,21 +2,15 @@
  * Residents' view of each barri (042), from the Barcelona municipal services survey (ESM).
  * Baked by scripts/build_neighbourhood_vibe.py into public/data/barri-vibe.json.
  */
+import { lazyLabels } from '../../i18n/format'
+import { dataUrl } from '../dataUrl'
 
-export const PROBLEM_LABELS = {
-  insecurity: 'Insecurity',
-  cleanliness: 'Cleanliness',
-  noise: 'Noise',
-  housing: 'Housing access',
-  tourism: 'Tourism & crowding',
-  incivility: 'Incivility',
-  drugs_squats: 'Drugs & squats',
-  maintenance: 'Maintenance & works',
-  parking: 'Parking',
-  traffic: 'Traffic',
-} as const
-
-export type ProblemId = keyof typeof PROBLEM_LABELS
+export const PROBLEM_IDS = [
+  'insecurity', 'cleanliness', 'noise', 'housing', 'tourism', 'incivility', 'drugs_squats', 'maintenance', 'parking', 'traffic',
+] as const
+export type ProblemId = (typeof PROBLEM_IDS)[number]
+/** Names of the problems in the page language (read on each use). */
+export const PROBLEM_LABELS: Record<ProblemId, string> = lazyLabels('card:locals.p', PROBLEM_IDS)
 
 export interface BarriVibe {
   name: string
@@ -45,7 +39,7 @@ export interface BarriVibeData {
 
 /** The `count` most-named problems of a barri, largest share first. */
 export function topProblems(barri: BarriVibe, count = 3): { id: ProblemId; pct: number }[] {
-  return (Object.keys(PROBLEM_LABELS) as ProblemId[])
+  return [...PROBLEM_IDS]
     .map((id) => ({ id, pct: barri.problems[id] }))
     .filter((p): p is { id: ProblemId; pct: number } => p.pct !== null)
     .sort((a, b) => b.pct - a.pct)
@@ -59,7 +53,7 @@ let cache: Promise<BarriVibeData> | null = null
 
 export function loadBarriVibe(): Promise<BarriVibeData> {
   if (cache) return cache
-  cache = fetch(`${import.meta.env.BASE_URL}data/barri-vibe.json`)
+  cache = fetch(dataUrl('barri-vibe.json'))
     .then((r) => {
       if (!r.ok) throw new Error(`Failed to load barri vibe: ${r.status}`)
       return r.json() as Promise<BarriVibeData>

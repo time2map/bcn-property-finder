@@ -19,6 +19,25 @@ describe('layer visibility defaults', () => {
   })
 })
 
+describe('contrast boost (TODO-050)', () => {
+  it('is off by default, remembered, and switching it off resets the colour range to 0–100', async () => {
+    localStorage.clear()
+    vi.resetModules()
+    const { useStore: fresh } = await import('./index')
+    expect(fresh.getState().contrastBoost).toBe(false)
+    fresh.getState().setContrastBoost(true)
+    fresh.getState().setCompositeColorRange([45, 80])
+    expect(localStorage.getItem('bcn_contrast_boost')).toBe('true')
+    fresh.getState().setContrastBoost(false)
+    expect(localStorage.getItem('bcn_contrast_boost')).toBe('false')
+    expect(fresh.getState().compositeColorRange).toEqual([0, 100])
+    localStorage.setItem('bcn_contrast_boost', 'true')
+    vi.resetModules()
+    const { useStore: again } = await import('./index')
+    expect(again.getState().contrastBoost).toBe(true)
+  })
+})
+
 function setSearch(search: string) {
   Object.defineProperty(window, 'location', {
     value: { ...window.location, search },
@@ -271,5 +290,75 @@ describe('conditions (049)', () => {
     expect(fresh.getState().conditions).toMatchObject({ noiseMaxDb: 55, priceMaxEurM2: 4000 })
     fresh.getState().setConditions({ ...fresh.getState().conditions, walkMaxMin: 7 })
     expect(JSON.parse(localStorage.getItem('bcn_conditions')!).walkMaxMin).toBe(7)
+  })
+})
+
+describe('selected building and area (TODO-064)', () => {
+  it('keeps only the one picked last', () => {
+    const s = useStore.getState()
+    s.setSelectedBuilding(5)
+    s.setSelectedArea(3)
+    expect(useStore.getState()).toMatchObject({ selectedArea: 3, selectedBuilding: null })
+    useStore.getState().setSelectedBuilding(7)
+    expect(useStore.getState()).toMatchObject({ selectedArea: null, selectedBuilding: 7 })
+    useStore.getState().setSelectedBuilding(null)
+    expect(useStore.getState().selectedBuilding).toBeNull()
+  })
+})
+
+describe('default services and City Core places (TODO-073)', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('reads a saved list; a saved list of every id was the old default and reads as the new one', async () => {
+    const { loadIds } = await import('./index')
+    const all = ['a', 'b', 'c', 'd']
+    const dflt = ['b', 'c']
+    expect(loadIds('k', all, dflt, true)).toEqual(dflt)
+    localStorage.setItem('k', JSON.stringify(['d', 'a']))
+    expect(loadIds('k', all, dflt, true)).toEqual(['d', 'a'])
+    localStorage.setItem('k', JSON.stringify(['a', 'b', 'c', 'd']))
+    expect(loadIds('k', all, dflt, true)).toEqual(dflt)
+    // Without the migration (building eras), "all" stays a choice.
+    expect(loadIds('k', all, all)).toEqual(all)
+    localStorage.setItem('k', JSON.stringify(['zz']))
+    expect(loadIds('k', all, dflt, true)).toEqual(dflt)
+  })
+
+  it('a first visit starts without the beach and with three central places', async () => {
+    const { DEFAULT_LANDMARK_IDS, DEFAULT_WALK_CATEGORY_IDS, firstVisitSettings } = await import('../services/buildings/firstVisit')
+    expect(DEFAULT_WALK_CATEGORY_IDS).not.toContain('beach')
+    expect(DEFAULT_WALK_CATEGORY_IDS).toHaveLength(9)
+    expect(DEFAULT_LANDMARK_IDS).toEqual(['placa_cat', 'barri_gotic', 'pg_gracia'])
+    expect(firstVisitSettings().enabledLandmarkIds).toEqual(DEFAULT_LANDMARK_IDS)
+    expect(firstVisitSettings().enabledCategories).toEqual(DEFAULT_WALK_CATEGORY_IDS)
+  })
+})
+
+describe('funnel (TODO-076)', () => {
+  beforeEach(() => useStore.setState({ funnelOpen: true, funnelPicks: [], funnelSea: false, selectedBuilding: null }))
+
+  it('keeps the picks in order, each wish once', () => {
+    const s = useStore.getState()
+    s.pickFunnelWish('quiet')
+    s.pickFunnelWish('metro')
+    s.pickFunnelWish('quiet')
+    expect(useStore.getState().funnelPicks).toEqual(['quiet', 'metro'])
+  })
+
+  it('Back drops the last pick; Start again drops the picks, the sea and the open card', () => {
+    const s = useStore.getState()
+    s.pickFunnelWish('quiet')
+    s.pickFunnelWish('metro')
+    s.undoFunnelWish()
+    expect(useStore.getState().funnelPicks).toEqual(['quiet'])
+    s.setFunnelSea(true)
+    s.setSelectedBuilding(12)
+    s.resetFunnel()
+    expect(useStore.getState()).toMatchObject({ funnelPicks: [], funnelSea: false, selectedBuilding: null })
+  })
+
+  it('opens and closes', () => {
+    useStore.getState().setFunnelOpen(false)
+    expect(useStore.getState().funnelOpen).toBe(false)
   })
 })

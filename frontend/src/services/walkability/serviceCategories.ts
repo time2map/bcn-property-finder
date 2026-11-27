@@ -1,3 +1,4 @@
+import i18n from '../../i18n'
 import type { ServiceCategory } from './walkabilityTypes'
 
 // `saturation` (S) tunes how quickly a category satisfies. Essentials (you only need one or two
@@ -6,7 +7,7 @@ import type { ServiceCategory } from './walkabilityTypes'
 export const SERVICE_CATEGORIES: ServiceCategory[] = [
   {
     id: 'supermarket',
-    label: 'Supermarket',
+    get label() { return i18n.t('conditions:services.supermarket') },
     emoji: '🏪',
     topN: 3,
     saturation: 1.0,
@@ -15,7 +16,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'pharmacy',
-    label: 'Pharmacy',
+    get label() { return i18n.t('conditions:services.pharmacy') },
     emoji: '💊',
     topN: 1,
     saturation: 0.8,
@@ -24,7 +25,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'park',
-    label: 'Park',
+    get label() { return i18n.t('conditions:services.park') },
     emoji: '🌿',
     topN: 3,
     saturation: 1.2,
@@ -33,7 +34,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'school',
-    label: 'School',
+    get label() { return i18n.t('conditions:services.school') },
     emoji: '🎓',
     topN: 2,
     saturation: 1.0,
@@ -42,7 +43,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'kindergarten',
-    label: 'Kindergarten',
+    get label() { return i18n.t('conditions:services.kindergarten') },
     emoji: '🧸',
     topN: 2,
     saturation: 1.0,
@@ -51,7 +52,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'clinic',
-    label: 'Clinic',
+    get label() { return i18n.t('conditions:services.clinic') },
     emoji: '🏥',
     topN: 1,
     saturation: 0.8,
@@ -60,7 +61,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'metro',
-    label: 'Metro',
+    get label() { return i18n.t('conditions:services.metro') },
     emoji: '🚇',
     topN: 1,
     saturation: 0.7,
@@ -70,7 +71,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'cafe',
-    label: 'Cafe',
+    get label() { return i18n.t('conditions:services.cafe') },
     emoji: '☕',
     topN: 1,
     saturation: 3.0,
@@ -79,7 +80,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'restaurant',
-    label: 'Restaurant',
+    get label() { return i18n.t('conditions:services.restaurant') },
     emoji: '🍽️',
     topN: 3,
     saturation: 3.0,
@@ -88,7 +89,7 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   },
   {
     id: 'beach',
-    label: 'Beach',
+    get label() { return i18n.t('conditions:services.beach') },
     emoji: '🏖️',
     topN: 1,
     saturation: 0.6,

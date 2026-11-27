@@ -1,0 +1,98 @@
+{
+  "tabs": {
+    "settings": "Ajustos",
+    "areas": "Les teves zones"
+  },
+  "matchSwitch": {
+    "label": "Mostra els colors d'encaix",
+    "about": "Quant a la puntuació d'encaix",
+    "hatched": "Ratllat = dades incompletes (la puntuació és un rang; el color mostra el millor cas)"
+  },
+  "layers": {
+    "title": "Capes del mapa",
+    "none": "Cap",
+    "noise": "Soroll",
+    "river": "Inundacions de riu",
+    "street": "Inundació al carrer",
+    "wildfire": "Incendis",
+    "hint": "Una capa cada cop, amb la seva pròpia llegenda."
+  },
+  "advanced": {
+    "head": "Avançat",
+    "intro": "Els valors exactes són a cada frase, a «Personalitzat…». Aquí: quant compta cada risc climàtic i l'escala de color.",
+    "howMuch": "Quant compta cada risc",
+    "flood": "Risc d'inundació de riu",
+    "fire": "Risc d'incendi",
+    "street": "Risc d'inundació al carrer",
+    "boost": "Augmenta el contrast en aquesta vista"
+  },
+  "strength": {
+    "enable": "Activa {{label}}",
+    "strength": "Pes de {{label}}",
+    "s1": "Poc important",
+    "s2": "Una mica important",
+    "s3": "Compta",
+    "s4": "Important",
+    "s5": "Màxima prioritat"
+  },
+  "legend": {
+    "bands": "Nivells d'encaix",
+    "caption": "Com compleixen els habitatges les teves condicions",
+    "scale": "Escala de color de la puntuació composta",
+    "relative": "Com compleixen els habitatges les teves condicions, respecte de la zona visible",
+    "great": "Excel·lent",
+    "good": "Bo",
+    "partial": "Parcial",
+    "poor": "Feble"
+  },
+  "best": {
+    "title": "Millors zones",
+    "needColours": "Activa els colors d'encaix per veure les teves millors zones.",
+    "show": "Mostra les meves millors zones",
+    "filters": "Filtres de cerca",
+    "filtersHint": "Els enllaços de zona reutilitzen els filtres d'aquesta cerca d'Idealista:",
+    "looking": "Cercant les teves millors zones…",
+    "count_one": "{{count}} millor zona a la vista",
+    "count_many": "{{count}} millors zones a la vista",
+    "count_other": "{{count}} millors zones a la vista",
+    "none": "Cap zona encaixa en aquesta vista. Allunya el mapa o demana més zones.",
+    "top": "El {{pct}}% millor dels habitatges, numerats al mapa.",
+    "fewer": "Menys zones",
+    "more": "Més zones",
+    "hide": "Amaga",
+    "restrict": "Dins de la zona de desplaçament, fora de les zones d'exclusió",
+    "paste": "Enganxa l'URL d'Idealista amb els teus filtres…",
+    "clear": "Esborra els filtres desats",
+    "saved": "Filtres desats",
+    "invalid": "URL no vàlid"
+  },
+  "search": {
+    "pill": "Cerca al mapa d'habitabilitat de Barcelona",
+    "field": "Cerca zona o adreça",
+    "aria": "Cerca una zona o una adreça",
+    "close": "Tanca la cerca",
+    "areas": "Zones",
+    "addresses": "Adreces",
+    "empty": "No s'ha trobat res"
+  },
+  "mobile": {
+    "aboutMap": "Quant al mapa d'habitabilitat de Barcelona",
+    "aboutThis": "Quant a aquest mapa",
+    "locate": "Mostra la meva ubicació",
+    "outside": "Ets fora de l'àrea del mapa.",
+    "denied": "La ubicació està bloquejada. Permet-la per a aquest lloc als ajustos del navegador.",
+    "failed": "No s'ha trobat la teva posició. Torna-ho a provar a l'aire lliure o a prop d'una finestra.",
+    "unsupported": "Aquest navegador no pot saber on ets.",
+    "sheet": "Condicions i detalls",
+    "open": "Obre el tauler",
+    "expand": "Amplia el tauler",
+    "collapse": "Redueix el tauler"
+  },
+  "tip": {
+    "area_one": "{{name}}: {{pct}}% de bon encaix · {{n}} habitatge",
+    "area_many": "{{name}}: {{pct}}% de bon encaix · {{n}} habitatges",
+    "area_other": "{{name}}: {{pct}}% de bon encaix · {{n}} habitatges",
+    "google": "🛰 Obre a Google Maps",
+    "zone": "Obre la zona {{n}} a Idealista ↗"
+  }
+}

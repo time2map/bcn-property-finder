@@ -1,4 +1,5 @@
 import { Group, Stack, Text } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import {
   PROBLEM_LABELS, topProblems, type BarriVibe, type BarriVibeData,
 } from '../../services/localsOpinion/localsOpinion'
@@ -7,111 +8,106 @@ import { dec1 } from './cardColors'
 const PENALTY_COLOR = '#d73027'
 
 export function RiskRow({ label, text, penalty, hint }: { label: string; text: string; penalty: number; hint?: string }) {
+  const { t } = useTranslation('card')
   return (
-    <Stack gap={0}>
-      <Group justify="space-between" gap="xs" wrap="nowrap">
-        <Text size="xs" fw={500}>{label}</Text>
-        {penalty > 0 && (
-          <Text size="xs" fw={600} style={{ color: PENALTY_COLOR }}>−{penalty} pts</Text>
-        )}
-      </Group>
-      <Text size="xs" c="dimmed">{text}</Text>
-      {hint && penalty > 0 && (
-        <Text size="xs" c="dimmed" fs="italic" style={{ fontSize: 10 }}>{hint}</Text>
-      )}
-    </Stack>
+    <div className="risk-row">
+      <div className="risk-row__head">
+        <i style={{ background: penalty > 0 ? PENALTY_COLOR : '#1a9850' }} aria-hidden />
+        <b>{label}</b>
+        {penalty > 0 && <span>{t('ui.penalty', { n: penalty })}</span>}
+      </div>
+      <Text size="xs">{text}</Text>
+      {hint && penalty > 0 && <Text size="xs" c="dimmed" fs="italic">{hint}</Text>}
+    </div>
   )
 }
 
 /** Value next to the city median (median over barris). */
 function VsCityRow({ label, value, city, indent }: { label: string; value: string; city: string; indent?: boolean }) {
+  const { t } = useTranslation('card')
   return (
     <Group gap={6} wrap="nowrap" pl={indent ? 8 : 0}>
       <Text size="xs" c="dimmed" style={{ flex: 1 }}>{label}</Text>
       <Text size="xs" fw={600}>{value}</Text>
-      <Text size="xs" c="dimmed" w={58} ta="right" style={{ fontSize: 10 }}>city {city}</Text>
+      <Text size="xs" c="dimmed" w={58} ta="right" style={{ fontSize: 10 }}>{t('locals.city', { value: city })}</Text>
     </Group>
   )
 }
 
-function trendText(delta: number): string {
+function trendText(delta: number, noChange: string): string {
   if (delta > 0) return `▲ ${dec1(delta)}`
   if (delta < 0) return `▼ ${dec1(-delta)}`
-  return 'No change'
+  return noChange
 }
 
 /** "What locals say" — residents' view of the barri, raw survey values (042). */
 export function LocalsSay({ barri, data }: { barri: BarriVibe; data: BarriVibeData }) {
+  const { t } = useTranslation('card')
   const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v)}%`)
   return (
     <Stack gap={3}>
-      <VsCityRow label="Satisfaction" value={`${dec1(barri.satisf)} / 10`} city={dec1(data.city.satisf)} />
-      <VsCityRow label="Would stay here" value={pct(barri.stay)} city={pct(data.city.stay)} />
+      <VsCityRow label={t('locals.satisfaction')} value={t('locals.outOf10', { value: dec1(barri.satisf) })} city={dec1(data.city.satisf)} />
+      <VsCityRow label={t('locals.stay')} value={pct(barri.stay)} city={pct(data.city.stay)} />
       {!barri.lowN && barri.delta !== null && (
         <Group gap={6} wrap="nowrap">
-          <Text size="xs" c="dimmed" style={{ flex: 1 }}>Trend vs 2015–19</Text>
-          <Text size="xs" fw={600}>{trendText(barri.delta)}</Text>
+          <Text size="xs" c="dimmed" style={{ flex: 1 }}>{t('locals.trend')}</Text>
+          <Text size="xs" fw={600}>{trendText(barri.delta, t('locals.noChange'))}</Text>
         </Group>
       )}
-      <Text size="xs" c="dimmed" mt={2}>Main problems</Text>
-      {topProblems(barri).map((p) => (
-        <VsCityRow key={p.id} indent label={PROBLEM_LABELS[p.id]} value={pct(p.pct)}
-          city={pct(data.city.problems[p.id])} />
-      ))}
+      <Text size="xs" fw={600} mt={4}>{t('locals.problems')}</Text>
+      <div className="chip-list">
+        {topProblems(barri).map((p) => (
+          <span key={p.id} className="chip-list__chip">
+            {PROBLEM_LABELS[p.id]} <b>{pct(p.pct)}</b>
+            <span className="chip-list__city"> · {t('locals.city', { value: pct(data.city.problems[p.id]) })}</span>
+          </span>
+        ))}
+      </div>
       <Text size="xs" c="dimmed" style={{ fontSize: 10, opacity: 0.7 }} mt={2}>
-        Barcelona city survey (ESM) {data.years} · {barri.n} interviews
+        {t('locals.source', { years: data.years, n: barri.n })}
       </Text>
       {barri.lowN && (
         <Text size="xs" c="dimmed" fs="italic" style={{ fontSize: 10 }}>
-          Small sample — the score leans on the wider area (gran barri)
+          {t('locals.smallSample')}
         </Text>
       )}
     </Stack>
   )
 }
 
-export function ScoreBar({ score, color }: { score: number | null; color: string }) {
-  return (
-    <Group gap={8} align="center" wrap="nowrap">
-      <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#eee', overflow: 'hidden', minWidth: 50 }}>
-        {score !== null && (
-          <div style={{ height: '100%', width: `${score}%`, background: color }} />
-        )}
-      </div>
-      <Text size="xs" fw={600} style={{ color: score !== null ? color : '#aaa', minWidth: 48, textAlign: 'right' }}>
-        {score !== null ? `${score} / 100` : '— / 100'}
-      </Text>
-    </Group>
-  )
-}
-
-export function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <Text size="xs" fw={600} tt="uppercase" c="dimmed" style={{ letterSpacing: '0.05em' }}>
-      {children}
-    </Text>
-  )
-}
-
 export function LandmarkRow({ name, minutes }: { name: string; minutes: number }) {
+  const { t } = useTranslation('card')
   return (
-    <Group justify="space-between" gap="xs" wrap="nowrap">
-      <Text size="xs" c="dimmed" style={{ flexShrink: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {name}
-      </Text>
-      <Text size="xs" fw={500} style={{ flexShrink: 0 }}>{Math.round(minutes)} min</Text>
-    </Group>
+    <div><dt>{name}</dt><dd>{t('minutes', { n: Math.round(minutes) })}</dd></div>
+  )
+}
+
+const NOISE_MIN = 40
+const NOISE_MAX = 75
+/** The noise on a 40–75 dB scale: green below 53, yellow 53–55, orange 55–65, red from 65; a marker at the value. */
+export function NoiseBar({ lden }: { lden: number }) {
+  const pos = (v: number) => `${Math.max(0, Math.min(100, ((v - NOISE_MIN) / (NOISE_MAX - NOISE_MIN)) * 100))}%`
+  return (
+    <div className="noise-bar" aria-hidden>
+      <i style={{ left: 0, width: pos(53), background: '#1a9850' }} />
+      <i style={{ left: pos(53), width: `calc(${pos(55)} - ${pos(53)})`, background: '#fee08b' }} />
+      <i style={{ left: pos(55), width: `calc(${pos(65)} - ${pos(55)})`, background: '#fc8d59' }} />
+      <i style={{ left: pos(65), right: 0, background: '#d73027' }} />
+      <span className="noise-bar__marker" style={{ left: pos(lden) }} />
+    </div>
   )
 }
 
 /** Small colour-coded label for noise level relative to reference thresholds. */
 export function NoiseLabel({ lden }: { lden: number }) {
+  const { t } = useTranslation('card')
   let label: string
   let color: string
-  if (lden < 45) { label = 'very quiet'; color = '#1a9850' }
-  else if (lden < 53) { label = 'quiet'; color = '#91cf60' }
-  else if (lden < 55) { label = 'near WHO limit (53 dB)'; color = '#fee08b' }
-  else if (lden < 65) { label = 'above EU action level (55 dB)'; color = '#fc8d59' }
-  else { label = 'highly noisy'; color = '#d73027' }
-  return <Text size="xs" style={{ color }}>{label}</Text>
+  let ink = '#1f2937' // dark text on the light tiers, white on the two dark ones (contrast ≥ 4.5:1)
+  if (lden < 45) { label = t('noise.veryQuiet'); color = '#15803d'; ink = '#fff' }
+  else if (lden < 53) { label = t('noise.quiet'); color = '#91cf60' }
+  else if (lden < 55) { label = t('noise.nearWho'); color = '#fee08b' }
+  else if (lden < 65) { label = t('noise.aboveEu'); color = '#fc8d59' }
+  else { label = t('noise.highly'); color = '#c0392b'; ink = '#fff' }
+  return <span className="noise-pill" style={{ background: color, color: ink }}>{label}</span>
 }

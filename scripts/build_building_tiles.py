@@ -9,9 +9,11 @@ Outputs (frontend/public/data/):
   buildings.pmtiles         layer `b`, feature id = row i. z10–13: centroid points; z14–16: footprints with
                             ref (cadastral ref), floors and h (height in m, for 3D extrusion). No other attributes:
                             the app colours features through feature-state.
-  buildings-scores.bin.gz   score inputs per building, one little-endian typed array per column (see meta)
-  buildings-meta.json       columns (name, type, scale, offset, sentinel), areas (barri / municipality: code,
-                            name, price), price bounds, categories, landmarks
+  buildings-scores.bin.gz   score inputs per building, one little-endian typed array per column (see meta);
+  buildings-positions.bin.gz  lng / lat of each building. Format: scripts/building_blob.py
+  buildings-meta.json       columns (name, type, scale, offset, sentinel, file, layout), areas (barri / municipality: code,
+                            name, price), price bounds, categories, landmarks, minutes_cap (how far the minutes
+                            columns reach, TODO-073)
   buildings-detail.pmtiles  z14 only — layer `d`: one point per building with the card fields;
                             layer `f`: the facade noise points of stage 2
 Review: data/buildings/nonresidential.gpkg — buildings left out as clearly not housing, with the reason.
@@ -19,7 +21,6 @@ Review: data/buildings/nonresidential.gpkg — buildings left out as clearly not
 Run: arch -x86_64 .venv-livability/bin/python scripts/build_building_tiles.py
 """
 
-import gzip
 import json
 import os
 import subprocess
@@ -35,7 +36,9 @@ import pyogrio
 import shapely
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from building_access import CITY_CORE_MAX_MIN, WALK_MIN_RMAX_M, WALK_SPEED_M_MIN  # noqa: E402
 from building_access import OUT_GPKG as ACCESS_GPKG  # noqa: E402
+from building_blob import FILES, write_files  # noqa: E402
 from building_exposure import OUT_GPKG as EXPOSURE_GPKG  # noqa: E402
 from prepare_buildings import CRS, OSM_PBF  # noqa: E402
 from prepare_buildings import OUT_GPKG as BUILDINGS_GPKG  # noqa: E402
@@ -105,6 +108,20 @@ def assign_areas(points, barris, munis):
     return np.where(idx >= 0, remap[np.maximum(idx, 0)], -1), table
 
 
+def source_dates(files: dict) -> dict:
+    """Date each input file was written (YYYY-MM-DD), by data-source id of the app registry (TODO-066).
+
+    The input files are the downloads the fetch scripts produced, so their date is the date the source was fetched.
+    A missing file is left out: the app then shows the build date.
+    """
+    out = {}
+    for source_id, path in files.items():
+        path = Path(path)
+        if path.exists():
+            out[source_id] = date.fromtimestamp(path.stat().st_mtime).isoformat()
+    return out
+
+
 def height_m(floors):
     return (pd.to_numeric(floors) * FLOOR_HEIGHT_M).round(1)
 
@@ -117,19 +134,6 @@ def encode(values, kind, scale=1):
     top = U8 if kind == "u8" else U16
     out = np.where(np.isnan(v), top, np.clip(np.round(np.nan_to_num(v)), 0, top - 1))
     return out.astype("<u1" if kind == "u8" else "<u2")
-
-
-def pack(columns):
-    """[(name, kind, scale, values)] → (bytes, meta columns); each column starts on a 4-byte boundary."""
-    blobs, meta, offset = [], [], 0
-    for name, kind, scale, values in columns:
-        arr = encode(values, kind, scale).tobytes()
-        meta.append({"name": name, "type": kind, "scale": scale, "offset": offset,
-                     "sentinel": None if kind == "f32" else (U8 if kind == "u8" else U16)})
-        pad = (-len(arr)) % 4
-        blobs.append(arr + b"\0" * pad)
-        offset += len(arr) + pad
-    return b"".join(blobs), meta
 
 
 # ── Inputs ───────────────────────────────────────────────────────────────────
@@ -174,6 +178,18 @@ def clean(v):
     return v.item() if hasattr(v, "item") else v
 
 
+def dwelling_weight(dwellings):
+    """Dwellings of each building for the dwelling-weighted ranks and shares (TODO-073); at least 1, so a student
+    residence (0 dwellings in Catastro) or a building with no count still counts as one home."""
+    d = pd.to_numeric(pd.Series(dwellings), errors="coerce").fillna(0).to_numpy(float)
+    return np.maximum(d, 1)
+
+
+def minutes_cap():
+    """How far the minutes columns reach: beyond it a building has no value (TODO-073)."""
+    return {"walk": round(WALK_MIN_RMAX_M / WALK_SPEED_M_MIN, 2), "cityCore": CITY_CORE_MAX_MIN}
+
+
 def main():
     b = gpd.read_file(BUILDINGS_GPKG, layer="buildings")
     e = pyogrio.read_dataframe(EXPOSURE_GPKG, layer="exposure", read_geometry=False)
@@ -205,19 +221,23 @@ def main():
                ("lden_avg", "u16", 10, x["lden_avg"]), ("river_zone", "u16", 1, x["river_zone"]),
                ("street_t10_cm", "u16", 1, x["street_t10_cm"]), ("street_t100_cm", "u16", 1, x["street_t100_cm"]),
                ("fire_hazard", "u16", 1000, x["fire_hazard"]), ("area", "u16", 1, np.where(area >= 0, area, np.nan)),
-               ("fire_wui", "u8", 1, x["fire_wui"]), ("year_built", "u16", 1, x["year_built"])]
-    # Walking minutes to the nearest service of each category (null beyond WALK_RMAX_M): the walkability condition
+               ("fire_wui", "u8", 1, x["fire_wui"]), ("year_built", "u16", 1, x["year_built"]),
+               # TODO-073: noise is scored on the street side (null = no street side; the app falls back to lden_avg),
+               # and ranks and shares are weighted by dwellings.
+               ("lden_street", "u16", 10, x["lden_street"]),
+               ("dwellings", "u16", 1, dwelling_weight(x["dwellings"]))]
+    # Walking minutes to the nearest service of each category (null beyond WALK_MIN_RMAX_M): the services condition
     # of 049 ("everyday services within N min").
     columns += [(f"min_{c}", "u8", 1, x[f"min_{c}"]) for c in cats]
     columns += [(f"cc_{lm}", "u8", 1, x[f"cc_{lm}"]) for lm in landmarks]
-    blob, meta_cols = pack(columns)
     PUBLIC.mkdir(parents=True, exist_ok=True)
-    with gzip.open(PUBLIC / "buildings-scores.bin.gz", "wb", compresslevel=9) as f:
-        f.write(blob)
-    meta = {"version": 1, "generated": date.today().isoformat(), "count": len(x), "columns": meta_cols,
-            "areas": [{k: clean(v) for k, v in r.items()} for r in areas.to_dict("records")],
-            "price_bounds": bounds, "categories": cats, "landmarks": landmarks,
-            "river_zone": "10 / 100 / 500 = ACA return period; sentinel = outside every zone"}
+    meta = write_files(PUBLIC, [(name, kind, scale, encode(values, kind, scale)) for name, kind, scale, values in columns], {
+        "generated": date.today().isoformat(), "count": len(x),
+        "sources": source_dates({"catastro": BUILDINGS_GPKG, "osm": ACCESS_GPKG, "flood-aca": EXPOSURE_GPKG,
+                                 "wildfire": EXPOSURE_GPKG, "street-flooding": EXPOSURE_GPKG, "prices": PRICES_GPKG}),
+        "areas": [{k: clean(v) for k, v in r.items()} for r in areas.to_dict("records")],
+        "price_bounds": bounds, "categories": cats, "landmarks": landmarks, "minutes_cap": minutes_cap(),
+        "river_zone": "10 / 100 / 500 = ACA return period; sentinel = outside every zone"})
     (PUBLIC / "buildings-meta.json").write_text(json.dumps(meta, ensure_ascii=False, separators=(",", ":")))
 
     print("Tiles…")
@@ -256,7 +276,7 @@ def main():
         run_tippecanoe(PUBLIC / "buildings-detail.pmtiles", [("d", d), ("f", f)], 14, 14,
                        ["--no-feature-limit", "--no-tile-size-limit"])
 
-    for name in ("buildings.pmtiles", "buildings-scores.bin.gz", "buildings-meta.json", "buildings-detail.pmtiles"):
+    for name in ("buildings.pmtiles", *FILES.values(), "buildings-meta.json", "buildings-detail.pmtiles"):
         print(f"→ frontend/public/data/{name}: {(PUBLIC / name).stat().st_size / 1e6:.1f} MB")
     print(f"   {len(x):,} buildings, {len(areas)} areas, price p5/p95 {bounds}")
 

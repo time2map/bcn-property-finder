@@ -38,7 +38,24 @@ jobs:
         env:
           VITE_TMB_APP_ID: ${{ secrets.VITE_TMB_APP_ID }}
           VITE_TMB_APP_KEY: ${{ secrets.VITE_TMB_APP_KEY }}
-        run: npm run build
+          # Address search in the search box; if unset, only areas are searchable. The key ends up in the
+          # public bundle, so restrict it by HTTP referrer in the Geoapify dashboard.
+          VITE_GEOAPIFY_API_KEY: ${{ secrets.VITE_GEOAPIFY_API_KEY }}
+          # Only the upstream repo owns livability.time2map.com (base '/'). A fork is served from
+          # https://<owner>.github.io/<repo>/, so its assets live under that subpath.
+          # The public address printed on the share images and used in their link previews (TODO-063): the custom
+          # domain upstream, the github.io address on a fork.
+          VITE_SITE_URL: ${{ github.repository == 'time2map/bcn-property-finder' && 'https://livability.time2map.com' || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+          VITE_BASE: ${{ github.repository == 'time2map/bcn-property-finder' && '/' || format('/{0}/', github.event.repository.name) }}
+        run: |
+          # The custom domain is claimed in the upstream repo's Pages settings, never by a fork's build.
+          if [ "$GITHUB_REPOSITORY" != "time2map/bcn-property-finder" ]; then rm -f public/CNAME; fi
+          npm run build
+
+      - name: Check the bundle size
+        working-directory: frontend
+        # The JavaScript loaded at start must stay within the budget in frontend/package.json (TODO-058).
+        run: npm run check:bundle
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,35 @@
+Data files of the time2map Barcelona livability map
+====================================================
+
+This folder holds files built by time2map from open data. The publishers, licences and dates of every source are
+listed in the app ("Data sources" next to the map) and in docs/DATA_LICENSES.md of the repository.
+
+Contact: Alexander Semenov, info@time2map.com
+
+OpenStreetMap (ODbL 1.0)
+------------------------
+The following are derived from OpenStreetMap data, (c) OpenStreetMap contributors, and are made available under the
+Open Database Licence 1.0 (https://opendatacommons.org/licenses/odbl/1-0/):
+
+  - ../barcelona_poi.pmtiles (points of interest extracted from OpenStreetMap)
+  - the walking-minute columns min_* and the City Core columns cc_* of buildings-scores.bin.gz
+  - area-start.json, which is computed from those columns
+
+The derived data is available on request as plain tables (CSV): write to the contact above.
+
+Other sources
+-------------
+The remaining columns and files keep the licence of their publisher and are NOT relicensed under the ODbL:
+
+  - Dirección General del Catastro: buildings, addresses (CC BY 4.0, DG Catastro). Selected and combined by
+    time2map; not official cadastral information.
+  - Ajuntament de Barcelona (Open Data BCN): noise map, residents' survey, area boundaries (CC BY 4.0).
+  - MITECO / SICA: noise maps outside Barcelona (CC BY 4.0).
+  - Generalitat de Catalunya: flood zones (ACA), wildfire hazard, sale prices (INCASOL) under the
+    "Llicencia oberta d'us d'informacio - Catalunya".
+  - ICGC: base map style and municipality outlines (CC BY 4.0).
+  - Street flooding (RESCCUE, Ajuntament de Barcelona / BCASA / Aquatec): no licence published. Shown for
+    information only; no rights are granted to it here.
+
+time2map is not affiliated with, and not endorsed by, any of these bodies. Where we transformed the data the app says
+how.

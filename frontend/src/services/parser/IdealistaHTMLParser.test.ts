@@ -8,17 +8,24 @@ const FIXTURE_PATH = path.resolve(
   '../../../..',
   "data/Flat _ apartment for sale in Calle de Llull, La Vila Olímpica del Poblenou, Barcelona — idealista.html",
 )
-const fixtureHtml = fs.readFileSync(FIXTURE_PATH, 'utf-8')
+
+// The saved Idealista pages live in /data, which is gitignored (third-party content). On a machine or in CI
+// without them the fixture suites are skipped; the minimal-HTML suite always runs.
+const readFixture = (file: string): string | null => (fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : null)
+const fixtureHtml = readFixture(FIXTURE_PATH) ?? ''
+const hasFixture = fixtureHtml !== ''
+type Parsed = ReturnType<IdealistaHTMLParser['parse']>
 
 const HOSPITALET_FIXTURE_PATH = path.resolve(
   __dirname,
   '../../../..',
   "data/Flat _ apartment for sale in Riera de la Creu 54, 56, Centre, Hospitalet de Llobregat — idealista.html",
 )
-const hospitaleHtml = fs.readFileSync(HOSPITALET_FIXTURE_PATH, 'utf-8')
+const hospitaleHtml = readFixture(HOSPITALET_FIXTURE_PATH) ?? ''
+const hasHospitalet = hospitaleHtml !== ''
 
-describe('IdealistaHTMLParser — fixture', () => {
-  const result = new IdealistaHTMLParser(fixtureHtml).parse()
+describe.skipIf(!hasFixture)('IdealistaHTMLParser — fixture', () => {
+  const result = hasFixture ? new IdealistaHTMLParser(fixtureHtml).parse() : ({} as Parsed)
 
   it('extracts id', () => {
     expect(result.id).toBe('110784254')
@@ -109,8 +116,8 @@ describe('IdealistaHTMLParser — fixture', () => {
   })
 })
 
-describe('IdealistaHTMLParser — Hospitalet fixture (M-L photos)', () => {
-  const result = new IdealistaHTMLParser(hospitaleHtml).parse()
+describe.skipIf(!hasHospitalet)('IdealistaHTMLParser — Hospitalet fixture (M-L photos)', () => {
+  const result = hasHospitalet ? new IdealistaHTMLParser(hospitaleHtml).parse() : ({} as Parsed)
 
   it('extracts city as Hospitalet de Llobregat', () => {
     expect(result.city).toBe('Hospitalet de Llobregat')
@@ -172,7 +179,7 @@ describe('IdealistaHTMLParser — minimal HTML', () => {
   })
 })
 
-describe('buildPinComment', () => {
+describe.skipIf(!hasFixture)('buildPinComment', () => {
   it('includes address on first line', () => {
     const result = new IdealistaHTMLParser(fixtureHtml).parse()
     const comment = buildPinComment(result)

@@ -1,5 +1,7 @@
 # 036 — Climate risk penalties (flood + wildfire)
 
+**Changed by 073 (2026-11-16):** band penalties are 1 / 0.27 / 0.06 (the chance of a flood within 30 years: 96 / 26 / 6%), not 1 / 0.6 / 0.25.
+
 **Superseded by TODO-046 (2026-11-04):** computed per residential building; the H3 hex version described below was removed.
 
 ## Goal

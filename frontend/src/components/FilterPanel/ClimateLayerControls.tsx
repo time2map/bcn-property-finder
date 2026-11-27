@@ -1,4 +1,5 @@
 import { Stack, Switch } from '@mantine/core'
+import { features } from '../../features'
 import { useStore } from '../../store'
 import { FloodZonesLegend } from '../FloodZonesLayer/FloodZonesLegend'
 import { WildfireLegend } from '../WildfireLayer/WildfireLegend'
@@ -22,13 +23,17 @@ export function ClimateLayerControls() {
         onChange={(e) => setFloodVisible(e.currentTarget.checked)}
       />
       <FloodZonesLegend />
-      <Switch
-        label="Street flooding (heavy rain)"
-        size="sm"
-        checked={streetVisible}
-        onChange={(e) => setStreetVisible(e.currentTarget.checked)}
-      />
-      <StreetFloodingLegend />
+      {!features.commercialUse && (
+        <>
+          <Switch
+            label="Street flooding (heavy rain)"
+            size="sm"
+            checked={streetVisible}
+            onChange={(e) => setStreetVisible(e.currentTarget.checked)}
+          />
+          <StreetFloodingLegend />
+        </>
+      )}
       <Switch
         label="Wildfire hazard"
         size="sm"

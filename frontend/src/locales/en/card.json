@@ -1,0 +1,256 @@
+{
+  "use": {
+    "1_residential": "Residential",
+    "2_agriculture": "Agricultural",
+    "3_industrial": "Industrial",
+    "4_1_office": "Offices",
+    "4_2_retail": "Retail",
+    "4_3_publicServices": "Public services",
+    "other": "Building"
+  },
+  "river": {
+    "r10": "In the 10-year river flood zone — high probability (about once in 10 years)",
+    "r100": "In the 100-year river flood zone — medium probability",
+    "r500": "In the 500-year river flood zone — low probability (the official floodable zone)",
+    "none": "Outside mapped river flood zones",
+    "zoneYear": "{{year}}-year zone"
+  },
+  "fire": {
+    "notWui": "Not in the wildland–urban interface",
+    "noForest": "Wildland–urban interface · no rated forest nearby",
+    "forest": "Wildland–urban interface · hazard class {{cls}} forest at ~{{dist}} m"
+  },
+  "depth": {
+    "max": "≥ 50 cm",
+    "cm": "{{value}} cm",
+    "gutter": "stays in the gutter",
+    "kerb": "over the kerb, reaches doorsteps",
+    "ground": "gets into ground floors and car parks",
+    "serious": "serious damage, cars can float"
+  },
+  "door": {
+    "noModel": "No street-flooding model outside Barcelona",
+    "none": "No water at the door modelled in heavy rain",
+    "water": "Water at the door: {{t10}} in a 10-year rain, {{t100}} in a 100-year rain — {{meaning}}"
+  },
+  "warning": {
+    "base": "Careful if you are looking at a ground-floor flat, basement or garage.",
+    "below_one": " This building has {{count}} floor below ground.",
+    "below_other": " This building has {{count}} floors below ground."
+  },
+  "side": {
+    "street": "Street side",
+    "inner": "Courtyard side",
+    "line": "{{side}}: {{db}} dB",
+    "night": " · night {{ln}}"
+  },
+  "vs": {
+    "noiseWithin": "{{db}} dB — within your {{limit}} dB",
+    "noiseOver": "{{db}} dB — {{diff}} dB over your {{limit}} dB",
+    "priceWithin": "{{price}}/m² — within your {{budget}}/m²",
+    "priceOver": "{{price}}/m² — {{pct}}% over your {{budget}}/m²",
+    "priceAlmost": "{{price}}/m² — almost fits your {{budget}}/m²",
+    "services_one": "{{n}} of {{count}} service within {{limit}} min",
+    "services_other": "{{n}} of {{count}} services within {{limit}} min",
+    "places_one": "{{n}} of {{count}} place within {{limit}} min",
+    "places_other": "{{n}} of {{count}} places within {{limit}} min",
+    "ratingMeets": "Residents rate {{rating}} — meets your {{min}}",
+    "ratingBelow": "Residents rate {{rating}} — below your {{min}}"
+  },
+  "ageMatch": {
+    "none": "not one of your eras",
+    "full": "counts as one of your eras",
+    "edge": "at the edge of one of your eras"
+  },
+  "facts": {
+    "dwellings": "Dwellings",
+    "dwellingsValue": "{{n}} other premises",
+    "floors": "Floors",
+    "below": "{{n}} below ground",
+    "belowGround": "Below ground",
+    "built": "Built",
+    "renovated": "renovated {{year}}",
+    "uncertain": "Catastro's date for many old buildings — the exact year is unknown",
+    "builtArea": "Built area",
+    "condition": "Condition",
+    "otherPremises": "Other premises: shops, offices, parking spaces, storage rooms",
+    "dwellingsLabel_one": "dwelling",
+    "dwellingsLabel_other": "dwellings",
+    "floorsLabel_one": "floor",
+    "floorsLabel_other": "floors",
+    "builtAreaLabel": "built area",
+    "belowLabel": "below ground",
+    "renovatedLabel": "renovated",
+    "otherLabel": "other premises"
+  },
+  "noise": {
+    "noMap": "No official noise map for this municipality",
+    "scoredStreet": "Street side: {{approx}}{{db}} dB — what your condition is checked against",
+    "scoredAll": "All facades: {{approx}}{{db}} dB (no street side) — what your condition is checked against",
+    "quietSide": "Quiet side: courtyard, {{approx}}{{db}} dB — within your limit",
+    "night": " · night {{ln}}",
+    "extremes": "Loudest facade {{max}} dB · quietest {{min}} dB",
+    "street": "Street",
+    "courtyard": "Courtyard",
+    "group": "{{side}} · faces {{dir}} · {{len}} m — {{db}} dB",
+    "groupNight": " (night {{ln}})",
+    "f17": "Official facade map 2017: loudest facade {{db}} dB",
+    "f17Night": ", night {{ln}} dB",
+    "leisure": "Night-life noise on a facade: {{db}} dB",
+    "modelled": "Modelled at 4 m above ground (≈ 1st floor). Coloured circles next to the facades on the map.",
+    "sica": "Different official model (SICA 2022, 5 dB bands): its levels run a few dB higher than Barcelona's map, so compare with Barcelona with care.",
+    "who": "WHO: < 53 dB · EU action: 55 dB · harmful: ≥ 65 dB",
+    "veryQuiet": "very quiet",
+    "quiet": "quiet",
+    "nearWho": "near WHO limit",
+    "aboveEu": "above EU level",
+    "highly": "highly noisy",
+    "facadeByFacade": "Facade by facade"
+  },
+  "section": {
+    "building": "Building",
+    "walkability": "Services on foot",
+    "noise": "Noise",
+    "cityCore": "City Core Access",
+    "age": "Building age",
+    "climate": "Climate risk",
+    "price": "Sale price"
+  },
+  "ui": {
+    "loading": "Loading…",
+    "buildingTitle": "Building",
+    "studentResidence": "Student residence",
+    "closeBuilding": "Close building card",
+    "photoAlt": "Facade of {{address}}",
+    "photoAltFallback": "the building",
+    "photoCredit": "Photo © Dirección General del Catastro",
+    "openCatastro": "Open in Catastro ↗",
+    "walkNote": "Walking time from the entrance, along the streets",
+    "noneNearby": "none nearby",
+    "yearUnknown": "Year of construction unknown",
+    "ageLine": "{{era}}, {{years}} — {{match}}",
+    "renovated": "Renovated {{year}} — shown only; the score uses the year built",
+    "sameFor": "The same for every building in the {{kind}}",
+    "kindBarri": "barri",
+    "kindMuni": "municipality",
+    "noPrice": "No sale price data",
+    "salePrice": "Sale price: {{text}}",
+    "salePriceOpen": "Sale price: <b>{{price}} €/m²</b> · Generalitat de Catalunya, INCASOL",
+    "priceZeroAt": "Score falls to 0 at €{{price}}/m² (+{{pct}}%).",
+    "priceFit": "{{n}} of {{total}} areas fit your budget.",
+    "localsSay": "What locals say",
+    "notBcn": "Not available outside Barcelona city",
+    "riskRiver": "River flooding",
+    "riskStreet": "Street flooding (heavy rain)",
+    "riskWildfire": "Wildfire",
+    "penalty": "−{{n}} pts",
+    "peekNone": "No conditions are on",
+    "details": "Details about this building",
+    "moreAddresses_one": "+{{count}} more address",
+    "moreAddresses_other": "+{{count}} more addresses",
+    "fewerAddresses": "Show fewer",
+    "climateVerdict": "{{names}}",
+    "noPenalty": "No points lost"
+  },
+  "match": {
+    "incomplete": "Incomplete data: some of your conditions have no data here. The score is a range, from the worst case (missing counts 0) to the best (missing counts 100).",
+    "noneOn": "No conditions are on",
+    "overBudget": "Over your budget: at most a partial match",
+    "label": "Match with your conditions",
+    "score": "{{score}} of 100",
+    "status": {
+      "met": "Met",
+      "partly": "Partly met",
+      "missed": "Not met",
+      "nodata": "No data"
+    }
+  },
+  "locals": {
+    "satisfaction": "Satisfaction",
+    "outOf10": "{{value}} / 10",
+    "stay": "Would stay here",
+    "city": "city {{value}}",
+    "trend": "Trend vs 2015–19",
+    "noChange": "No change",
+    "problems": "Main problems",
+    "source": "Source: Barcelona City Council, city survey (ESM) {{years}} · {{n}} interviews · CC BY 4.0",
+    "smallSample": "Small sample — the score leans on the wider area (gran barri)",
+    "p": {
+      "insecurity": "Insecurity",
+      "cleanliness": "Cleanliness",
+      "noise": "Noise",
+      "housing": "Housing access",
+      "tourism": "Tourism & crowding",
+      "incivility": "Incivility",
+      "drugs_squats": "Drugs & squats",
+      "maintenance": "Maintenance & works",
+      "parking": "Parking",
+      "traffic": "Traffic"
+    }
+  },
+  "minutes": "{{n}} min",
+  "save": {
+    "button": "Save image",
+    "done": "Image saved.",
+    "failed": "Could not make the image. Try again.",
+    "share": "Share"
+  },
+  "shareCopied": {
+    "building": "Link copied. It opens this building with your conditions.",
+    "area": "Link copied. It opens this area with your conditions."
+  },
+  "area": {
+    "metro": "Metro area",
+    "barcelona": "Barcelona",
+    "close": "Close area card",
+    "caption_one": "of {{n}} home are a good match",
+    "caption_other": "of {{n}} homes are a good match",
+    "great": "{{great}}% are a great match · average score {{mean}}",
+    "peek": "{{share}}% of homes are a good match",
+    "line_one": "{{pct}}% of {{n}} home are a good match",
+    "line_other": "{{pct}}% of {{n}} homes are a good match",
+    "tooFew_one": "{{n}} home: too few to rank",
+    "tooFew_other": "{{n}} homes: too few to rank",
+    "strongest": "Strongest on: {{list}}",
+    "incomplete": "Many homes here have incomplete data, so the shares are the best case.",
+    "kindBarri": "barri",
+    "kindMuni": "municipality"
+  },
+  "areasList": {
+    "all": "All {{n}}",
+    "top": "Top {{top}} of {{n}}",
+    "showAll": "Show all {{n}}",
+    "addCondition": "Add a condition to rank the areas.",
+    "scoring": "Scoring the homes…",
+    "noneYet": "No areas to rank yet. Pick a condition first.",
+    "byShare": "By the share of homes that fit.",
+    "tooFew": "Too few homes to rank: {{names}}.",
+    "rowAria": "{{pos}}. {{name}}, {{pct}}% of homes are a good match",
+    "rowText": "{{pct}}% of homes are a good match"
+  },
+  "rank": {
+    "heading": "For your conditions",
+    "incomplete": "No rank: some of your conditions have no data for this building.",
+    "in": "in {{name}}",
+    "inEl": "in el {{name}}",
+    "inEls": "in els {{name}}",
+    "inMetro": "in the Barcelona area",
+    "crowded": "This is an area with a lot of good homes, so it is harder to stand out in it.",
+    "top": "Top {{tier}}%",
+    "tileOf": "of homes {{place}}"
+  },
+  "share": {
+    "outOf": "out of 100",
+    "areaCaption": "of homes are a good match",
+    "metro": "Metro area",
+    "strongOn": "Strong on: {{label}}",
+    "mapCredit": "Map: ICGC, OpenStreetMap contributors",
+    "for": {
+      "family": "For a family",
+      "remote": "For a remote worker",
+      "city": "For city life",
+      "retiree": "For a retiree"
+    },
+    "forName": "For {{name}}"
+  }
+}

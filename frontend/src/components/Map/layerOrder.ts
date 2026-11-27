@@ -9,7 +9,7 @@ export const LAYER_Z_ORDER: readonly string[] = [
   // Livability Index on buildings (bottom) — TODO-046 (dots at low zoom, footprints from z14)
   'buildings-dots',
   'buildings-fill',
-  'buildings-gap-outline',
+  'buildings-hatch',
   'buildings-hover-outline',
   'noise-overlay',
   // Climate-risk view layers — features 036, 037
@@ -23,15 +23,22 @@ export const LAYER_Z_ORDER: readonly string[] = [
   // Exclusion zones
   'exclusion-fill',
   'exclusion-line',
-  // Area boundaries
-  'barrio-boundaries-fill',
-  'barrio-boundaries-line',
-  'barrio-boundaries-label-district',
-  'barrio-boundaries-label-barri',
+  // Area view below z13 — TODO-051
+  'areas-fill',
+  'areas-hatch',
+  'areas-line',
+  'areas-label',
   // Best zones — feature 038
   'best-zones-fill',
   'best-zones-line',
   'best-zones-label',
+  // Search result outline — 044
+  'search-area-fill',
+  'search-area-line',
+  // "Find your one building" funnel — TODO-076 (prototype)
+  'funnel-out',
+  'funnel-in',
+  'funnel-winner',
   // Idealista price overlay
   'idealista-prices-dots',
   'idealista-prices-labels',
@@ -74,5 +81,27 @@ export function addLayerOrdered(
       break
     }
   }
-  map.addLayer(layer, beforeId)
+  addLayerUnchecked(map, layer, beforeId)
+}
+
+/** MapLibre's own entry points, used below to skip the validation. Typed loosely: they are not part of its API. */
+interface MapInternals {
+  style?: { addLayer?: (layer: maplibregl.LayerSpecification, before: string | undefined, options: { validate: boolean }) => void }
+  _update?: (updateStyle: boolean) => void
+}
+
+/**
+ * map.addLayer without the validation in the production build (TODO-058). To validate one new layer MapLibre
+ * serialises the whole style, and the ICGC base map has 900 layers: our ~20 layers cost a long task at start.
+ * Development and the tests keep the validation, so a wrong layer is still reported there. Should a MapLibre
+ * upgrade move these internals, the public map.addLayer is used.
+ */
+function addLayerUnchecked(map: maplibregl.Map, layer: maplibregl.LayerSpecification, beforeId: string | undefined): void {
+  const internals = map as unknown as MapInternals
+  if (import.meta.env.DEV || typeof internals.style?.addLayer !== 'function' || typeof internals._update !== 'function') {
+    map.addLayer(layer, beforeId)
+    return
+  }
+  internals.style.addLayer(layer, beforeId, { validate: false })
+  internals._update(true)
 }

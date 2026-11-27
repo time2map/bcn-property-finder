@@ -54,7 +54,16 @@ export function noiseCondition(lden: number | null, c: Conditions): number | nul
   return lden === null ? null : atMost(lden, c.noiseMaxDb, c.noiseMaxDb + NOISE_FALLOFF_DB)
 }
 
+/** How far over the budget, in whole percent; 0 at or under it, and also when the overshoot rounds to 0%. */
+export function priceOverPct(eurM2: number, budget: number): number {
+  return eurM2 <= budget ? 0 : Math.round((100 * (eurM2 - budget)) / budget)
+}
+
+/** Up to this many percent over the budget the card says "almost fits" instead of the percentage (display only). */
+export const ALMOST_FITS_PCT = 3
+
 export function priceCondition(eurM2: number | null, c: Conditions): number | null {
+  if (eurM2 !== null && priceOverPct(eurM2, c.priceMaxEurM2) === 0) return 100
   return eurM2 === null ? null : atMost(eurM2, c.priceMaxEurM2, c.priceMaxEurM2 * (1 + PRICE_FALLOFF_PCT / 100))
 }
 
@@ -62,10 +71,20 @@ export function localsCondition(satisf: number, c: Conditions): number {
   return atLeast(satisf, c.localsMin, c.localsMin - SATISF_FALLOFF)
 }
 
+/**
+ * Where a "within N minutes" score reaches 0: `factor` × the limit, but never beyond the reach of the data
+ * (`capMin`; beyond it a place has no value and scores 0, so a later zero would be a cliff, TODO-073). Never at or
+ * below the limit itself.
+ */
+export function minutesZeroAt(maxMin: number, capMin = Infinity, factor = MINUTES_FALLOFF_FACTOR): number {
+  return Math.max(maxMin + 1, Math.min(maxMin * factor, capMin))
+}
+
 /** Mean over the chosen places of the "within N minutes" score; a place out of reach (null) scores 0. */
-export function minutesShare(minutes: readonly (number | null)[], maxMin: number): number {
+export function minutesShare(minutes: readonly (number | null)[], maxMin: number, capMin = Infinity): number {
   if (minutes.length === 0) return 0
-  const sum = minutes.reduce<number>((s, m) => s + (m === null ? 0 : atMost(m, maxMin, maxMin * MINUTES_FALLOFF_FACTOR)), 0)
+  const zeroAt = minutesZeroAt(maxMin, capMin)
+  const sum = minutes.reduce<number>((s, m) => s + (m === null ? 0 : atMost(m, maxMin, zeroAt)), 0)
   return Math.round(sum / minutes.length)
 }
 

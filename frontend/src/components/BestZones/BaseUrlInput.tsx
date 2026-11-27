@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ActionIcon, Text, TextInput } from '@mantine/core'
 import { useIdealistaBaseUrlStore } from '../../store/idealistaBaseUrlStore'
 import { parseIdealistaBaseUrl } from '../../services/idealista'
@@ -6,6 +7,7 @@ import { parseIdealistaBaseUrl } from '../../services/idealista'
 type Status = 'idle' | 'saved' | 'invalid'
 
 export function BaseUrlInput() {
+  const { t } = useTranslation('panel')
   const { baseUrl, setBaseUrl, clearBaseUrl } = useIdealistaBaseUrlStore()
   const [inputValue, setInputValue] = useState(baseUrl ?? '')
   const [status, setStatus] = useState<Status>('idle')
@@ -31,7 +33,7 @@ export function BaseUrlInput() {
     <div>
       <TextInput
         size="xs"
-        placeholder="Paste Idealista URL with your filters…"
+        placeholder={t('best.paste')}
         value={inputValue}
         onChange={(e) => {
           setInputValue(e.currentTarget.value)
@@ -45,7 +47,7 @@ export function BaseUrlInput() {
               size="xs"
               variant="subtle"
               color="gray"
-              title="Clear saved filters"
+              title={t('best.clear')}
               onClick={() => {
                 clearBaseUrl()
                 setInputValue('')
@@ -57,8 +59,8 @@ export function BaseUrlInput() {
           ) : undefined
         }
       />
-      {status === 'saved' && <Text size="xs" c="green">Filters saved</Text>}
-      {status === 'invalid' && <Text size="xs" c="red">Invalid URL</Text>}
+      {status === 'saved' && <Text size="xs" c="green">{t('best.saved')}</Text>}
+      {status === 'invalid' && <Text size="xs" c="red">{t('best.invalid')}</Text>}
     </div>
   )
 }

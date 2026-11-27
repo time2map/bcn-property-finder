@@ -1,5 +1,7 @@
 # Feature 022 — Composite Livability Index
 
+**Changed by 073 (2026-11-16):** renamed to "Match score" in the UI; a missing condition counts 100 for the top of the range; the budget caps the score (at most a partial match over budget); flood bands 1 / 0.27 / 0.06.
+
 **Note (2026-11-04):** since 049 the components are conditions in real units and the index is the mean over the conditions that are on; the weights described below are gone.
 
 **Superseded by TODO-046 (2026-11-04):** computed per residential building; the H3 hex version described below was removed.
@@ -51,10 +53,13 @@ sources and formulas: `036-climate-risk-penalties.md` (river flood, wildfire) an
 
 ### Missing data rule
 
-If a cell has no data for a component whose weight > 0:
-- That component contributes **0** to the numerator.
-- The denominator still includes `weight_i` (i.e., missing data acts as a penalty, not a skip).
-- The cell's polygon border is rendered with a **black outline (1.5 px)** to signal incomplete data.
+> **Superseded by `060-incomplete-data-range.md`.** The rule below is now only the *worst case* (`scoreMin`); the
+> shown score is the best case, and the black outline was replaced by a hatch.
+
+If a building has no data for a component whose weight > 0, its score is a range `[scoreMin, score]`:
+- **scoreMin:** the component contributes **0** to the numerator and `weight_i` stays in the denominator.
+- **score (max):** the component is dropped from numerator and denominator; the remaining weights renormalise.
+- The building is drawn with a light diagonal hatch (areas: wide hatch above `VITE_INCOMPLETE_AREA_MIN_SHARE`).
 
 ---
 
@@ -127,7 +132,7 @@ components/CompositeLayer/
 ### Rendering
 
 - Fill colour: sequential green ramp (red → yellow → green).
-- Cells with missing data: same fill colour + **black stroke** (`line-width: 1.5`).
+- Cells with missing data: fill colour by the max score + light diagonal hatch (060; the black stroke is gone).
 - Toggle: separate switch in FilterPanel ("Livability Index").
 - Opacity: 0.6.
 - Hover: white border highlight (`composite-hover-outline` layer) + pointer cursor. The hover tooltip was removed in 038 (too noisy) — details open on click.
@@ -172,7 +177,7 @@ function computeComposite(
 ): { score: number; hasGap: boolean; components: ComponentScores }
 ```
 
-`hasGap: true` when any active component (weight > 0) has null data — drives the black outline.
+`hasGap: true` when any active component (weight > 0) has null data — drives the hatch (060). `scoreMin` is the worst case.
 
 ---
 

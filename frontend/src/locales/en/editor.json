@@ -1,0 +1,87 @@
+{
+  "onboarding": {
+    "ariaStart": "Where would you like to live?",
+    "title": "Where in Barcelona would you like to live?",
+    "sub": "Pick a profile or build your own. We'll colour every home on the map by how well it fits.",
+    "or": "or",
+    "buildOwn": "Build your own",
+    "skip": "Just show me the map",
+    "ariaConditions": "Your conditions",
+    "back": "‹ Back",
+    "heading": "I'd like to live somewhere…",
+    "tapHint": "Tap a highlighted word to change it.",
+    "show": "Show me the map"
+  },
+  "yourConditions": {
+    "label": "Your conditions",
+    "change": "Start from a profile"
+  },
+  "sheet": {
+    "pickedSub": "{{share}}% of homes are a good match",
+    "backToList": "Back to the list",
+    "areasTitle": "Your areas",
+    "swipeList": "Swipe up for the ranked list",
+    "rankedBy": "Ranked by the share of homes that fit",
+    "none": "No conditions yet",
+    "swipeChange": "Swipe up to change them",
+    "swipeAdd": "Swipe up to add one",
+    "conditionsTitle": "Your conditions"
+  },
+  "editor": {
+    "empty": "No conditions yet. Add one below and the map will colour in.",
+    "priority": "Priority {{n}}",
+    "remove": "Remove {{name}}",
+    "add": "Add",
+    "chip": "+ {{label}}"
+  },
+  "matchBar": {
+    "caption": "Homes by match",
+    "aria": "Homes by match: {{text}}",
+    "great": "Great",
+    "good": "Good",
+    "partial": "Partial",
+    "poor": "Poor",
+    "value": "{{label}} {{pct}}%"
+  },
+  "picker": {
+    "custom": "Custom…",
+    "customValue": "Custom value",
+    "tickOne": "Tick at least one. The map keeps your last choice until you do."
+  },
+  "sentence": {
+    "noise": "No louder than <limit/> on the street side",
+    "poiAccess": "<services/> within <limit/> on foot",
+    "cityCore": "<places/> within <limit/> on foot",
+    "openPrice": "A <area/> flat costs up to <budget/> on average",
+    "localsOpinion": "Residents rate the area at least <limit/> out of 10",
+    "age": "Built in <eras/>",
+    "risk": "<level/> flood and wildfire risk",
+    "noiseTitle": "How quiet should the street side be?",
+    "walkTitle": "How far would you walk for daily errands?",
+    "centreTitle": "How close to the centre?",
+    "localsTitle": "How happy should residents be with the area?",
+    "areaTitle": "How big is the flat?",
+    "budgetTitle": "What a flat of this size costs on average in the area (area price per m² × size)",
+    "budgetNote": "Homes in pricier areas lose points; {{pct}}% over scores zero.",
+    "budgetHint": "≈ {{share}}% of homes",
+    "servicesTitle": "Which services should be close?",
+    "servicesAll": "Everyday services",
+    "servicesOne": "My service",
+    "servicesMany": "My {{count}} services",
+    "servicesAllBox": "All services",
+    "placesTitle": "Close to which places?",
+    "placesAll": "The centre",
+    "placesOne": "My place",
+    "placesMany": "My {{count}} places",
+    "placesAllBox": "The whole centre (all 13)",
+    "erasTitle": "Which buildings do you like?",
+    "erasAll": "any era",
+    "erasOne": "one era",
+    "erasMany": "{{count}} eras",
+    "erasAllBox": "Any era",
+    "riskTitle": "How much should flood and wildfire risk count?",
+    "avoid": "Avoid",
+    "strong": "Strongly avoid",
+    "custom": "Custom"
+  }
+}

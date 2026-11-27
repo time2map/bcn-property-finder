@@ -11,7 +11,7 @@ cards helped SEO only, not people looking for a home.
 **Lesson for SEO.** Google indexes the page as rendered after JavaScript, so static text that the app replaces
 on load barely counts, and hidden text is penalised: text for search has to be visible to people too.
 
-**Revisit only together with territory search (TODO-044).** Then a territory URL opens the regular hex map
+**Revisit only together with territory search (044).** Then a territory URL opens the regular hex map
 focused on that place (outline + zoom) with a small facts-only panel: price, list of barris and neighbours,
 facts as shares rather than averages ("38% of the residential area is louder than 65 dB"). No area score, no
 rank, no adm map mode. The draft below is kept for reference.
@@ -91,7 +91,7 @@ The method changes results, so it goes to ENV (see Parameters).
 
 - Dictionary `frontend/src/data/territoryAliases.json`: territory id → aliases (`barri-0104` → `El Born`).
 - One alias can cover several barris (*Poblenou* → 5 barris). Such aliases go into page text and future
-  search (TODO-044), not into titles.
+  search (044), not into titles.
 
 ### Static HTML at build
 
@@ -134,7 +134,7 @@ from the free Ahrefs tool (directional), to be confirmed in Search Console.
 
 ## Out of scope
 
-- Territory search (TODO-044), metro stations and named places (La Rambla), top territories on entry.
+- Territory search (044), metro stations and named places (La Rambla), top territories on entry.
 - Best zones in `adm` (highlight the best territories): roadmap item for 038.
 
 ## Parameters (env)

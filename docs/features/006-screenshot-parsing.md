@@ -1,5 +1,8 @@
 # 006 · Screenshot parsing (Idealista → pin)
 
+> **Update (2026-11-11):** geocoding moved from Nominatim to Geoapify + Overpass (`services/geocoding.ts`);
+> see `docs/ARCHITECTURE.md`. The rest of this file is the record as implemented.
+
 ## Goal
 
 Allow the user to drop an Idealista listing screenshot onto the map. The app parses it with a local vision model (Ollama), extracts structured data (price, area, address hint), places a pin at the best-guess location, and pre-fills the comparison table fields.

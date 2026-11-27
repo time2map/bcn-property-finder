@@ -13,15 +13,23 @@ function titleCase(word: string, first: boolean): string {
 }
 
 /** 'CL DIPUTACIO 279' → 'Carrer Diputacio 279'; 'S-N' (no number) → 's/n'. */
+function prettyOne(part: string): string {
+  const words = part.trim().split(/\s+/)
+  const type = STREET_TYPES[words[0]]
+  const rest = type ? words.slice(1) : words
+  const name = rest.map((w, k) => (w === 'S-N' ? 's/n' : /^\d/.test(w) ? w : titleCase(w, !type && k === 0)))
+  return [type, ...name].filter(Boolean).join(' ')
+}
+
+/** Every address of the building, one by one ('CL ARAGO 255; RB CATALUNYA 30' → two). */
+export function prettyAddresses(raw: string | undefined): string[] {
+  return raw ? raw.split('; ').filter((p) => p.trim() !== '').map(prettyOne) : []
+}
+
+/** All the addresses on one line, joined with ' · '; null without an address. */
 export function prettyAddress(raw: string | undefined): string | null {
-  if (!raw) return null
-  return raw.split('; ').map((part) => {
-    const words = part.trim().split(/\s+/)
-    const type = STREET_TYPES[words[0]]
-    const rest = type ? words.slice(1) : words
-    const name = rest.map((w, k) => (w === 'S-N' ? 's/n' : /^\d/.test(w) ? w : titleCase(w, !type && k === 0)))
-    return [type, ...name].filter(Boolean).join(' ')
-  }).join(' · ')
+  const all = prettyAddresses(raw)
+  return all.length > 0 ? all.join(' · ') : null
 }
 
 /** Catastro's own page for the building (cadastral reference: 7 + 7 characters). */

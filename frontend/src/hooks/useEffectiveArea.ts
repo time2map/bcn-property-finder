@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { MultiPolygon, Polygon } from 'geojson'
 import { useStore } from '../store'
 import { useExclusionsStore } from '../store/exclusionsStore'
-import { subtractExclusions } from '../services/exclusions'
+import { subtractExclusions } from '../services/exclusionsGeometry'
 
 /**
  * The isochrone result with all exclusion zones subtracted.

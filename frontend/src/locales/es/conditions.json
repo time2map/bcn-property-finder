@@ -1,0 +1,150 @@
+{
+  "short": {
+    "noise": "Poco ruido",
+    "poiAccess": "A pie",
+    "cityCore": "Centro",
+    "openPrice": "Presupuesto",
+    "localsOpinion": "Vecinos",
+    "age": "Edificios",
+    "risk": "Riesgos"
+  },
+  "add": {
+    "noise": "Poco ruido",
+    "poiAccess": "Todo a pie",
+    "cityCore": "Cerca del centro",
+    "openPrice": "Dentro de mi presupuesto",
+    "localsOpinion": "Qué opinan los vecinos",
+    "age": "Tipo de edificio",
+    "risk": "Evitar riesgos"
+  },
+  "label": {
+    "noise": "Poco ruido",
+    "poiAccess": "Servicios cotidianos",
+    "cityCore": "Centro",
+    "openPrice": "Presupuesto",
+    "localsOpinion": "Opinión de los vecinos",
+    "age": "Antigüedad del edificio"
+  },
+  "noiseName": {
+    "50": "un patio interior",
+    "58": "una calle tranquila",
+    "65": "el ruido normal de la ciudad"
+  },
+  "localsName": {
+    "7": "Contentos",
+    "7_5": "Muy contentos",
+    "8": "Entre los más contentos"
+  },
+  "unit": {
+    "min": "{{value}} min",
+    "db": "{{value}} dB",
+    "m2": "{{value}} m²"
+  },
+  "profile": {
+    "budget": "un piso de {{area}} m² por hasta {{price}}",
+    "family": {
+      "name": "Familia",
+      "blurb": "Calle tranquila, colegio y parque a pie, {{budget}}"
+    },
+    "remote": {
+      "name": "Teletrabajo",
+      "blurb": "Café y parque cerca, 30 min al centro"
+    },
+    "city": {
+      "name": "Vida urbana",
+      "blurb": "25 min al centro, bares y metro en la puerta"
+    },
+    "retiree": {
+      "name": "Persona jubilada",
+      "blurb": "Centro de salud, farmacia y tiendas a 5 min, una calle tranquila"
+    }
+  },
+  "services": {
+    "supermarket": "Supermercado",
+    "pharmacy": "Farmacia",
+    "park": "Parque",
+    "school": "Colegio",
+    "kindergarten": "Guardería",
+    "clinic": "Centro de salud",
+    "metro": "Estación de metro",
+    "cafe": "Cafetería",
+    "restaurant": "Restaurante",
+    "beach": "Playa"
+  },
+  "landmarks": {
+    "sagrada": "Sagrada Família",
+    "placa_cat": "Plaça de Catalunya",
+    "barceloneta": "La Barceloneta",
+    "barri_gotic": "Barri Gòtic",
+    "pg_gracia": "Paseo de Gracia",
+    "arc_triomf": "Arco de Triunfo",
+    "montjuic": "Montjuïc",
+    "placa_espanya": "Plaza de España",
+    "glories": "Torre Glòries",
+    "poblenou": "Rambla del Poblenou",
+    "parc_guell": "Park Güell",
+    "eixample": "Eixample",
+    "waterfront": "Frente marítimo"
+  },
+  "band": {
+    "great": "Encaje excelente",
+    "good": "Buen encaje",
+    "partial": "Encaje parcial",
+    "poor": "Encaje débil"
+  },
+  "bandPossibly": {
+    "great": "Posiblemente encaje excelente",
+    "good": "Posiblemente buen encaje",
+    "partial": "Posiblemente encaje parcial",
+    "poor": "Posiblemente encaje débil"
+  },
+  "match": {
+    "noiseUnder": "{{db}} dB, por debajo de tus {{limit}}",
+    "noiseOver": "{{db}} dB, {{diff}} dB por encima de tus {{limit}}",
+    "poi": "{{within}} de {{total}} a menos de {{limit}} min",
+    "cityCore_one": "{{within}} de {{count}} lugar a menos de {{limit}} min",
+    "cityCore_many": "{{within}} de {{count}} lugares a menos de {{limit}} min",
+    "cityCore_other": "{{within}} de {{count}} lugares a menos de {{limit}} min",
+    "priceUnder": "{{price}}/m², por debajo de tus {{budget}}",
+    "priceOver": "{{price}}/m², un {{pct}}% por encima de tus {{budget}}",
+    "priceAlmost": "{{price}}/m², casi dentro de tus {{budget}}",
+    "almostFits": "casi encaja",
+    "locals": "valorado con {{rating}}, tu mínimo {{min}}",
+    "ageUnknown": "año de construcción desconocido",
+    "noData": "sin datos",
+    "risk": "Riesgo: −{{points}} puntos — {{names}}",
+    "of": "{{within}} de {{total}}",
+    "inMin": "a menos de {{limit}} min",
+    "perM2": "{{budget}} por m²"
+  },
+  "risk": {
+    "flood": "inundación de río",
+    "street": "inundación en la calle",
+    "fire": "incendio forestal"
+  },
+  "era": {
+    "before": "antes de {{year}}",
+    "on": "desde {{year}}",
+    "range": "{{from}}–{{to}}",
+    "e0": {
+      "name": "Histórico",
+      "about": "Cascos antiguos y núcleos de pueblo: gruesos muros de mampostería, a menudo sin ascensor, ventanas pequeñas."
+    },
+    "e1": {
+      "name": "Modernista y principios del s. XX",
+      "about": "Época dorada del Eixample: techos altos, suelos de mosaico, ventanas grandes; a menudo reformados."
+    },
+    "e2": {
+      "name": "Boom de posguerra",
+      "about": "Vivienda masiva y rápida: muros finos, sin aislamiento (no hubo norma térmica hasta 1979); forjados de cemento aluminoso en algunos edificios de los años 50–70."
+    },
+    "e3": {
+      "name": "Primeras normas de edificación",
+      "about": "Primeras normas térmicas (1979) y acústicas (1981–88)."
+    },
+    "e4": {
+      "name": "Código técnico actual",
+      "about": "Código Técnico (2006): aislamiento, insonorización, accesibilidad."
+    }
+  }
+}

@@ -7,6 +7,7 @@ Run (the venv has x86_64 wheels):
 import os
 import sys
 import unittest
+from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
@@ -61,48 +62,60 @@ class TestJoins(unittest.TestCase):
 
 
 class TestColumns(unittest.TestCase):
-    def test_pack_round_trip_with_sentinels(self):
-        blob, meta = bt.pack([
-            ("lng", "f32", 1, [2.17, np.nan]),
-            ("lden_avg", "u16", 10, [62.4, None]),
-            ("walk_park", "u8", 1, [87, np.nan]),
-            ("cc_sagrada", "u8", 1, [12, 300]),  # clipped below the sentinel
-        ])
-        cols = {c["name"]: c for c in meta}
-        self.assertTrue(all(c["offset"] % 4 == 0 for c in meta))
-        read = lambda name, dt: np.frombuffer(blob, dtype=dt, count=2, offset=cols[name]["offset"])  # noqa: E731
-        self.assertAlmostEqual(float(read("lng", "<f4")[0]), 2.17, places=5)
-        self.assertTrue(np.isnan(read("lng", "<f4")[1]))
-        self.assertEqual(read("lden_avg", "<u2").tolist(), [624, 65535])
-        self.assertEqual(read("walk_park", "<u1").tolist(), [87, 255])
-        self.assertEqual(read("cc_sagrada", "<u1").tolist(), [12, 254])
+    def test_encode_with_sentinels(self):
+        """The binary files themselves: test_building_blob.py (format 2, TODO-058)."""
+        self.assertEqual(bt.encode([62.4, None], "u16", 10).tolist(), [624, 65535])
+        self.assertEqual(bt.encode([87, np.nan], "u8").tolist(), [87, 255])
+        self.assertEqual(bt.encode([12, 300], "u8").tolist(), [12, 254])  # clipped below the sentinel
+        lng = bt.encode([2.17, np.nan], "f32")
+        self.assertAlmostEqual(float(lng[0]), 2.17, places=5)
+        self.assertTrue(np.isnan(lng[1]))
+
+    def test_dwelling_weight_at_least_one(self):
+        """Ranks and shares count homes (TODO-073); a student residence (0 dwellings) still counts as one."""
+        self.assertEqual(bt.dwelling_weight(pd.Series([12, 0, None, 1])).tolist(), [12, 1, 1, 1])
+
+    def test_minutes_cap_covers_the_sliders(self):
+        """The app's sliders go to 15 min (services) and 60 min (City Core), and a place scores 0 at twice the
+        limit: the data must reach that far, or the score drops to 0 with a cliff (TODO-073)."""
+        cap = bt.minutes_cap()
+        self.assertGreaterEqual(cap["walk"], 2 * 15)
+        self.assertGreaterEqual(cap["cityCore"], 2 * 60)
 
     def test_height_from_floors(self):
         self.assertEqual(bt.height_m(pd.Series([5, None])).tolist()[0], 15.0)
         self.assertTrue(pd.isna(bt.height_m(pd.Series([5, None])).tolist()[1]))
 
 
+class TestSourceDates(unittest.TestCase):
+    def test_dates_of_existing_files_only(self):
+        import tempfile
+        from datetime import date
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "a.gpkg"
+            f.write_text("x")
+            got = bt.source_dates({"catastro": f, "osm": Path(d) / "missing.gpkg"})
+        self.assertEqual(got, {"catastro": date.today().isoformat()})
+
+
 @unittest.skipUnless((bt.PUBLIC / "buildings-meta.json").exists(), "map data not built")
 class TestGenerated(unittest.TestCase):
-    def test_meta_matches_bin(self):
-        import gzip
+    def test_meta_matches_files(self):
         import json
+        from building_blob import read_columns
         meta = json.loads((bt.PUBLIC / "buildings-meta.json").read_text())
-        blob = gzip.decompress((bt.PUBLIC / "buildings-scores.bin.gz").read_bytes())
-        last = meta["columns"][-1]
-        self.assertGreaterEqual(len(blob), last["offset"] + meta["count"])
+        self.assertEqual(len(read_columns(bt.PUBLIC, meta)), len(meta["columns"]))
         self.assertGreater(meta["count"], 170_000)
         self.assertLess(meta["price_bounds"]["p5"], meta["price_bounds"]["p95"])
 
     def test_year_built_column(self):
         """Building age (TODO-047) is scored in the browser from the year of construction."""
-        import gzip
         import json
+        from building_blob import read_columns
         meta = json.loads((bt.PUBLIC / "buildings-meta.json").read_text())
         col = next(c for c in meta["columns"] if c["name"] == "year_built")
         self.assertEqual((col["type"], col["scale"], col["sentinel"]), ("u16", 1, 65535))
-        blob = gzip.decompress((bt.PUBLIC / "buildings-scores.bin.gz").read_bytes())
-        years = np.frombuffer(blob, "<u2", meta["count"], col["offset"])
+        years = next(arr for name, _, _, arr in read_columns(bt.PUBLIC, meta) if name == "year_built")
         known = years[years != 65535]
         self.assertGreater(len(known), 0.99 * meta["count"])
         self.assertGreater(np.median(known), 1940)
@@ -115,6 +128,19 @@ class TestGenerated(unittest.TestCase):
         names = {c["name"] for c in meta["columns"]}
         self.assertEqual({f"min_{c}" for c in meta["categories"]} - names, set())
         self.assertFalse(any(n.startswith("walk_") for n in names))
+
+    def test_073_columns(self):
+        """Noise on the street side, homes per building and the reach of the minutes (TODO-073)."""
+        import json
+        from building_blob import read_columns
+        meta = json.loads((bt.PUBLIC / "buildings-meta.json").read_text())
+        cols = {name: arr for name, _, _, arr in read_columns(bt.PUBLIC, meta)}
+        self.assertGreaterEqual(int(cols["dwellings"].min()), 1)
+        self.assertGreater(int(cols["dwellings"].sum()), 1_300_000)
+        street = cols["lden_street"][cols["lden_street"] != 65535] / 10
+        self.assertGreater(len(street), 100_000)
+        self.assertTrue(55 < float(np.median(street)) < 65)
+        self.assertEqual(set(meta["minutes_cap"]), {"walk", "cityCore"})
 
     def test_castle_out_dorms_in(self):
         out = gpd.read_file(bt.NONRES_GPKG)

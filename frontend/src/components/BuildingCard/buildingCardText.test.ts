@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   countWithin, depthMeaning, depthText, doorWaterText, groundFloorWarning, noiseVsLimit, priceVsBudget, ratingVsMin, riverText,
-  sideText,
+  quietSide, sideText,
 } from './buildingCardText'
 import { fireText } from './cardText'
 
@@ -70,5 +70,17 @@ describe('the building against your conditions (049)', () => {
   it("residents' rating", () => {
     expect(ratingVsMin(7.62, 7.5)).toBe('Residents rate 7.6 — meets your 7.5')
     expect(ratingVsMin(7.2, 7.5)).toBe('Residents rate 7.2 — below your 7.5')
+  })
+})
+
+describe('quietSide (TODO-073)', () => {
+  it('is the courtyard level when the street side is over the limit and the courtyard within it', () => {
+    expect(quietSide({ lden_street: 70, lden_inner: 47 }, 65)).toBe(47)
+  })
+  it('is null when the street side is within the limit, the courtyard too loud, or a side is missing', () => {
+    expect(quietSide({ lden_street: 60, lden_inner: 47 }, 65)).toBeNull()
+    expect(quietSide({ lden_street: 70, lden_inner: 66 }, 65)).toBeNull()
+    expect(quietSide({ lden_street: 70 }, 65)).toBeNull()
+    expect(quietSide({ lden_inner: 40 }, 65)).toBeNull()
   })
 })

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useMap } from '../Map/MapContext'
 import { addLayerOrdered } from '../Map/layerOrder'
+import { MAP_TEXT_FONT } from '../Map/mapFont'
 
 const SOURCE_LINES    = 'fgc-lines'
 const SOURCE_STATIONS = 'fgc-stations'
@@ -55,7 +56,7 @@ export function FgcLayer() {
           source: SOURCE_STATIONS,
           layout: {
             'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-font': MAP_TEXT_FONT,
             'text-size': 9,
             'text-offset': [0, 1.0],
             'text-anchor': 'top',

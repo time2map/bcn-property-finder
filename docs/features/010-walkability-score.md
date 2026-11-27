@@ -53,7 +53,7 @@ Default weights: travel = 5, noise = 2, walkability = 3. All configurable via en
 | metro | Metro station | 🚇 | 1 | `station=subway` (one node per station; subway entrances excluded) |
 | cafe | Cafe | ☕ | 1 | `amenity=cafe` |
 | restaurant | Restaurant | 🍽️ | 3 | `amenity=restaurant` |
-| beach | Beach | 🏖️ | 1 | `natural=beach` (polygon centroid) |
+| beach | Beach | 🏖️ | 1 | `natural=beach`, paved `surface` excluded (polygon centroid) |
 
 ## Scoring
 

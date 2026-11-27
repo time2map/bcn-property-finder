@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react'
 import type * as maplibregl from 'maplibre-gl'
 import { MapContext } from '../Map/MapContext'
 import { useStore } from '../../store'
-import { buildingData } from '../../services/buildings/buildingData'
+import { useBuildingData } from '../../hooks/useBuildingData'
 import { loadBuildingDetail } from '../../services/buildings/buildingDetail'
 import { ldenColorExpression } from '../../services/noise/noisePalette'
 import { addLayerOrdered } from '../Map/layerOrder'
@@ -17,6 +17,7 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
 export function FacadeNoiseLayer() {
   const map = useContext(MapContext)
   const selected = useStore((s) => s.selectedBuilding)
+  const data = useBuildingData(selected !== null)
 
   useEffect(() => {
     if (!map) return
@@ -36,7 +37,6 @@ export function FacadeNoiseLayer() {
       }, FACADES_LAYER_ID)
     }
     const source = map.getSource(FACADES_SOURCE_ID) as maplibregl.GeoJSONSource
-    const data = buildingData
     if (selected === null || !data) {
       source.setData(EMPTY)
       return
@@ -56,7 +56,7 @@ export function FacadeNoiseLayer() {
       })
       .catch((err) => console.error('Facade noise failed to load', err))
     return () => { cancelled = true }
-  }, [map, selected])
+  }, [map, selected, data])
 
   useEffect(() => {
     return () => {

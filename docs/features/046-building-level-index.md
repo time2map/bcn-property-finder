@@ -1,5 +1,7 @@
 # 046 — Building-level Livability Index
 
+**Changed by 073 (2026-11-16):** new score columns `lden_street` and `dwellings` and the meta field `minutes_cap`; `min_*` reach 2,400 m (30 min) and `cc_*` 120 min in the pipeline (shipped files: still 1,500 m / 90 min until the next full run).
+
 **Status:** Done 2026-11-04. Stages 1–4 and step 6 (hexes removed) are done; 3b (slope) is not needed for now;
 stage 5 moved to 047 (building age) and TODO-048 (energy certificates, ground-floor premises). Direction
 agreed 2026-10-28; each stage went through plan mode before code.
@@ -333,6 +335,9 @@ arch -x86_64 .venv-livability/bin/python -m unittest scripts/test_building_expos
     same OSM filters (`extract_poi.py`).
   - Parks and beaches are reached at their **edge**: boundary points every `WALK_BOUNDARY_STEP_M`, deduplicated
     per park so one park counts once. Before, the centroid was used.
+  - Beaches skip paved `surface` values (asphalt, concrete, paving_stones …; `BEACH_WHERE` in `extract_poi.py`).
+    OSM tags a pool deck in Nou Barris (way 1202318704) `natural=beach`; unfiltered, Porta, Sant Andreu and la
+    Prosperitat came out as a few minutes from a beach. Rerun `extract_poi.py` and `building_access.py` to apply.
   - K = `WALK_K_NEAREST` (30). Slowly saturating categories (S ≥ 3: cafe, restaurant) use `WALK_K_DENSE` (120).
 - **City Core.** The 13 landmarks of `prepare-city-core-access.py`; minutes = network metres / `WALK_SPEED_M_MIN`,
   null beyond `CITY_CORE_MAX_MIN`.
@@ -489,7 +494,7 @@ Run (~3 min after stages 1–3): `arch -x86_64 .venv-livability/bin/python scrip
   - A vector source with dots (z ≤ 13) and footprints (z ≥ 14).
   - Colour from `feature-state.score` (`buildStateColorForRange`), so refitting the visible range only swaps the
     stops.
-  - Black outline from `feature-state.gap`; white outline on hover and on the selected building; click selects
+  - Hatch layer `buildings-hatch` from `feature-state.gap` (060, replaced the black outline); white outline on hover and on the selected building; click selects
     the building (`selectedBuilding` in the store).
   - The first scoring runs at once. Later ones wait `RESCORE_DELAY_MS` (150 ms) after the last change, and only
     changed buildings get a new state.

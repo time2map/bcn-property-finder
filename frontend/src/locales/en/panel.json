@@ -1,0 +1,96 @@
+{
+  "tabs": {
+    "settings": "Settings",
+    "areas": "Your areas"
+  },
+  "matchSwitch": {
+    "label": "Show match colours",
+    "about": "About the match score",
+    "hatched": "Hatched = incomplete data (score is a range, colour shows the best case)"
+  },
+  "layers": {
+    "title": "Map layers",
+    "none": "None",
+    "noise": "Noise",
+    "river": "River floods",
+    "street": "Street flooding",
+    "wildfire": "Wildfire",
+    "hint": "One layer at a time, with its own legend."
+  },
+  "advanced": {
+    "head": "Advanced",
+    "intro": "Exact values live in each sentence under “Custom…”. Here: how much each climate risk counts, and the colour scale.",
+    "howMuch": "How much each risk counts",
+    "flood": "River flood risk",
+    "fire": "Wildfire risk",
+    "street": "Street flooding risk",
+    "boost": "Boost contrast for this view"
+  },
+  "strength": {
+    "enable": "Enable {{label}}",
+    "strength": "{{label}} strength",
+    "s1": "Slightly important",
+    "s2": "Somewhat important",
+    "s3": "Matters",
+    "s4": "Important",
+    "s5": "Top priority"
+  },
+  "legend": {
+    "bands": "Match bands",
+    "caption": "How well homes meet your conditions",
+    "scale": "Composite score colour scale",
+    "relative": "How well homes meet your conditions, relative to the visible area",
+    "great": "Great",
+    "good": "Good",
+    "partial": "Partial",
+    "poor": "Poor"
+  },
+  "best": {
+    "title": "Best areas",
+    "needColours": "Turn on the match colours to see your best areas.",
+    "show": "Show my best areas",
+    "filters": "Search filters",
+    "filtersHint": "Zone links reuse the filters from this Idealista search:",
+    "looking": "Looking for your best areas…",
+    "count_one": "{{count}} best area in view",
+    "count_other": "{{count}} best areas in view",
+    "none": "No area fits this view. Zoom out or ask for more areas.",
+    "top": "Top {{pct}}% of homes, numbered on the map.",
+    "fewer": "Fewer areas",
+    "more": "More areas",
+    "hide": "Hide",
+    "restrict": "Inside commute zone, outside exclusion zones",
+    "paste": "Paste Idealista URL with your filters…",
+    "clear": "Clear saved filters",
+    "saved": "Filters saved",
+    "invalid": "Invalid URL"
+  },
+  "search": {
+    "pill": "Search Barcelona livability map",
+    "field": "Search area or address",
+    "aria": "Search an area or address",
+    "close": "Close search",
+    "areas": "Areas",
+    "addresses": "Addresses",
+    "empty": "Nothing found"
+  },
+  "mobile": {
+    "aboutMap": "About Barcelona livability map",
+    "aboutThis": "About this map",
+    "locate": "Show my location",
+    "outside": "You are outside the map area.",
+    "denied": "Location is blocked. Allow it for this site in your browser settings.",
+    "failed": "Could not find your position. Try again outside or near a window.",
+    "unsupported": "This browser cannot tell where you are.",
+    "sheet": "Conditions and details",
+    "open": "Open the panel",
+    "expand": "Expand the panel",
+    "collapse": "Collapse the panel"
+  },
+  "tip": {
+    "area_one": "{{name}}: {{pct}}% good match · {{n}} home",
+    "area_other": "{{name}}: {{pct}}% good match · {{n}} homes",
+    "google": "🛰 Open in Google Maps",
+    "zone": "Open zone {{n}} in Idealista ↗"
+  }
+}

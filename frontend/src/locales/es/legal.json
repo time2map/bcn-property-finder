@@ -1,0 +1,77 @@
+{
+  "credit": {
+    "label": "Créditos del mapa",
+    "sources": "Fuentes de datos",
+    "open": "Abrir las fuentes de datos y licencias"
+  },
+  "dialog": {
+    "title": "Acerca de y fuentes de datos",
+    "open": "Acerca de y fuentes de datos",
+    "about": "Acerca de",
+    "sources": "Fuentes de datos",
+    "intro": "Cada capa del mapa se construye con datos abiertos. Cada fuente indica su editor, su licencia y su fecha. Si hemos modificado los datos, se explica cómo.",
+    "disclaimerTitle": "No oficial, sin aval",
+    "disclaimer": "time2map no está afiliado a ninguno de los organismos citados ni cuenta con su aval. Las puntuaciones, los resultados de ajuste y las clasificaciones son cálculos propios a partir de sus datos. Son solo orientativos y no constituyen información oficial; comprueba los detalles en la fuente original y en persona antes de alquilar o comprar.",
+    "cadastreNote": "Los datos catastrales (dirección, uso, plantas, año de construcción) proceden de la Dirección General del Catastro, seleccionados y combinados por time2map. No es información catastral oficial y no tiene valor oficial.",
+    "odblTitle": "Datos derivados de OpenStreetMap",
+    "odbl": "Los tiempos a pie, los servicios y lugares del mapa y el archivo de puntos de interés derivan de OpenStreetMap y se ofrecen bajo la Open Database Licence (ODbL 1.0). Enviaremos los datos derivados si se solicitan. Las demás fuentes conservan su propia licencia y no se relicencian.",
+    "privacyTitle": "Qué sale de tu navegador",
+    "privacy": "Tus condiciones y ajustes se quedan en este navegador. Para dibujar el mapa, tu navegador pide teselas al ICGC, a OpenFreeMap y al servicio de relieve, y la búsqueda de direcciones envía lo que escribes a Geoapify. Esos servicios pueden ver tu dirección IP.",
+    "contactTitle": "Contacto",
+    "contact": "Preguntas, correcciones o una solicitud para cambiar cómo se cita una fuente: {{name}}, <mail>{{email}}</mail>.",
+    "close": "Cerrar"
+  },
+  "table": {
+    "publisher": "Editor",
+    "licence": "Licencia",
+    "updated": "Actualizado",
+    "changed": "Qué hemos cambiado",
+    "noLicence": "Sin licencia indicada",
+    "unchanged": "Usado tal como se publica."
+  },
+  "context": {
+    "catastro": "© Dirección General del Catastro. No es información catastral oficial.",
+    "esm": "Fuente de los datos: Ayuntamiento de Barcelona (CC BY 4.0). Muestras pequeñas ajustadas por time2map.",
+    "prices": "Fuente: Generalitat de Catalunya, INCASOL. Precios por barrio o municipio.",
+    "pricesYear": "Fuente: Generalitat de Catalunya, INCASOL, {{year}}.",
+    "geoapify": "Búsqueda de Geoapify · © OpenStreetMap contributors",
+    "noiseBcn": "Fuente: Ayuntamiento de Barcelona, Mapa estratégico de ruido 2022 (CC BY 4.0). Promediado por edificio por time2map.",
+    "noiseSica": "Fuente: Generalitat de Catalunya, Departament de Territori, Habitatge i Transició Ecològica, mapas estratégicos de ruido 2022 (publicados por SICA, MITECO). Promediado por edificio por time2map."
+  },
+  "sources": {
+    "catastro": {
+      "changed": "Solo edificios residenciales; combinados con datos de ruido, servicios y clima para calcular puntuaciones. No es información catastral oficial."
+    },
+    "noise-bcn": {
+      "changed": "Nivel de ruido en cada fachada tomado del mapa y promediado por edificio."
+    },
+    "fgc": {
+      "changed": "Líneas y estaciones dibujadas a partir del feed GTFS."
+    },
+    "noise-sica": {
+      "changed": "Nivel de ruido en cada fachada tomado del mapa y promediado por edificio."
+    },
+    "esm": {
+      "changed": "Agregado por barrio; los barrios con pocas respuestas se acercan a la media de la ciudad y se marcan."
+    },
+    "prices": {
+      "changed": "Unido a barrios y municipios; se muestra como escala de color y como cifra por m²."
+    },
+    "flood-aca": {
+      "changed": "Cada edificio se sitúa en la zona inundable de 10, 100 o 500 años en la que se encuentra."
+    },
+    "wildfire": {
+      "changed": "Peligro y zona de interfaz leídos en cada edificio; combinados en una cifra de riesgo."
+    },
+    "street-flooding": {
+      "changed": "Altura del agua en la puerta leída en cada edificio. Se usa sin licencia; véase la nota."
+    },
+    "osm": {
+      "changed": "Minutos a pie calculados desde la red viaria hasta el servicio más cercano; lugares dibujados como iconos."
+    },
+    "areas": {
+      "changed": "Contornos simplificados para la pantalla."
+    }
+  },
+  "streetNote": "El modelo de inundación en calle no tiene licencia publicada. Se muestra solo a título informativo."
+}

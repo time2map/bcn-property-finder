@@ -8,22 +8,14 @@ import { BestZonesLayer } from './BestZonesLayer'
 import { BaseUrlInput } from './BaseUrlInput'
 import { visibleBounds } from '../Map/visibleBounds'
 import { features } from '../../features'
-
-// Strictness steps as "top X% of the visible grid cells" — slider left = loose, right = strict.
-// Above ~25% the good areas merge into one city-wide blob, so the loose end stops there.
-const TOP_PCT_STEPS = [25, 20, 15, 10, 7, 5]
-
-function stepIndex(topPct: number): number {
-  const i = TOP_PCT_STEPS.findIndex((p) => p <= topPct)
-  return i === -1 ? TOP_PCT_STEPS.length - 1 : i
-}
+import { TOP_PCT_STEPS, stepIndex } from '../../services/bestZonesConfig'
 
 /**
  * Floating best-zones bar (feature 038) + the zones it draws. "Draw best zones" turns zones on for
  * the visible area; from then on they follow the map until "Clear zones" / Esc. Rendered inside the
  * map context so it can read the viewport.
  */
-export function BestZones() {
+export function BestZones({ withBar = true }: { /** The floating bar; the new filter panel has the same controls inside it (TODO-052). */ withBar?: boolean }) {
   const map = useMap()
   const visible = useStore((s) => s.compositeVisible)
   const bounds = useStore((s) => s.bestZonesBounds)
@@ -32,7 +24,13 @@ export function BestZones() {
   const setTopPct = useStore((s) => s.setBestZonesTopPct)
   const restrict = useStore((s) => s.bestZonesRestrict)
   const setRestrict = useStore((s) => s.setBestZonesRestrict)
+  const setCount = useStore((s) => s.setBestZonesCount)
   const { zones, urls, labels, ready } = useBestZones()
+
+  // The panel's "Best areas" block says how many areas there are.
+  const count = bounds && ready ? zones.length : null
+  useEffect(() => { setCount(count) }, [count, setCount])
+  useEffect(() => () => setCount(null), [setCount])
 
   // While zones are on, they follow the map: every pan/zoom redraws them for the new view.
   useEffect(() => {
@@ -54,7 +52,7 @@ export function BestZones() {
   return (
     <>
       <BestZonesLayer zones={zones} urls={urls} labels={labels} />
-      <Paper className="glass-panel best-zones-bar" p="xs" radius="md">
+      {withBar && <Paper className="glass-panel best-zones-bar" p="xs" radius="md">
         <Group gap={6} wrap="nowrap">
           {bounds ? (
             <Button size="xs" variant="default" onClick={() => setBounds(null)} title="Esc"
@@ -107,7 +105,7 @@ export function BestZones() {
         {ready && zones.length === 0 && (
           <Text size="xs" c="dimmed" mt={6}>No zones fit this view — zoom out</Text>
         )}
-      </Paper>
+      </Paper>}
     </>
   )
 }

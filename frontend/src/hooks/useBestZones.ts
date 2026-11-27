@@ -7,7 +7,7 @@ import { features } from '../features'
 import { allowedCells, findZoneCells, RES, zoneOutline } from '../services/bestZones'
 import { buildIdealistaUrl } from '../services/idealista'
 import { loadBuildings } from '../services/buildings/buildingData'
-import { cellMeans, centroidCells } from '../services/buildings/buildingScore'
+import { cellMeans, centroidCells } from '../services/buildings/bestZoneGrid'
 
 /**
  * Best zones (feature 038) for the captured viewport, on the res-9 H3 grid: each cell scores the mean of

@@ -1,0 +1,77 @@
+{
+  "credit": {
+    "label": "Crèdits del mapa",
+    "sources": "Fonts de dades",
+    "open": "Obre les fonts de dades i les llicències"
+  },
+  "dialog": {
+    "title": "Sobre l’aplicació i fonts de dades",
+    "open": "Sobre l’aplicació i fonts de dades",
+    "about": "Sobre l’aplicació",
+    "sources": "Fonts de dades",
+    "intro": "Cada capa del mapa es construeix amb dades obertes. Cada font indica el seu editor, la llicència i la data. Si hem modificat les dades, s’explica com.",
+    "disclaimerTitle": "No oficial, sense aval",
+    "disclaimer": "time2map no està afiliat a cap dels organismes esmentats ni en té l’aval. Les puntuacions, els resultats d’ajust i les classificacions són càlculs propis a partir de les seves dades. Són només orientatius i no són informació oficial; comprova els detalls a la font original i en persona abans de llogar o comprar.",
+    "cadastreNote": "Les dades cadastrals (adreça, ús, plantes, any de construcció) provenen de la Dirección General del Catastro, seleccionades i combinades per time2map. No és informació cadastral oficial i no té valor oficial.",
+    "odblTitle": "Dades derivades d’OpenStreetMap",
+    "odbl": "Els temps a peu, els serveis i llocs del mapa i el fitxer de punts d’interès deriven d’OpenStreetMap i s’ofereixen sota l’Open Database Licence (ODbL 1.0). Enviarem les dades derivades si ho demanes. Les altres fonts conserven la seva llicència i no es rellicencien.",
+    "privacyTitle": "Què surt del teu navegador",
+    "privacy": "Les teves condicions i ajustos es queden en aquest navegador. Per dibuixar el mapa, el navegador demana tessel·les a l’ICGC, a OpenFreeMap i al servei de relleu, i la cerca d’adreces envia el que escrius a Geoapify. Aquests serveis poden veure la teva adreça IP.",
+    "contactTitle": "Contacte",
+    "contact": "Preguntes, correccions o una sol·licitud per canviar com es cita una font: {{name}}, <mail>{{email}}</mail>.",
+    "close": "Tanca"
+  },
+  "table": {
+    "publisher": "Editor",
+    "licence": "Llicència",
+    "updated": "Actualitzat",
+    "changed": "Què hem canviat",
+    "noLicence": "Sense llicència indicada",
+    "unchanged": "Usat tal com es publica."
+  },
+  "context": {
+    "catastro": "© Dirección General del Catastro. No és informació cadastral oficial.",
+    "esm": "Font de les dades: Ajuntament de Barcelona (CC BY 4.0). Mostres petites ajustades per time2map.",
+    "prices": "Font: Generalitat de Catalunya, INCASOL. Preus per barri o municipi.",
+    "pricesYear": "Font: Generalitat de Catalunya, INCASOL, {{year}}.",
+    "geoapify": "Cerca de Geoapify · © OpenStreetMap contributors",
+    "noiseBcn": "Font: Ajuntament de Barcelona, Mapa estratègic de soroll 2022 (CC BY 4.0). Mitjançat per edifici per time2map.",
+    "noiseSica": "Font: Generalitat de Catalunya, Departament de Territori, Habitatge i Transició Ecològica, mapes estratègics de soroll 2022 (publicats per SICA, MITECO). Mitjançat per edifici per time2map."
+  },
+  "sources": {
+    "catastro": {
+      "changed": "Només edificis residencials; combinats amb dades de soroll, serveis i clima per calcular puntuacions. No és informació cadastral oficial."
+    },
+    "noise-bcn": {
+      "changed": "Nivell de soroll a cada façana pres del mapa i mitjançat per edifici."
+    },
+    "fgc": {
+      "changed": "Línies i estacions dibuixades a partir del feed GTFS."
+    },
+    "noise-sica": {
+      "changed": "Nivell de soroll a cada façana pres del mapa i mitjançat per edifici."
+    },
+    "esm": {
+      "changed": "Agregat per barri; els barris amb poques respostes s’acosten a la mitjana de la ciutat i es marquen."
+    },
+    "prices": {
+      "changed": "Unit a barris i municipis; es mostra com a escala de color i com a xifra per m²."
+    },
+    "flood-aca": {
+      "changed": "Cada edifici se situa a la zona inundable de 10, 100 o 500 anys on es troba."
+    },
+    "wildfire": {
+      "changed": "Perill i zona d’interfície llegits a cada edifici; combinats en una xifra de risc."
+    },
+    "street-flooding": {
+      "changed": "Alçada de l’aigua a la porta llegida a cada edifici. S’usa sense llicència; vegeu la nota."
+    },
+    "osm": {
+      "changed": "Minuts a peu calculats des de la xarxa viària fins al servei més proper; llocs dibuixats com a icones."
+    },
+    "areas": {
+      "changed": "Contorns simplificats per a la pantalla."
+    }
+  },
+  "streetNote": "El model d’inundació al carrer no té llicència publicada. Es mostra només a títol informatiu."
+}

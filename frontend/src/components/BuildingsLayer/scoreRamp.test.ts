@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fitScoreRange } from './scoreRamp'
+import { colorRange, fitScoreRange, FIXED_RANGE } from './scoreRamp'
 
 describe('fitScoreRange', () => {
   it('spans the lowest to the highest score', () => {
@@ -24,5 +24,20 @@ describe('fitScoreRange', () => {
 
   it('returns null when no building is in view', () => {
     expect(fitScoreRange([], 2, 20)).toBeNull()
+  })
+})
+
+describe('colorRange (TODO-050)', () => {
+  const scores = [60, 62, 64, 66, 68]
+  it('is the fixed 0–100 scale with contrast boost off', () => {
+    expect(FIXED_RANGE).toEqual([0, 100])
+    expect(colorRange(false, scores)).toEqual([0, 100])
+    expect(colorRange(false, [])).toEqual([0, 100])
+  })
+  it('fits the visible buildings with contrast boost on', () => {
+    expect(colorRange(true, scores)).toEqual(fitScoreRange(scores))
+  })
+  it('keeps the current scale with boost on and nothing in view', () => {
+    expect(colorRange(true, [])).toBeNull()
   })
 })

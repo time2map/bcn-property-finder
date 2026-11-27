@@ -34,5 +34,4 @@ a linear baseline first, and encode missing listing fields as a separate "not sp
 ### 3. Weight presets
 
 Persona presets ("Family", "Remote worker", "Investor") that set the composite weights in one
-click; user can still tweak sliders afterwards. Lighter alternative to the questionnaire in
-`TODO-031-weight-questionnaire.md`.
+click; user can still tweak sliders afterwards. Folded into `TODO-031-onboarding-quiz-presets.md` (2026-11-11).

@@ -1,9 +1,11 @@
+import i18n from '../../i18n'
 import { useEffect, useRef } from 'react'
 import type { Feature, FeatureCollection, Polygon } from 'geojson'
 import * as maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import { useMap } from '../Map/MapContext'
 import { addLayerOrdered } from '../Map/layerOrder'
+import { MAP_TEXT_FONT } from '../Map/mapFont'
 
 export const SOURCE_ID = 'best-zones'
 export const FILL_LAYER_ID = 'best-zones-fill'
@@ -28,7 +30,7 @@ function idealistaLink(url: string, n: number | string): HTMLAnchorElement {
   a.href = url
   a.target = '_blank'
   a.rel = 'noopener noreferrer'
-  a.textContent = `Open zone ${n} in Idealista ↗`
+  a.textContent = i18n.t('panel:tip.zone', { n })
   a.style.fontWeight = '600'
   return a
 }
@@ -66,7 +68,7 @@ export function BestZonesLayer({ zones, urls, labels }: { zones: Polygon[]; urls
       source: SOURCE_ID,
       layout: {
         'text-field': ['get', 'label'],
-        'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+        'text-font': MAP_TEXT_FONT,
         'text-size': 18,
         // Zone numbers matter more than landmark/metro labels — never hide them on collision.
         'text-allow-overlap': true,

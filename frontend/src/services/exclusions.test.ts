@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { Polygon } from 'geojson'
-import { subtractExclusions, isPointInExclusions } from './exclusions'
+import { isPointInExclusions } from './exclusions'
+import { subtractExclusions } from './exclusionsGeometry'
 import type { ExclusionZone } from '../types/exclusions'
 
 const BASE: Polygon = {

@@ -1,0 +1,150 @@
+{
+  "short": {
+    "noise": "Poc soroll",
+    "poiAccess": "A peu",
+    "cityCore": "Centre",
+    "openPrice": "Pressupost",
+    "localsOpinion": "Veïns",
+    "age": "Edificis",
+    "risk": "Riscos"
+  },
+  "add": {
+    "noise": "Poc soroll",
+    "poiAccess": "Tot a peu",
+    "cityCore": "A prop del centre",
+    "openPrice": "Dins del meu pressupost",
+    "localsOpinion": "Què en pensen els veïns",
+    "age": "Tipus d'edifici",
+    "risk": "Evitar riscos"
+  },
+  "label": {
+    "noise": "Poc soroll",
+    "poiAccess": "Serveis quotidians",
+    "cityCore": "Centre",
+    "openPrice": "Pressupost",
+    "localsOpinion": "Opinió dels veïns",
+    "age": "Antiguitat de l'edifici"
+  },
+  "noiseName": {
+    "50": "un pati interior",
+    "58": "un carrer tranquil",
+    "65": "el soroll normal de la ciutat"
+  },
+  "localsName": {
+    "7": "Contents",
+    "7_5": "Molt contents",
+    "8": "Entre els més contents"
+  },
+  "unit": {
+    "min": "{{value}} min",
+    "db": "{{value}} dB",
+    "m2": "{{value}} m²"
+  },
+  "profile": {
+    "budget": "un pis de {{area}} m² per fins a {{price}}",
+    "family": {
+      "name": "Família",
+      "blurb": "Carrer tranquil, escola i parc a peu, {{budget}}"
+    },
+    "remote": {
+      "name": "Teletreball",
+      "blurb": "Cafè i parc a prop, 30 min al centre"
+    },
+    "city": {
+      "name": "Vida urbana",
+      "blurb": "25 min al centre, bars i metro a la porta"
+    },
+    "retiree": {
+      "name": "Persona jubilada",
+      "blurb": "CAP, farmàcia i botigues a 5 min, un carrer tranquil"
+    }
+  },
+  "services": {
+    "supermarket": "Supermercat",
+    "pharmacy": "Farmàcia",
+    "park": "Parc",
+    "school": "Escola",
+    "kindergarten": "Llar d'infants",
+    "clinic": "CAP",
+    "metro": "Estació de metro",
+    "cafe": "Cafeteria",
+    "restaurant": "Restaurant",
+    "beach": "Platja"
+  },
+  "landmarks": {
+    "sagrada": "Sagrada Família",
+    "placa_cat": "Plaça de Catalunya",
+    "barceloneta": "La Barceloneta",
+    "barri_gotic": "Barri Gòtic",
+    "pg_gracia": "Passeig de Gràcia",
+    "arc_triomf": "Arc de Triomf",
+    "montjuic": "Montjuïc",
+    "placa_espanya": "Plaça d'Espanya",
+    "glories": "Torre Glòries",
+    "poblenou": "Rambla del Poblenou",
+    "parc_guell": "Parc Güell",
+    "eixample": "Eixample",
+    "waterfront": "Front marítim"
+  },
+  "band": {
+    "great": "Encaix excel·lent",
+    "good": "Bon encaix",
+    "partial": "Encaix parcial",
+    "poor": "Encaix feble"
+  },
+  "bandPossibly": {
+    "great": "Possiblement encaix excel·lent",
+    "good": "Possiblement bon encaix",
+    "partial": "Possiblement encaix parcial",
+    "poor": "Possiblement encaix feble"
+  },
+  "match": {
+    "noiseUnder": "{{db}} dB, per sota dels teus {{limit}}",
+    "noiseOver": "{{db}} dB, {{diff}} dB per sobre dels teus {{limit}}",
+    "poi": "{{within}} de {{total}} a menys de {{limit}} min",
+    "cityCore_one": "{{within}} de {{count}} lloc a menys de {{limit}} min",
+    "cityCore_many": "{{within}} de {{count}} llocs a menys de {{limit}} min",
+    "cityCore_other": "{{within}} de {{count}} llocs a menys de {{limit}} min",
+    "priceUnder": "{{price}}/m², per sota dels teus {{budget}}",
+    "priceOver": "{{price}}/m², un {{pct}}% per sobre dels teus {{budget}}",
+    "priceAlmost": "{{price}}/m², gairebé dins dels teus {{budget}}",
+    "almostFits": "gairebé hi cap",
+    "locals": "valorat amb {{rating}}, el teu mínim {{min}}",
+    "ageUnknown": "any de construcció desconegut",
+    "noData": "sense dades",
+    "risk": "Risc: −{{points}} punts — {{names}}",
+    "of": "{{within}} de {{total}}",
+    "inMin": "a menys de {{limit}} min",
+    "perM2": "{{budget}} per m²"
+  },
+  "risk": {
+    "flood": "inundació de riu",
+    "street": "inundació al carrer",
+    "fire": "incendi forestal"
+  },
+  "era": {
+    "before": "abans de {{year}}",
+    "on": "a partir de {{year}}",
+    "range": "{{from}}–{{to}}",
+    "e0": {
+      "name": "Històric",
+      "about": "Cascos antics i nuclis de poble: gruixuts murs de maçoneria, sovint sense ascensor, finestres petites."
+    },
+    "e1": {
+      "name": "Modernista i principis del s. XX",
+      "about": "Època daurada de l'Eixample: sostres alts, sòls de mosaic, finestres grans; sovint reformats."
+    },
+    "e2": {
+      "name": "Boom de la postguerra",
+      "about": "Habitatge massiu i ràpid: murs prims, sense aïllament (no hi hagué norma tèrmica fins al 1979); forjats de ciment aluminós en alguns edificis dels anys 50–70."
+    },
+    "e3": {
+      "name": "Primeres normes d'edificació",
+      "about": "Primeres normes tèrmiques (1979) i acústiques (1981–88)."
+    },
+    "e4": {
+      "name": "Codi tècnic actual",
+      "about": "Código Técnico (2006): aïllament, insonorització, accessibilitat."
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "credit": {
+    "label": "Map credits",
+    "sources": "Data sources",
+    "open": "Open the data sources and licences"
+  },
+  "dialog": {
+    "title": "About and data sources",
+    "open": "About and data sources",
+    "about": "About",
+    "sources": "Data sources",
+    "intro": "Every layer of the map is built from open data. Each source below is credited with its publisher, licence and date. Where we changed the data, it says how.",
+    "disclaimerTitle": "Not official, not endorsed",
+    "disclaimer": "time2map is not affiliated with, and not endorsed by, any of the bodies named here. Scores, match results and rankings are our own calculations from their data. They are for orientation only and are not official information; check the details with the original source and in person before you rent or buy.",
+    "cadastreNote": "Cadastral facts (address, use, floors, year built) come from the Dirección General del Catastro, selected and combined by time2map. This is not official cadastral information and has no official value.",
+    "odblTitle": "OpenStreetMap-derived data",
+    "odbl": "Walking times, the services and places on the map, and the points-of-interest file are derived from OpenStreetMap and are offered under the Open Database Licence (ODbL 1.0). We will send the derived data on request. Other sources keep their own licences and are not relicensed.",
+    "privacyTitle": "What leaves your browser",
+    "privacy": "Your conditions and settings stay in this browser. To draw the map, your browser asks ICGC, OpenFreeMap and the terrain service for map tiles, and the address search sends what you type to Geoapify. Those services can see your IP address.",
+    "contactTitle": "Contact",
+    "contact": "Questions, corrections or a request to change how a source is credited: {{name}}, <mail>{{email}}</mail>.",
+    "close": "Close"
+  },
+  "table": {
+    "publisher": "Publisher",
+    "licence": "Licence",
+    "updated": "Updated",
+    "changed": "What we changed",
+    "noLicence": "No licence stated",
+    "unchanged": "Used as published."
+  },
+  "context": {
+    "catastro": "© Dirección General del Catastro. Not official cadastral information.",
+    "esm": "Source of the data: Barcelona City Council (CC BY 4.0). Small samples adjusted by time2map.",
+    "prices": "Source: Generalitat de Catalunya, INCASOL. Prices per barri or municipality.",
+    "pricesYear": "Source: Generalitat de Catalunya, INCASOL, {{year}}.",
+    "geoapify": "Search by Geoapify · © OpenStreetMap contributors",
+    "noiseBcn": "Source: Ajuntament de Barcelona, Strategic Noise Map 2022 (CC BY 4.0). Averaged per building by time2map.",
+    "noiseSica": "Source: Generalitat de Catalunya, Departament de Territori, Habitatge i Transició Ecològica, strategic noise maps 2022 (published by SICA, MITECO). Averaged per building by time2map."
+  },
+  "sources": {
+    "catastro": {
+      "changed": "Residential buildings only; combined with noise, services and climate data to make scores. Not official cadastral information."
+    },
+    "noise-bcn": {
+      "changed": "Sound level at each facade taken from the map and averaged per building."
+    },
+    "fgc": {
+      "changed": "Lines and stations drawn from the GTFS feed."
+    },
+    "noise-sica": {
+      "changed": "Sound level at each facade taken from the map and averaged per building."
+    },
+    "esm": {
+      "changed": "Aggregated per barri; barris with few answers are pulled towards the city average and marked."
+    },
+    "prices": {
+      "changed": "Joined to barris and municipalities; shown as a colour scale and as a figure per m²."
+    },
+    "flood-aca": {
+      "changed": "Each building is placed in the 10, 100 or 500-year flood zone it lies in."
+    },
+    "wildfire": {
+      "changed": "Hazard and interface zone read at each building; combined into one risk figure."
+    },
+    "street-flooding": {
+      "changed": "Water depth at the door read at each building. Used without a licence; see the note below."
+    },
+    "osm": {
+      "changed": "Walking minutes computed from the street network to the nearest service; places drawn as icons."
+    },
+    "areas": {
+      "changed": "Outlines simplified for the screen."
+    }
+  },
+  "streetNote": "The street-flooding model has no published licence. It is shown for information only."
+}

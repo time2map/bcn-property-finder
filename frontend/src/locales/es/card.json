@@ -1,0 +1,263 @@
+{
+  "use": {
+    "1_residential": "Residencial",
+    "2_agriculture": "Agrícola",
+    "3_industrial": "Industrial",
+    "4_1_office": "Oficinas",
+    "4_2_retail": "Comercial",
+    "4_3_publicServices": "Servicios públicos",
+    "other": "Edificio"
+  },
+  "river": {
+    "r10": "En la zona inundable del río a 10 años — probabilidad alta (aproximadamente una vez cada 10 años)",
+    "r100": "En la zona inundable del río a 100 años — probabilidad media",
+    "r500": "En la zona inundable del río a 500 años — probabilidad baja (la zona inundable oficial)",
+    "none": "Fuera de las zonas inundables de río cartografiadas",
+    "zoneYear": "zona a {{year}} años"
+  },
+  "fire": {
+    "notWui": "Fuera de la interfaz urbano-forestal",
+    "noForest": "Interfaz urbano-forestal · sin bosque valorado cerca",
+    "forest": "Interfaz urbano-forestal · bosque de clase de peligro {{cls}} a ~{{dist}} m"
+  },
+  "depth": {
+    "max": "≥ 50 cm",
+    "cm": "{{value}} cm",
+    "gutter": "se queda en la cuneta",
+    "kerb": "supera el bordillo y llega a los umbrales",
+    "ground": "entra en plantas bajas y aparcamientos",
+    "serious": "daños graves, los coches pueden flotar"
+  },
+  "door": {
+    "noModel": "No hay modelo de inundación en la calle fuera de Barcelona",
+    "none": "No se modela agua en la puerta con lluvia intensa",
+    "water": "Agua en la puerta: {{t10}} con una lluvia de 10 años, {{t100}} con una de 100 años — {{meaning}}"
+  },
+  "warning": {
+    "base": "Ojo si miras un piso en planta baja, un sótano o un garaje.",
+    "below_one": " Este edificio tiene {{count}} planta bajo rasante.",
+    "below_many": " Este edificio tiene {{count}} plantas bajo rasante.",
+    "below_other": " Este edificio tiene {{count}} plantas bajo rasante."
+  },
+  "side": {
+    "street": "Fachada exterior",
+    "inner": "Fachada al patio",
+    "line": "{{side}}: {{db}} dB",
+    "night": " · noche {{ln}}"
+  },
+  "vs": {
+    "noiseWithin": "{{db}} dB — dentro de tus {{limit}} dB",
+    "noiseOver": "{{db}} dB — {{diff}} dB por encima de tus {{limit}} dB",
+    "priceWithin": "{{price}}/m² — dentro de tus {{budget}}/m²",
+    "priceOver": "{{price}}/m² — un {{pct}}% por encima de tus {{budget}}/m²",
+    "priceAlmost": "{{price}}/m² — casi dentro de tus {{budget}}/m²",
+    "services_one": "{{n}} de {{count}} sitio a menos de {{limit}} min",
+    "services_many": "{{n}} de {{count}} sitios a menos de {{limit}} min",
+    "services_other": "{{n}} de {{count}} sitios a menos de {{limit}} min",
+    "places_one": "{{n}} de {{count}} lugar a menos de {{limit}} min",
+    "places_many": "{{n}} de {{count}} lugares a menos de {{limit}} min",
+    "places_other": "{{n}} de {{count}} lugares a menos de {{limit}} min",
+    "ratingMeets": "Los vecinos puntúan {{rating}} — cumple tu {{min}}",
+    "ratingBelow": "Los vecinos puntúan {{rating}} — por debajo de tu {{min}}"
+  },
+  "ageMatch": {
+    "none": "no es una de tus épocas",
+    "full": "cuenta como una de tus épocas",
+    "edge": "en el límite de una de tus épocas"
+  },
+  "facts": {
+    "dwellings": "Viviendas",
+    "dwellingsValue": "{{n}} otros locales",
+    "floors": "Plantas",
+    "below": "{{n}} bajo rasante",
+    "belowGround": "Bajo rasante",
+    "built": "Construido",
+    "renovated": "reformado en {{year}}",
+    "uncertain": "Fecha del Catastro para muchos edificios antiguos — se desconoce el año exacto",
+    "builtArea": "Superficie construida",
+    "condition": "Estado",
+    "otherPremises": "Otros locales: tiendas, oficinas, plazas de aparcamiento, trasteros",
+    "dwellingsLabel_one": "vivienda",
+    "dwellingsLabel_other": "viviendas",
+    "floorsLabel_one": "planta",
+    "floorsLabel_other": "plantas",
+    "builtAreaLabel": "superficie construida",
+    "belowLabel": "bajo rasante",
+    "renovatedLabel": "reformado",
+    "otherLabel": "otros locales"
+  },
+  "noise": {
+    "noMap": "No hay mapa oficial de ruido para este municipio",
+    "scoredStreet": "Fachada exterior: {{approx}}{{db}} dB — con esto se compara tu condición",
+    "scoredAll": "Todas las fachadas: {{approx}}{{db}} dB (sin fachada exterior) — con esto se compara tu condición",
+    "quietSide": "Fachada al patio, tranquila: {{approx}}{{db}} dB — dentro de tu límite",
+    "night": " · noche {{ln}}",
+    "extremes": "Fachada más ruidosa {{max}} dB · más tranquila {{min}} dB",
+    "street": "Calle",
+    "courtyard": "Patio",
+    "group": "{{side}} · orientada al {{dir}} · {{len}} m — {{db}} dB",
+    "groupNight": " (noche {{ln}})",
+    "f17": "Mapa oficial de fachadas 2017: fachada más ruidosa {{db}} dB",
+    "f17Night": ", noche {{ln}} dB",
+    "leisure": "Ruido de ocio nocturno en una fachada: {{db}} dB",
+    "modelled": "Modelado a 4 m del suelo (≈ 1.ª planta). Círculos de colores junto a las fachadas en el mapa.",
+    "sica": "Otro modelo oficial (SICA 2022, bandas de 5 dB): sus niveles son unos dB más altos que el mapa de Barcelona, así que compáralo con Barcelona con cautela.",
+    "who": "OMS: < 53 dB · acción UE: 55 dB · dañino: ≥ 65 dB",
+    "veryQuiet": "muy tranquilo",
+    "quiet": "tranquilo",
+    "nearWho": "cerca del límite OMS",
+    "aboveEu": "sobre el nivel UE",
+    "highly": "muy ruidoso",
+    "facadeByFacade": "Fachada por fachada"
+  },
+  "section": {
+    "building": "Edificio",
+    "walkability": "Servicios a pie",
+    "noise": "Ruido",
+    "cityCore": "Acceso al centro",
+    "age": "Antigüedad del edificio",
+    "climate": "Riesgo climático",
+    "price": "Precio de venta"
+  },
+  "ui": {
+    "loading": "Cargando…",
+    "buildingTitle": "Edificio",
+    "studentResidence": "Residencia de estudiantes",
+    "closeBuilding": "Cerrar la ficha del edificio",
+    "photoAlt": "Fachada de {{address}}",
+    "photoAltFallback": "el edificio",
+    "photoCredit": "Foto © Dirección General del Catastro",
+    "openCatastro": "Abrir en el Catastro ↗",
+    "walkNote": "Tiempo a pie desde la entrada, por las calles",
+    "noneNearby": "ninguno cerca",
+    "yearUnknown": "Año de construcción desconocido",
+    "ageLine": "{{era}}, {{years}} — {{match}}",
+    "renovated": "Reformado en {{year}} — solo informativo; la puntuación usa el año de construcción",
+    "sameFor": "Igual para todos los edificios del {{kind}}",
+    "kindBarri": "barrio",
+    "kindMuni": "municipio",
+    "noPrice": "Sin datos de precio de venta",
+    "salePrice": "Precio de venta: {{text}}",
+    "salePriceOpen": "Precio de venta: <b>{{price}} €/m²</b> · Generalitat de Catalunya, INCASOL",
+    "priceZeroAt": "La puntuación baja a 0 en {{price}} €/m² (+{{pct}}%).",
+    "priceFit": "{{n}} de {{total}} zonas encajan con tu presupuesto.",
+    "localsSay": "Qué dicen los vecinos",
+    "notBcn": "No disponible fuera de la ciudad de Barcelona",
+    "riskRiver": "Inundación de río",
+    "riskStreet": "Inundación en la calle (lluvia intensa)",
+    "riskWildfire": "Incendio forestal",
+    "penalty": "−{{n}} pts",
+    "peekNone": "No hay condiciones activas",
+    "details": "Detalles de este edificio",
+    "moreAddresses_one": "+{{count}} dirección más",
+    "moreAddresses_other": "+{{count}} direcciones más",
+    "moreAddresses_many": "+{{count}} direcciones más",
+    "fewerAddresses": "Mostrar menos",
+    "climateVerdict": "{{names}}",
+    "noPenalty": "Ningún punto perdido"
+  },
+  "match": {
+    "incomplete": "Datos incompletos: algunas de tus condiciones no tienen datos aquí. La puntuación es un rango, del peor caso (lo que falta cuenta 0) al mejor (lo que falta cuenta 100).",
+    "noneOn": "No hay condiciones activas",
+    "overBudget": "Por encima de tu presupuesto: como mucho un encaje parcial",
+    "label": "Encaje con tus condiciones",
+    "score": "{{score}} de 100",
+    "status": {
+      "met": "Cumplida",
+      "partly": "Cumplida en parte",
+      "missed": "No cumplida",
+      "nodata": "Sin datos"
+    }
+  },
+  "locals": {
+    "satisfaction": "Satisfacción",
+    "outOf10": "{{value}} / 10",
+    "stay": "Se quedaría aquí",
+    "city": "ciudad {{value}}",
+    "trend": "Tendencia frente a 2015–19",
+    "noChange": "Sin cambios",
+    "problems": "Principales problemas",
+    "source": "Fuente: Ayuntamiento de Barcelona, encuesta de servicios municipales (ESM) {{years}} · {{n}} entrevistas · CC BY 4.0",
+    "smallSample": "Muestra pequeña — la puntuación se apoya en la zona más amplia (gran barri)",
+    "p": {
+      "insecurity": "Inseguridad",
+      "cleanliness": "Limpieza",
+      "noise": "Ruido",
+      "housing": "Acceso a la vivienda",
+      "tourism": "Turismo y aglomeraciones",
+      "incivility": "Incivismo",
+      "drugs_squats": "Drogas y ocupaciones",
+      "maintenance": "Mantenimiento y obras",
+      "parking": "Aparcamiento",
+      "traffic": "Tráfico"
+    }
+  },
+  "minutes": "{{n}} min",
+  "save": {
+    "button": "Guardar imagen",
+    "done": "Imagen guardada.",
+    "failed": "No se pudo crear la imagen. Inténtalo de nuevo.",
+    "share": "Compartir"
+  },
+  "shareCopied": {
+    "building": "Enlace copiado. Abre este edificio con tus condiciones.",
+    "area": "Enlace copiado. Abre esta zona con tus condiciones."
+  },
+  "area": {
+    "metro": "Área metropolitana",
+    "barcelona": "Barcelona",
+    "close": "Cerrar la ficha de la zona",
+    "caption_one": "de {{n}} vivienda encaja bien",
+    "caption_many": "de {{n}} viviendas encajan bien",
+    "caption_other": "de {{n}} viviendas encajan bien",
+    "great": "El {{great}}% encaja de maravilla · puntuación media {{mean}}",
+    "peek": "El {{share}}% de las viviendas encajan bien",
+    "line_one": "El {{pct}}% de {{n}} vivienda encaja bien",
+    "line_many": "El {{pct}}% de {{n}} viviendas encajan bien",
+    "line_other": "El {{pct}}% de {{n}} viviendas encajan bien",
+    "tooFew_one": "{{n}} vivienda: muy pocas para clasificar",
+    "tooFew_many": "{{n}} viviendas: muy pocas para clasificar",
+    "tooFew_other": "{{n}} viviendas: muy pocas para clasificar",
+    "strongest": "Lo mejor: {{list}}",
+    "incomplete": "Muchas viviendas de aquí tienen datos incompletos, así que los porcentajes son el mejor caso.",
+    "kindBarri": "barrio",
+    "kindMuni": "municipio"
+  },
+  "areasList": {
+    "all": "Todas ({{n}})",
+    "top": "Las {{top}} primeras de {{n}}",
+    "showAll": "Ver las {{n}}",
+    "addCondition": "Añade una condición para clasificar las zonas.",
+    "scoring": "Puntuando las viviendas…",
+    "noneYet": "Aún no hay zonas que clasificar. Elige primero una condición.",
+    "byShare": "Por porcentaje de viviendas que encajan.",
+    "tooFew": "Muy pocas viviendas para clasificar: {{names}}.",
+    "rowAria": "{{pos}}. {{name}}, el {{pct}}% de las viviendas encajan bien",
+    "rowText": "El {{pct}}% de las viviendas encajan bien"
+  },
+  "rank": {
+    "heading": "Para tus condiciones",
+    "incomplete": "Sin clasificación: algunas de tus condiciones no tienen datos para este edificio.",
+    "in": "en {{name}}",
+    "inEl": "en el {{name}}",
+    "inEls": "en els {{name}}",
+    "inMetro": "en el área metropolitana de Barcelona",
+    "crowded": "Es una zona con mucha vivienda buena, así que destacar en ella cuesta más.",
+    "top": "Top {{tier}}%",
+    "tileOf": "de las viviendas {{place}}"
+  },
+  "share": {
+    "outOf": "sobre 100",
+    "areaCaption": "de las viviendas encajan bien",
+    "metro": "Área metropolitana",
+    "strongOn": "Destaca en: {{label}}",
+    "mapCredit": "Mapa: ICGC, colaboradores de OpenStreetMap",
+    "for": {
+      "family": "Para una familia",
+      "remote": "Para quien teletrabaja",
+      "city": "Para la vida en la ciudad",
+      "retiree": "Para una persona jubilada"
+    },
+    "forName": "Para {{name}}"
+  }
+}

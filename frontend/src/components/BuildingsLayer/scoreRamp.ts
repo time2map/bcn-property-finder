@@ -27,6 +27,14 @@ export function fitScoreRange(scores: number[], trimPct = TRIM_PCT, minSpan = MI
   return [lo, lo + minSpan]
 }
 
+/** The absolute scale (TODO-050): 100 is the same green anywhere on the map. */
+export const FIXED_RANGE: [number, number] = [0, 100]
+
+/** Colour range of the map: fixed 0–100, or fitted to the visible buildings with "Boost contrast" on (null = none in view). */
+export function colorRange(boost: boolean, inView: number[]): [number, number] | null {
+  return boost ? fitScoreRange(inView) : FIXED_RANGE
+}
+
 /** Ramp stops spread over [min, max]. */
 function rangeStops(min: number, max: number): (number | string)[] {
   const span = max - min

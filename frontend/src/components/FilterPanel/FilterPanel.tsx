@@ -1,12 +1,21 @@
 import { useState } from 'react'
-import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Text } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
+import { Divider, Modal, Paper, Slider, Stack, Switch, Table, Tabs, Text } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
+import { useSheetStore } from '../../store/sheetStore'
 import { NoiseLegend } from '../NoiseLayer/NoiseLegend'
 import { ClimateLayerControls } from './ClimateLayerControls'
 import { CompositeControls } from './CompositeControls'
 import { IdealistaPricesControls } from '../IdealistaPricesLayer/IdealistaPricesControls'
 import { ExclusionControls } from './ExclusionControls'
+import { YourConditionsRow } from './YourConditionsRow'
+import { AreasList } from '../AreasList/AreasList'
+import { ConditionsEditor } from '../Conditions/ConditionsEditor'
+import { MapLayersControl } from './MapLayersControl'
+import { MatchColoursSwitch } from './MatchColoursSwitch'
+import { AdvancedSettings } from './AdvancedSettings'
+import { BestAreasControls } from '../BestZones/BestAreasControls'
 import { features } from '../../features'
 
 const TIME_MARKS = [
@@ -76,23 +85,40 @@ function IsochroneInfoModal({ opened, onClose }: { opened: boolean; onClose: () 
   )
 }
 
-export function FilterPanel() {
+/** The conditions panel: a glass panel on desktop; with `embedded` (the phone's bottom sheet) just its content. */
+export function FilterPanel({ embedded = false }: { embedded?: boolean }) {
   const {
     minutes, setMinutes,
     noiseLayerVisible, setNoiseLayerVisible,
-    mapAttribution,
   } = useStore()
+  const { t } = useTranslation('panel')
   const [isoModalOpen, setIsoModalOpen] = useState(false)
+  const tab = useSheetStore((s) => s.tab)
+  const setTab = useSheetStore((s) => s.setTab)
 
   return (
     <Paper
-      className="glass-panel"
-      p="md"
+      className={embedded ? 'filter-panel--sheet' : 'glass-panel'}
+      p={embedded ? 0 : 'md'}
       radius="md"
-      style={{ minHeight: 0, overflowY: 'auto' }}
+      // The tabs stay put; only the body below them scrolls (the panel on desktop). In the phone's sheet the sheet scrolls.
+      style={embedded
+        ? { background: 'transparent', boxShadow: 'none' }
+        : { minHeight: 0, display: 'flex', flexDirection: 'column', flex: '0 1 auto', overflow: 'hidden' }}
     >
       {features.isochrone && <IsochroneInfoModal opened={isoModalOpen} onClose={() => setIsoModalOpen(false)} />}
+      {features.areas && (
+        <Tabs value={tab} onChange={(v) => setTab(v === 'areas' ? 'areas' : 'settings')} mb="sm" style={{ flex: 'none' }}>
+          <Tabs.List grow>
+            <Tabs.Tab value="settings">{t('tabs.settings')}</Tabs.Tab>
+            <Tabs.Tab value="areas">{t('tabs.areas')}</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )}
+      <div className="filter-panel__body">
+      {features.areas && tab === 'areas' ? <AreasList /> : (
       <Stack gap="md">
+          {!embedded && <YourConditionsRow />}
           {features.isochrone && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -139,29 +165,39 @@ export function FilterPanel() {
             </>
           )}
 
-          <Switch
-            label="Noise areas"
-            size="sm"
-            checked={noiseLayerVisible}
-            onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
-          />
-          <NoiseLegend />
-          <ClimateLayerControls />
-
-          <Divider />
-          <CompositeControls />
-
-          {mapAttribution && (
+          {features.onboarding ? (
             <>
+              <ConditionsEditor />
+              <MatchColoursSwitch />
               <Divider />
-              <div
-                className="panel-attribution"
-                // HTML attribution from trusted ICGC style URL
-                dangerouslySetInnerHTML={{ __html: mapAttribution }}
+              <MapLayersControl />
+              {features.bestZones && (
+                <>
+                  <Divider />
+                  <BestAreasControls />
+                </>
+              )}
+              <AdvancedSettings />
+            </>
+          ) : (
+            <>
+              <Switch
+                label="Noise areas"
+                size="sm"
+                checked={noiseLayerVisible}
+                onChange={(e) => setNoiseLayerVisible(e.currentTarget.checked)}
               />
+              <NoiseLegend />
+              <ClimateLayerControls />
+
+              <Divider />
+              <CompositeControls />
             </>
           )}
+
       </Stack>
+      )}
+      </div>
     </Paper>
   )
 }

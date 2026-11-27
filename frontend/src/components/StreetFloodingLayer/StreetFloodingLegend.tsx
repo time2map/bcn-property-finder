@@ -1,38 +1,35 @@
 import { useState } from 'react'
 import { Modal, SegmentedControl, Text } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useStore } from '../../store'
 import { STREET_DEPTH_STYLES } from './StreetFloodingLayer'
 
 function StreetFloodingInfoModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
+  const { t } = useTranslation('info')
   return (
-    <Modal opened={opened} onClose={onClose} title="Street flooding in heavy rain" size="md">
-      <Text size="sm" fw={500} mb={4}>What the map shows</Text>
+    <Modal opened={opened} onClose={onClose} title={t('street.modalTitle')} size="md">
+      <Text size="sm" fw={500} mb={4}>{t('street.whatTitle')}</Text>
       <Text size="sm" c="dimmed" mb="md">
-        Modelled water depth on streets when a heavy downpour overwhelms the sewer network — a
-        10-year rain (10% chance in any year) or a 100-year rain (1%). From the RESCCUE 1D/2D model of
-        Barcelona's drainage, current climate. Water below 10 cm stays in the gutter and is not shown.
+        {t('street.what')}
       </Text>
-      <Text size="sm" fw={500} mb={4}>Who it matters for</Text>
+      <Text size="sm" fw={500} mb={4}>{t('street.whoTitle')}</Text>
       <Text size="sm" c="dimmed" mb="md">
-        Matters most for ground-floor flats, basements and underground parking — water gets in over door
-        steps and down ramps. For flats higher up it mostly means the street is impassable for a while.
+        {t('street.who')}
       </Text>
-      <Text size="sm" fw={500} mb={4}>Not the same as river flood zones</Text>
+      <Text size="sm" fw={500} mb={4}>{t('street.notTitle')}</Text>
       <Text size="sm" c="dimmed" mb="md">
-        River flood zones (blue) show where a river overflows, by probability, without depth. This layer
-        shows rain water on streets, by depth. Barcelona only; the model dates from ~2020 and does not
-        include storm tanks built since.
+        {t('street.not')}
       </Text>
       <Text size="xs" c="dimmed">
-        Data: RESCCUE project (BCASA / Aquatec) · Atles de resiliència, Ajuntament de Barcelona.
-        No explicit open-data license.
+        {t('street.data')}
       </Text>
     </Modal>
   )
 }
 
 export function StreetFloodingLegend() {
+  const { t } = useTranslation('info')
   const visible = useStore((s) => s.streetFloodingLayerVisible)
   const rp = useStore((s) => s.streetFloodingReturnPeriod)
   const setRp = useStore((s) => s.setStreetFloodingReturnPeriod)
@@ -45,12 +42,12 @@ export function StreetFloodingLegend() {
       <StreetFloodingInfoModal opened={modalOpen} onClose={() => setModalOpen(false)} />
       <div className="noise-legend">
         <div className="noise-legend__header">
-          <span className="noise-legend__title">Street flooding · water depth (RESCCUE)</span>
+          <span className="noise-legend__title">{t('street.title')}</span>
           <button
             className="noise-legend__info-btn"
             onClick={() => setModalOpen(true)}
-            aria-label="About street flooding"
-            title="About street flooding"
+            aria-label={t('street.about')}
+            title={t('street.about')}
           >
             <IconInfoCircle size={14} stroke={1.8} />
           </button>
@@ -61,7 +58,7 @@ export function StreetFloodingLegend() {
           mb={6}
           value={rp}
           onChange={(v) => setRp(v as 't10' | 't100')}
-          data={[{ value: 't10', label: '10-year rain' }, { value: 't100', label: '100-year rain' }]}
+          data={[{ value: 't10', label: t('street.t10') }, { value: 't100', label: t('street.t100') }]}
         />
         <div className="climate-legend__rows">
           {STREET_DEPTH_STYLES.map((s) => (

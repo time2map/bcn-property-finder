@@ -5,6 +5,7 @@ import { useMap } from '../Map/MapContext'
 import { useStore } from '../../store'
 import { useEffectiveArea } from '../../hooks/useEffectiveArea'
 import { addLayerOrdered } from '../Map/layerOrder'
+import { MAP_TEXT_FONT } from '../Map/mapFont'
 
 const SOURCE_ID = 'isochrone'
 const MASK_LAYER_ID = 'isochrone-mask'
@@ -82,7 +83,7 @@ export function IsochroneLayer() {
         filter: ['==', ['get', 'layer'], 'outline'],
         layout: {
           'text-field': ['get', 'text'],
-          'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+          'text-font': MAP_TEXT_FONT,
           'text-size': 13,
           'symbol-placement': 'line',
           'symbol-spacing': 200,

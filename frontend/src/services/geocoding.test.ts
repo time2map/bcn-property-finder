@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { geocodeAddress, buildQueries } from './geocoding'
+import { geocodeAddress, buildQueries, searchAddresses } from './geocoding'
 
 function geoapifyResult(lon: number, lat: number, result_type = 'building', street?: string) {
   return {
@@ -126,5 +126,45 @@ describe('geocodeAddress', () => {
     const result = await geocodeAddress('Carrer del Consell de Cent, Barcelona')
     expect(result?.coords).toEqual([2.17, 41.38])
     expect(result?.accuracyPolygon).toBeUndefined()
+  })
+})
+
+describe('searchAddresses', () => {
+  const suggestions = {
+    features: [
+      { geometry: { type: 'Point', coordinates: [2.16, 41.39] }, properties: { formatted: 'Carrer de Mallorca 1, Barcelona' } },
+      { geometry: { type: 'Point', coordinates: [2.17, 41.4] }, properties: { formatted: 'Carrer de Mallorca 2, Barcelona' } },
+    ],
+  }
+
+  it('returns [] without an API key and does not call the network', async () => {
+    vi.stubEnv('VITE_GEOAPIFY_API_KEY', '')
+    const fetchMock = mockFetch(suggestions)
+    vi.stubGlobal('fetch', fetchMock)
+    expect(await searchAddresses('Mallorca 1')).toEqual([])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('maps autocomplete results to label + coords, limited to the metro bbox', async () => {
+    vi.stubEnv('VITE_GEOAPIFY_API_KEY', 'k')
+    const fetchMock = mockFetch(suggestions)
+    vi.stubGlobal('fetch', fetchMock)
+    const r = await searchAddresses('Mallorca', undefined, 5)
+    expect(r).toEqual([
+      { label: 'Carrer de Mallorca 1, Barcelona', coords: [2.16, 41.39] },
+      { label: 'Carrer de Mallorca 2, Barcelona', coords: [2.17, 41.4] },
+    ])
+    const url = String(fetchMock.mock.calls[0][0])
+    expect(url).toContain('/geocode/autocomplete')
+    expect(url).toContain('limit=5')
+    expect(decodeURIComponent(url)).toContain('rect:1.9,41.2,2.4,41.6')
+  })
+
+  it('returns [] on a failed response or a network error', async () => {
+    vi.stubEnv('VITE_GEOAPIFY_API_KEY', 'k')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }))
+    expect(await searchAddresses('x')).toEqual([])
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+    expect(await searchAddresses('x')).toEqual([])
   })
 })

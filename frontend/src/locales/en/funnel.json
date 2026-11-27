@@ -1,0 +1,52 @@
+{
+  "title": "Find your one building",
+  "badge": "Prototype",
+  "intro": "{{homes}} homes in Barcelona. Pick what matters most, then what comes next, five times. Each pick keeps only the best of the homes still in play.",
+  "loading": "Loading the buildings…",
+  "error": "The building data could not be loaded.",
+  "sea": "Within walking distance of the sea",
+  "promptFirst": "What matters most?",
+  "promptNext": "And next?",
+  "step": "Step {{n}} of {{total}}",
+  "left_one": "{{count}} home left",
+  "left_other": "{{count}} homes left",
+  "cannotCut": "All the homes left already have this",
+  "back": "Back",
+  "restart": "Start again",
+  "close": "Close",
+  "wish": {
+    "quiet": "Quieter street",
+    "cheap": "Cheaper barri",
+    "centre": "Closer to the centre",
+    "metro": "Metro nearby",
+    "park": "Park nearby",
+    "shops": "Shops nearby",
+    "schools": "Schools nearby",
+    "bars": "Bars and restaurants nearby",
+    "health": "Health centre nearby",
+    "new": "Newer building",
+    "locals": "A barri its residents like"
+  },
+  "fact": {
+    "quiet": "up to {{value}} dB on the street side",
+    "cheap": "barri price up to {{value}} €/m²",
+    "centre": "within {{value}} min of the centre on foot",
+    "metro": "metro within {{value}} min",
+    "park": "park within {{value}} min",
+    "shops": "supermarket and pharmacy within {{value}} min",
+    "schools": "school and nursery within {{value}} min",
+    "bars": "café and restaurant within {{value}} min",
+    "health": "health centre within {{value}} min",
+    "new": "built in {{value}} or later",
+    "locals": "residents rate the barri {{value}} or more"
+  },
+  "result": {
+    "title": "Your building is in {{barri}}",
+    "winner": "One of the homes that fit your order best",
+    "near_one": "{{count}} more home fits almost as well: the orange dot on the map",
+    "near_other": "{{count}} more homes fit almost as well: the orange dots on the map",
+    "rank": "top {{n}}% of the city",
+    "open": "Open its card",
+    "note": "Homes that fit almost as well are hard to tell apart with this data: treat it as one of the best for your order, not the only one."
+  }
+}

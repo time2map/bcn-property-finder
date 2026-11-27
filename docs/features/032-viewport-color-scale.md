@@ -2,7 +2,7 @@
 
 **Superseded by TODO-046 (2026-11-04):** computed per residential building; the H3 hex version described below was removed.
 
-**Status:** Done 2026-10-27.
+**Status:** Done 2026-10-27. Default off since 050 (2026-11-11); available as "Boost contrast for this view".
 
 ## Problem
 

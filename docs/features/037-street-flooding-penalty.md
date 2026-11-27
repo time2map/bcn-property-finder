@@ -1,5 +1,7 @@
 # 037 — Street flooding penalty (RESCCUE) + depth layer
 
+**Changed by 073 (2026-11-16):** the extra part of the 100-year rain counts 0.27 (was 0.6), with the river bands (`VITE_FLOOD_PENALTY_T100`).
+
 **Superseded by TODO-046 (2026-11-04):** computed per residential building; the H3 hex version described below was removed.
 
 ## Goal

@@ -1,0 +1,52 @@
+{
+  "title": "Troba el teu edifici",
+  "badge": "Prototip",
+  "intro": "{{homes}} habitatges a Barcelona. Tria el que més t'importa i després el següent, cinc vegades. Cada tria deixa només els millors dels habitatges que queden.",
+  "loading": "Carregant els edificis…",
+  "error": "No s'han pogut carregar les dades dels edificis.",
+  "sea": "A distància a peu del mar",
+  "promptFirst": "Què t'importa més?",
+  "promptNext": "I després?",
+  "step": "Pas {{n}} de {{total}}",
+  "left_one": "Queda {{count}} habitatge",
+  "left_other": "Queden {{count}} habitatges",
+  "cannotCut": "Tots els habitatges que queden ja ho tenen",
+  "back": "Enrere",
+  "restart": "Torna a començar",
+  "close": "Tanca",
+  "wish": {
+    "quiet": "Carrer més tranquil",
+    "cheap": "Barri més barat",
+    "centre": "Més a prop del centre",
+    "metro": "Metro a prop",
+    "park": "Parc a prop",
+    "shops": "Botigues a prop",
+    "schools": "Escoles a prop",
+    "bars": "Bars i restaurants a prop",
+    "health": "Centre de salut a prop",
+    "new": "Edifici més nou",
+    "locals": "Un barri que agrada als veïns"
+  },
+  "fact": {
+    "quiet": "fins a {{value}} dB a la façana del carrer",
+    "cheap": "preu del barri fins a {{value}} €/m²",
+    "centre": "a {{value}} min a peu del centre com a màxim",
+    "metro": "metro a {{value}} min com a màxim",
+    "park": "parc a {{value}} min com a màxim",
+    "shops": "supermercat i farmàcia a {{value}} min com a màxim",
+    "schools": "escola i llar d'infants a {{value}} min com a màxim",
+    "bars": "cafè i restaurant a {{value}} min com a màxim",
+    "health": "centre de salut a {{value}} min com a màxim",
+    "new": "construït el {{value}} o després",
+    "locals": "els veïns puntuen el barri amb {{value}} o més"
+  },
+  "result": {
+    "title": "El teu edifici és a {{barri}}",
+    "winner": "Un dels habitatges que millor encaixen amb el teu ordre",
+    "near_one": "{{count}} habitatge més encaixa gairebé igual: el punt taronja del mapa",
+    "near_other": "{{count}} habitatges més encaixen gairebé igual: els punts taronja del mapa",
+    "rank": "el {{n}}% millor de la ciutat",
+    "open": "Obre la seva fitxa",
+    "note": "Amb aquestes dades costa distingir els habitatges que encaixen gairebé igual: pren-lo com un dels millors per al teu ordre, no com l'únic."
+  }
+}

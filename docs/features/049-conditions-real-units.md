@@ -1,5 +1,7 @@
 # 049 — Livability conditions in real units ("what is OK for me")
 
+**Changed by 073 (2026-11-16):** noise is checked on the street side; the services exclude the beach and City Core is three central places by default; a place scores 0 at the reach of the data when that comes before 2× the limit; the budget is now a hard condition (see "Not doing").
+
 **Status:** Done 2026-11-04. Replaces the importance weights of the components (022, words in 047) and the
 real-scale lines of 045.
 
@@ -89,7 +91,7 @@ written either: a loud building always scored 0 on noise, and the weight only de
 
 ## Not doing (yet)
 
-- "Must have" (a stronger or hard condition).
+- "Must have" (a stronger or hard condition) for any condition. Since 073 the budget alone is hard (`VITE_BUDGET_HARD`).
 - Rent prices: there is no rent data.
 - Total price for a flat size instead of €/m².
 

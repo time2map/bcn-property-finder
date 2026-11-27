@@ -1,0 +1,262 @@
+{
+  "use": {
+    "1_residential": "Residencial",
+    "2_agriculture": "Agrícola",
+    "3_industrial": "Industrial",
+    "4_1_office": "Oficines",
+    "4_2_retail": "Comercial",
+    "4_3_publicServices": "Serveis públics",
+    "other": "Edifici"
+  },
+  "river": {
+    "r10": "A la zona inundable del riu a 10 anys — probabilitat alta (aproximadament un cop cada 10 anys)",
+    "r100": "A la zona inundable del riu a 100 anys — probabilitat mitjana",
+    "r500": "A la zona inundable del riu a 500 anys — probabilitat baixa (la zona inundable oficial)",
+    "none": "Fora de les zones inundables de riu cartografiades",
+    "zoneYear": "zona a {{year}} anys"
+  },
+  "fire": {
+    "notWui": "Fora de la interfície urbanoforestal",
+    "noForest": "Interfície urbanoforestal · sense bosc valorat a prop",
+    "forest": "Interfície urbanoforestal · bosc de classe de perill {{cls}} a ~{{dist}} m"
+  },
+  "depth": {
+    "max": "≥ 50 cm",
+    "cm": "{{value}} cm",
+    "gutter": "es queda a la cuneta",
+    "kerb": "supera la vorera i arriba als llindars",
+    "ground": "entra a les plantes baixes i als aparcaments",
+    "serious": "danys greus, els cotxes poden surar"
+  },
+  "door": {
+    "noModel": "No hi ha model d'inundació al carrer fora de Barcelona",
+    "none": "No es modela aigua a la porta amb pluja intensa",
+    "water": "Aigua a la porta: {{t10}} amb una pluja de 10 anys, {{t100}} amb una de 100 anys — {{meaning}}"
+  },
+  "warning": {
+    "base": "Compte si mires un pis en planta baixa, un soterrani o un garatge.",
+    "below_one": " Aquest edifici té {{count}} planta sota rasant.",
+    "below_many": " Aquest edifici té {{count}} plantes sota rasant.",
+    "below_other": " Aquest edifici té {{count}} plantes sota rasant."
+  },
+  "side": {
+    "street": "Façana exterior",
+    "inner": "Façana de pati",
+    "line": "{{side}}: {{db}} dB",
+    "night": " · nit {{ln}}"
+  },
+  "vs": {
+    "noiseWithin": "{{db}} dB — dins dels teus {{limit}} dB",
+    "noiseOver": "{{db}} dB — {{diff}} dB per sobre dels teus {{limit}} dB",
+    "priceWithin": "{{price}}/m² — dins dels teus {{budget}}/m²",
+    "priceOver": "{{price}}/m² — un {{pct}}% per sobre dels teus {{budget}}/m²",
+    "priceAlmost": "{{price}}/m² — gairebé dins dels teus {{budget}}/m²",
+    "services_one": "{{n}} de {{count}} lloc a menys de {{limit}} min",
+    "services_many": "{{n}} de {{count}} llocs a menys de {{limit}} min",
+    "services_other": "{{n}} de {{count}} llocs a menys de {{limit}} min",
+    "places_one": "{{n}} de {{count}} lloc a menys de {{limit}} min",
+    "places_many": "{{n}} de {{count}} llocs a menys de {{limit}} min",
+    "places_other": "{{n}} de {{count}} llocs a menys de {{limit}} min",
+    "ratingMeets": "Els veïns puntuen {{rating}} — compleix el teu {{min}}",
+    "ratingBelow": "Els veïns puntuen {{rating}} — per sota del teu {{min}}"
+  },
+  "ageMatch": {
+    "none": "no és una de les teves èpoques",
+    "full": "compta com una de les teves èpoques",
+    "edge": "al límit d'una de les teves èpoques"
+  },
+  "facts": {
+    "dwellings": "Habitatges",
+    "dwellingsValue": "{{n}} altres locals",
+    "floors": "Plantes",
+    "below": "{{n}} sota rasant",
+    "belowGround": "Sota rasant",
+    "built": "Construït",
+    "renovated": "reformat el {{year}}",
+    "uncertain": "Data del Cadastre per a molts edificis antics — es desconeix l'any exacte",
+    "builtArea": "Superfície construïda",
+    "condition": "Estat",
+    "otherPremises": "Altres locals: botigues, oficines, places d'aparcament, trasters",
+    "dwellingsLabel_one": "habitatge",
+    "dwellingsLabel_other": "habitatges",
+    "floorsLabel_one": "planta",
+    "floorsLabel_other": "plantes",
+    "builtAreaLabel": "superfície construïda",
+    "belowLabel": "sota rasant",
+    "renovatedLabel": "reformat",
+    "otherLabel": "altres locals"
+  },
+  "noise": {
+    "noMap": "No hi ha mapa oficial de soroll per a aquest municipi",
+    "scoredStreet": "Façana exterior: {{approx}}{{db}} dB — amb això es compara la teva condició",
+    "scoredAll": "Totes les façanes: {{approx}}{{db}} dB (sense façana exterior) — amb això es compara la teva condició",
+    "quietSide": "Façana de pati, tranquil·la: {{approx}}{{db}} dB — dins del teu límit",
+    "night": " · nit {{ln}}",
+    "extremes": "Façana més sorollosa {{max}} dB · més tranquil·la {{min}} dB",
+    "street": "Carrer",
+    "courtyard": "Pati",
+    "group": "{{side}} · orientada al {{dir}} · {{len}} m — {{db}} dB",
+    "groupNight": " (nit {{ln}})",
+    "f17": "Mapa oficial de façanes 2017: façana més sorollosa {{db}} dB",
+    "f17Night": ", nit {{ln}} dB",
+    "leisure": "Soroll d'oci nocturn en una façana: {{db}} dB",
+    "modelled": "Modelat a 4 m del terra (≈ 1a planta). Cercles de colors al costat de les façanes al mapa.",
+    "sica": "Un altre model oficial (SICA 2022, bandes de 5 dB): els seus nivells són uns dB més alts que el mapa de Barcelona, així que compara'l amb Barcelona amb cautela.",
+    "who": "OMS: < 53 dB · acció UE: 55 dB · nociu: ≥ 65 dB",
+    "veryQuiet": "molt tranquil",
+    "quiet": "tranquil",
+    "nearWho": "a prop del límit OMS",
+    "aboveEu": "sobre el nivell UE",
+    "highly": "molt sorollós",
+    "facadeByFacade": "Façana per façana"
+  },
+  "section": {
+    "building": "Edifici",
+    "walkability": "Serveis a peu",
+    "noise": "Soroll",
+    "cityCore": "Accés al centre",
+    "age": "Antiguitat de l'edifici",
+    "climate": "Risc climàtic",
+    "price": "Preu de venda"
+  },
+  "ui": {
+    "loading": "Carregant…",
+    "buildingTitle": "Edifici",
+    "studentResidence": "Residència d'estudiants",
+    "closeBuilding": "Tanca la fitxa de l'edifici",
+    "photoAlt": "Façana de {{address}}",
+    "photoAltFallback": "l'edifici",
+    "photoCredit": "Foto © Dirección General del Catastro",
+    "openCatastro": "Obre al Cadastre ↗",
+    "walkNote": "Temps a peu des de l'entrada, pels carrers",
+    "noneNearby": "cap a prop",
+    "yearUnknown": "Any de construcció desconegut",
+    "ageLine": "{{era}}, {{years}} — {{match}}",
+    "renovated": "Reformat el {{year}} — només informatiu; la puntuació fa servir l'any de construcció",
+    "sameFor": "Igual per a tots els edificis del {{kind}}",
+    "kindBarri": "barri",
+    "kindMuni": "municipi",
+    "noPrice": "Sense dades de preu de venda",
+    "salePrice": "Preu de venda: {{text}}",
+    "salePriceOpen": "Preu de venda: <b>{{price}} €/m²</b> · Generalitat de Catalunya, INCASOL",
+    "priceZeroAt": "La puntuació baixa a 0 a {{price}} €/m² (+{{pct}}%).",
+    "priceFit": "{{n}} de {{total}} zones s'ajusten al teu pressupost.",
+    "localsSay": "Què diuen els veïns",
+    "notBcn": "No disponible fora de la ciutat de Barcelona",
+    "riskRiver": "Inundació de riu",
+    "riskStreet": "Inundació al carrer (pluja intensa)",
+    "riskWildfire": "Incendi forestal",
+    "penalty": "−{{n}} pts",
+    "peekNone": "No hi ha condicions actives",
+    "details": "Detalls d'aquest edifici",
+    "moreAddresses_one": "+{{count}} adreça més",
+    "moreAddresses_other": "+{{count}} adreces més",
+    "fewerAddresses": "Mostra'n menys",
+    "climateVerdict": "{{names}}",
+    "noPenalty": "Cap punt perdut"
+  },
+  "match": {
+    "incomplete": "Dades incompletes: algunes de les teves condicions no tenen dades aquí. La puntuació és un rang, del pitjor cas (el que falta compta 0) al millor (el que falta compta 100).",
+    "noneOn": "No hi ha condicions actives",
+    "overBudget": "Per sobre del teu pressupost: com a molt un encaix parcial",
+    "label": "Encaix amb les teves condicions",
+    "score": "{{score}} de 100",
+    "status": {
+      "met": "Complerta",
+      "partly": "Complerta en part",
+      "missed": "No complerta",
+      "nodata": "Sense dades"
+    }
+  },
+  "locals": {
+    "satisfaction": "Satisfacció",
+    "outOf10": "{{value}} / 10",
+    "stay": "Es quedaria aquí",
+    "city": "ciutat {{value}}",
+    "trend": "Tendència respecte del 2015–19",
+    "noChange": "Sense canvis",
+    "problems": "Principals problemes",
+    "source": "Font: Ajuntament de Barcelona, Enquesta de serveis municipals (ESM) {{years}} · {{n}} entrevistes · CC BY 4.0",
+    "smallSample": "Mostra petita — la puntuació es recolza en la zona més àmplia (gran barri)",
+    "p": {
+      "insecurity": "Inseguretat",
+      "cleanliness": "Neteja",
+      "noise": "Soroll",
+      "housing": "Accés a l'habitatge",
+      "tourism": "Turisme i aglomeracions",
+      "incivility": "Incivisme",
+      "drugs_squats": "Drogues i ocupacions",
+      "maintenance": "Manteniment i obres",
+      "parking": "Aparcament",
+      "traffic": "Trànsit"
+    }
+  },
+  "minutes": "{{n}} min",
+  "save": {
+    "button": "Desa la imatge",
+    "done": "Imatge desada.",
+    "failed": "No s'ha pogut crear la imatge. Torna-ho a provar.",
+    "share": "Comparteix"
+  },
+  "shareCopied": {
+    "building": "Enllaç copiat. Obre aquest edifici amb les teves condicions.",
+    "area": "Enllaç copiat. Obre aquesta zona amb les teves condicions."
+  },
+  "area": {
+    "metro": "Àrea metropolitana",
+    "barcelona": "Barcelona",
+    "close": "Tanca la fitxa de la zona",
+    "caption_one": "de {{n}} habitatge hi encaixa bé",
+    "caption_many": "de {{n}} habitatges hi encaixen bé",
+    "caption_other": "de {{n}} habitatges hi encaixen bé",
+    "great": "El {{great}}% hi encaixa de meravella · puntuació mitjana {{mean}}",
+    "peek": "El {{share}}% dels habitatges hi encaixen bé",
+    "line_one": "El {{pct}}% de {{n}} habitatge hi encaixa bé",
+    "line_many": "El {{pct}}% de {{n}} habitatges hi encaixen bé",
+    "line_other": "El {{pct}}% de {{n}} habitatges hi encaixen bé",
+    "tooFew_one": "{{n}} habitatge: massa pocs per classificar",
+    "tooFew_many": "{{n}} habitatges: massa pocs per classificar",
+    "tooFew_other": "{{n}} habitatges: massa pocs per classificar",
+    "strongest": "El millor: {{list}}",
+    "incomplete": "Molts habitatges d'aquí tenen dades incompletes, així que els percentatges són el millor cas.",
+    "kindBarri": "barri",
+    "kindMuni": "municipi"
+  },
+  "areasList": {
+    "all": "Totes ({{n}})",
+    "top": "Les {{top}} primeres de {{n}}",
+    "showAll": "Mostra les {{n}}",
+    "addCondition": "Afegeix una condició per classificar les zones.",
+    "scoring": "Puntuant els habitatges…",
+    "noneYet": "Encara no hi ha zones per classificar. Tria primer una condició.",
+    "byShare": "Pel percentatge d'habitatges que hi encaixen.",
+    "tooFew": "Massa pocs habitatges per classificar: {{names}}.",
+    "rowAria": "{{pos}}. {{name}}, el {{pct}}% dels habitatges hi encaixen bé",
+    "rowText": "El {{pct}}% dels habitatges hi encaixen bé"
+  },
+  "rank": {
+    "heading": "Per a les teves condicions",
+    "incomplete": "Sense classificació: algunes de les teves condicions no tenen dades per a aquest edifici.",
+    "in": "a {{name}}",
+    "inEl": "al {{name}}",
+    "inEls": "als {{name}}",
+    "inMetro": "a l'àrea metropolitana de Barcelona",
+    "crowded": "És una zona amb molt habitatge bo, així que destacar-hi costa més.",
+    "top": "Top {{tier}}%",
+    "tileOf": "dels habitatges {{place}}"
+  },
+  "share": {
+    "outOf": "sobre 100",
+    "areaCaption": "dels habitatges hi encaixen bé",
+    "metro": "Àrea metropolitana",
+    "strongOn": "Destaca en: {{label}}",
+    "mapCredit": "Mapa: ICGC, col·laboradors d'OpenStreetMap",
+    "for": {
+      "family": "Per a una família",
+      "remote": "Per a qui teletreballa",
+      "city": "Per a la vida a la ciutat",
+      "retiree": "Per a una persona jubilada"
+    },
+    "forName": "Per a {{name}}"
+  }
+}

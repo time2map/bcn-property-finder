@@ -40,6 +40,9 @@ temp/
 /data/
 data/noise/*.geojson
 
+# Local working notes and drafts (private, never committed)
+local-docs/
+
 # ICP research (private)
 docs/icps/
 

@@ -43,7 +43,7 @@ describe('loadBarriVibe', () => {
     const b = await loadBarriVibe()
     expect(a).toBe(b)
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][0]).toMatch(/data\/barri-vibe\.json$/)
+    expect(fetchMock.mock.calls[0][0]).toMatch(/data\/barri-vibe\.json\?v=[0-9a-f]{10}$/)
     expect(mod.barriVibeData).toBe(a)
   })
 

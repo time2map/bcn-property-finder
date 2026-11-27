@@ -1,3 +1,4 @@
+import i18n from '../../i18n'
 import { useContext, useEffect } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import { MapContext } from './MapContext'
@@ -32,7 +33,7 @@ export function MapContextMenu() {
           `<div style="font-size:12px;line-height:1.6;padding:2px 0">
             <a href="${url}" target="_blank" rel="noopener noreferrer"
                style="color:#1a73e8;text-decoration:none;white-space:nowrap">
-              🛰 Open in Google Maps
+              ${i18n.t('panel:tip.google')}
             </a>
           </div>`,
         )

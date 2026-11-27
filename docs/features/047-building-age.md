@@ -40,7 +40,7 @@ Shares are over the 173,634 buildings of the map (`year_built` missing for 26).
     buildings of unknown year.
   - `VITE_AGE_UNCERTAIN_YEAR` (1900) counts for both neighbouring eras (Historic and Modernista).
   - The card notes that the exact year is unknown.
-- **Unknown year**: missing data. It counts 0 with the weight in the denominator and gets the black outline, as
+- **Unknown year**: missing data. It gives the building a score range and the hatch (060), as
   for the other components.
 - **Renovation year**: shown in the card only ("Renovated 1995 — shown only; the score uses the year built").
   Catastro does not say how deep a renovation went.

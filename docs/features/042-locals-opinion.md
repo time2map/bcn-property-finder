@@ -51,7 +51,7 @@ price.
   On the raw 0–10 scale every barri would land between 65 and 86, so the slider would barely change anything.
 - **Hex value:** a hex takes the value of the barri that contains its centroid. Hexes outside Barcelona city get
   `null`, and the missing-data rule from 022 applies.
-- **Map:** cells in barris with `n < VIBE_ESM_MIN_N` get the same marking as missing data (022).
+- **Map:** cells in barris with `n < VIBE_ESM_MIN_N` are treated as missing data (060): score range and hatch.
 - **UI:** slider label "Locals' opinion", default weight 0.
 - **Hex card, component breakdown:** shows the normalised score, like the other components. The raw values are
   in the block below.

@@ -1,0 +1,87 @@
+{
+  "onboarding": {
+    "ariaStart": "¿Dónde te gustaría vivir?",
+    "title": "¿Dónde te gustaría vivir en Barcelona?",
+    "sub": "Elige un perfil o crea el tuyo. Colorearemos cada vivienda del mapa según cuánto encaja.",
+    "or": "o",
+    "buildOwn": "Crear el mío",
+    "skip": "Solo quiero ver el mapa",
+    "ariaConditions": "Tus condiciones",
+    "back": "‹ Atrás",
+    "heading": "Me gustaría vivir en un lugar…",
+    "tapHint": "Toca una palabra resaltada para cambiarla.",
+    "show": "Ver el mapa"
+  },
+  "yourConditions": {
+    "label": "Tus condiciones",
+    "change": "Empezar desde un perfil"
+  },
+  "sheet": {
+    "pickedSub": "El {{share}}% de las viviendas encajan bien",
+    "backToList": "Volver a la lista",
+    "areasTitle": "Tus zonas",
+    "swipeList": "Desliza hacia arriba para ver la lista",
+    "rankedBy": "Ordenadas por el porcentaje de viviendas que encajan",
+    "none": "Aún no hay condiciones",
+    "swipeChange": "Desliza hacia arriba para cambiarlas",
+    "swipeAdd": "Desliza hacia arriba para añadir una",
+    "conditionsTitle": "Tus condiciones"
+  },
+  "editor": {
+    "empty": "Aún no hay condiciones. Añade una abajo y el mapa se coloreará.",
+    "priority": "Prioridad {{n}}",
+    "remove": "Quitar {{name}}",
+    "add": "Añadir",
+    "chip": "+ {{label}}"
+  },
+  "matchBar": {
+    "caption": "Viviendas por encaje",
+    "aria": "Viviendas por encaje: {{text}}",
+    "great": "Excelente",
+    "good": "Bueno",
+    "partial": "Parcial",
+    "poor": "Débil",
+    "value": "{{label}} {{pct}}%"
+  },
+  "picker": {
+    "custom": "Personalizado…",
+    "customValue": "Valor personalizado",
+    "tickOne": "Marca al menos una. El mapa conserva tu última elección hasta entonces."
+  },
+  "sentence": {
+    "noise": "Con no más ruido que <limit/> en la fachada exterior",
+    "poiAccess": "<services/> a menos de <limit/> a pie",
+    "cityCore": "<places/> a menos de <limit/> a pie",
+    "openPrice": "Un piso de <area/> cuesta hasta <budget/> de media",
+    "localsOpinion": "Los vecinos valoran la zona con al menos <limit/> sobre 10",
+    "age": "Construido en <eras/>",
+    "risk": "<level/> el riesgo de inundación e incendio",
+    "noiseTitle": "¿Cuánto ruido aceptas en la fachada exterior?",
+    "walkTitle": "¿Cuánto caminarías para tus recados diarios?",
+    "centreTitle": "¿A qué distancia del centro?",
+    "localsTitle": "¿Cuánto deben valorar los vecinos la zona?",
+    "areaTitle": "¿Qué tamaño tiene el piso?",
+    "budgetTitle": "Cuánto cuesta de media un piso de este tamaño en la zona (precio de la zona por m² × tamaño)",
+    "budgetNote": "Las viviendas de zonas más caras pierden puntos; un {{pct}}% por encima puntúa cero.",
+    "budgetHint": "≈ {{share}}% de las viviendas",
+    "servicesTitle": "¿Qué sitios deben estar cerca?",
+    "servicesAll": "Servicios cotidianos",
+    "servicesOne": "Mi sitio",
+    "servicesMany": "Mis {{count}} sitios",
+    "servicesAllBox": "Todos los sitios",
+    "placesTitle": "¿Cerca de qué lugares?",
+    "placesAll": "El centro",
+    "placesOne": "Mi lugar",
+    "placesMany": "Mis {{count}} lugares",
+    "placesAllBox": "Todo el centro (los 13)",
+    "erasTitle": "¿Qué edificios te gustan?",
+    "erasAll": "cualquier época",
+    "erasOne": "una época",
+    "erasMany": "{{count}} épocas",
+    "erasAllBox": "Cualquier época",
+    "riskTitle": "¿Cuánto debe pesar el riesgo de inundación e incendio?",
+    "avoid": "Evitar",
+    "strong": "Evitar a toda costa",
+    "custom": "Personalizado"
+  }
+}

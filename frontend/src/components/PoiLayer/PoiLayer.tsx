@@ -13,12 +13,12 @@ import doctorSvg from '@mapbox/maki/icons/doctor.svg?raw'
 import cafeSvg from '@mapbox/maki/icons/cafe.svg?raw'
 import restaurantSvg from '@mapbox/maki/icons/restaurant.svg?raw'
 import beachSvg from '@mapbox/maki/icons/beach.svg?raw'
+import { MAP_TEXT_FONT } from '../Map/mapFont'
 
 const SOURCE_ID = 'poi-tiles'
 const LAYER_PRIORITY = 'poi-priority'
 const LAYER_SECONDARY = 'poi-secondary'
 
-const TEXT_FONT = ['Noto Sans Regular', 'Arial Unicode MS Regular']
 
 const ICONS = [
   { name: 'poi-grocery',    svg: grocerySvg },
@@ -108,7 +108,7 @@ export function PoiLayer() {
           'icon-size': ['interpolate', ['linear'], ['zoom'], 14, 0.65, 18, 1.0],
           'icon-allow-overlap': false,
           'text-field': ['coalesce', ['get', 'name'], ''],
-          'text-font': TEXT_FONT,
+          'text-font': MAP_TEXT_FONT,
           'text-size': 9,
           'text-offset': [0, 1.2],
           'text-anchor': 'top',
@@ -136,7 +136,7 @@ export function PoiLayer() {
           'icon-size': 0.6,
           'icon-allow-overlap': false,
           'text-field': ['coalesce', ['get', 'name'], ''],
-          'text-font': TEXT_FONT,
+          'text-font': MAP_TEXT_FONT,
           'text-size': 9,
           'text-offset': [0, 1.2],
           'text-anchor': 'top',

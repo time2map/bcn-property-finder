@@ -1,0 +1,25 @@
+{
+  "brand": {
+    "title": "Mapa d'habitabilitat de Barcelona",
+    "visit": "Visita time2map.com",
+    "share": "Comparteix aquest mapa",
+    "search": "Cerca una zona o una adreça",
+    "short": "Mapa d'habitabilitat de BCN",
+    "menu": "Menú"
+  },
+  "share": {
+    "copied": "Enllaç copiat. Obre el teu mapa amb les teves condicions.",
+    "copyFailed": "No s'ha pogut copiar. Copia l'enllaç de la barra d'adreces."
+  },
+  "language": {
+    "label": "Llengua",
+    "switch": "Canvia de llengua"
+  },
+  "about": {
+    "title": "Quant a",
+    "what": "Tots els habitatges de Barcelona i la seva àrea metropolitana, acolorits segons com s'adapten a les teves condicions: soroll, distància a peu als serveis quotidians, accés al centre, preu i riscos climàtics.",
+    "madeBy": "Fet per <brand>time2map</brand>. No cal compte; els teus ajustos es queden en aquest navegador.",
+    "cta": { "text": "time2map crea mapes i projectes de dades geogràfiques a mida. Vols un mapa com aquest per a la teva ciutat o la teva empresa?", "button": "Parlem" },
+    "data": "Dades: Dirección General del Catastro, Ajuntament de Barcelona (Open Data BCN), Generalitat de Catalunya, ICGC, © col·laboradors d'OpenStreetMap."
+  }
+}

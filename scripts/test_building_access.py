@@ -30,6 +30,38 @@ class TestWalkable(unittest.TestCase):
         self.assertEqual(ba.walkable(ways).tolist(), [True, False, False, True, False, True, False])
 
 
+class TestBeachFilter(unittest.TestCase):
+    """Paved pool decks tagged natural=beach (Nou Barris, way 1202318704) must not count as beaches."""
+
+    def test_where_excludes_paved_surfaces_and_keeps_sand_or_untagged(self):
+        import extract_poi as ep
+        self.assertIn("natural='beach'", ep.BEACH_WHERE)
+        self.assertIn("surface IS NULL", ep.BEACH_WHERE)
+        for paved in ("asphalt", "concrete", "paving_stones"):
+            self.assertIn(f"'{paved}'", ep.BEACH_WHERE)
+        for natural in ("sand", "gravel", "pebbles"):
+            self.assertNotIn(f"'{natural}'", ep.BEACH_WHERE)
+
+    def test_poi_nodes_use_the_same_filter(self):
+        import extract_poi as ep
+        self.assertIn(ep.BEACH_WHERE, ep.POI_WHERE)
+
+    def test_surface_attribute_is_read(self):
+        import extract_poi as ep
+        self.assertEqual(ep.OSMCONF.count(",surface\n"), 2)  # points + multipolygons
+
+
+class TestInlandBeachCheck(unittest.TestCase):
+    def test_reports_only_inland_barris_with_beach_score(self):
+        areas = gpd.GeoDataFrame(
+            {"id": ["barri-0845", "barri-0960", "barri-0001"]},
+            geometry=[Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]), Polygon([(20, 0), (30, 0), (30, 10), (20, 10)]),
+                      Polygon([(40, 0), (50, 0), (50, 10), (40, 10)])], crs=3857)
+        origins = gpd.GeoSeries([Point(5, 5), Point(6, 6), Point(25, 5), Point(45, 5)], crs=3857)
+        walk_beach = np.array([30, 0, 0, 80])  # coastal barri 0001 is allowed to have a beach
+        self.assertEqual(ba.inland_beach_violations(origins, walk_beach, areas), {"Porta": 1})
+
+
 class TestGraph(unittest.TestCase):
     def setUp(self):
         lines = [

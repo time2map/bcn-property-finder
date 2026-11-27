@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+import { initI18n } from '../i18n'
+
+// English unless a test switches it (TODO-065).
+await initI18n()
 
 // Polyfill Blob.prototype.text — jsdom does not implement this Blob API method.
 if (typeof Blob !== 'undefined' && !Blob.prototype.text) {
@@ -32,6 +36,36 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
+// jsdom has no PointerEvent: a MouseEvent with the pointer fields is enough for the drag tests.
+if (typeof window.PointerEvent === 'undefined') {
+  class PointerEventPolyfill extends MouseEvent {
+    pointerId: number
+    pointerType: string
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init)
+      this.pointerId = init.pointerId ?? 0
+      this.pointerType = init.pointerType ?? 'touch'
+    }
+  }
+  Object.defineProperty(window, 'PointerEvent', { writable: true, value: PointerEventPolyfill })
+}
+
 global.ResizeObserver = vi.fn().mockImplementation(function () {
   return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() }
 })
+
+// Newer Node versions expose an experimental global `localStorage` that, without --localstorage-file,
+// is unusable and shadows jsdom's. Swap in an in-memory Storage so the tests behave the same everywhere.
+if (typeof localStorage === 'undefined' || typeof localStorage.clear !== 'function') {
+  const data = new Map<string, string>()
+  const memoryStorage: Storage = {
+    get length() { return data.size },
+    clear: () => data.clear(),
+    getItem: (k) => (data.has(k) ? data.get(k)! : null),
+    key: (i) => [...data.keys()][i] ?? null,
+    removeItem: (k) => { data.delete(k) },
+    setItem: (k, v) => { data.set(k, String(v)) },
+  }
+  Object.defineProperty(globalThis, 'localStorage', { value: memoryStorage, configurable: true })
+  Object.defineProperty(window, 'localStorage', { value: memoryStorage, configurable: true })
+}

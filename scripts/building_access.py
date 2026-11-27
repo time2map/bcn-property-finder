@@ -9,7 +9,7 @@ Inputs:
 Output: data/buildings/access.gpkg, table `access` (no geometry), one row per building:
   walk               0–100, feature-010 formula with every category on
   walk_<category>    0–100 per category, so the frontend can recompute walk for the categories a user keeps
-  min_<category>     walking minutes to the nearest one (null beyond WALK_RMAX_M)
+  min_<category>     walking minutes to the nearest one (null beyond WALK_MIN_RMAX_M)
   cc_<landmark>      walking minutes to each City Core landmark (021), null beyond CITY_CORE_MAX_MIN
   origin, snap_m     where the walk starts (first entrance, or centroid) and its distance to the network
 
@@ -53,6 +53,10 @@ CRS = "EPSG:25831"
 #   walk = 100 * Σ(w_c·sub_c) / Σ w_c
 WALK_DECAY_M = float(os.environ.get("WALK_DECAY_M", "400"))  # walking metres
 WALK_RMAX_M = float(os.environ.get("WALK_RMAX_M", "1500"))
+# How far the minutes to the nearest service (min_<category>) reach (TODO-073). The app's services slider goes to
+# 15 min and a service scores 0 at twice the limit, so the minutes must reach 30 min (2,400 m at 80 m/min); with the
+# old 1,500 m (19 min) a service 19 min away scored 73 and one a little further 0. The walk_* scores keep WALK_RMAX_M.
+WALK_MIN_RMAX_M = float(os.environ.get("WALK_MIN_RMAX_M", "2400"))
 
 # (match predicate, saturation S, weight w) — mirrors serviceCategories.ts.
 CATEGORIES = {
@@ -111,7 +115,8 @@ WALK_SPEED_M_MIN = float(os.environ.get("WALK_SPEED_M_MIN", "80"))  # 4.8 km/h, 
 WALK_BOUNDARY_STEP_M = float(os.environ.get("WALK_BOUNDARY_STEP_M", "50"))
 NETWORK_MAX_EDGE_M = float(os.environ.get("NETWORK_MAX_EDGE_M", "25"))  # node spacing along streets
 NETWORK_MARGIN_M = float(os.environ.get("NETWORK_MARGIN_M", "2000"))  # network kept around the buildings
-CITY_CORE_MAX_MIN = float(os.environ.get("CITY_CORE_MAX_MIN", "90"))
+# 120: the City Core slider goes to 60 min and a place scores 0 at twice the limit (TODO-073).
+CITY_CORE_MAX_MIN = float(os.environ.get("CITY_CORE_MAX_MIN", "120"))
 
 WALKABLE = {"footway", "pedestrian", "path", "steps", "living_street", "residential", "service", "unclassified",
             "track", "cycleway", "tertiary", "tertiary_link", "secondary", "secondary_link", "primary",
@@ -308,6 +313,22 @@ def load_services(tmp):
     return out
 
 
+# Barris far from the sea: no building there may be within walking range of a beach (found 2026-11-14,
+# when a paved pool deck tagged natural=beach put them next to one).
+INLAND_BARRI_IDS = {"barri-0845": "Porta", "barri-0960": "Sant Andreu", "barri-0852": "la Prosperitat"}
+AREAS_GEOJSON = ROOT / "frontend" / "public" / "data" / "areas.geojson"
+
+
+def inland_beach_violations(origins, walk_beach, areas):
+    """{barri name: buildings with walk_beach > 0} for the inland control barris (areas: GeoDataFrame, CRS of origins)."""
+    bad = {}
+    for _, a in areas[areas["id"].isin(INLAND_BARRI_IDS)].iterrows():
+        n = int(((walk_beach > 0) & inside(a.geometry, origins)).sum())
+        if n:
+            bad[INLAND_BARRI_IDS[a["id"]]] = n
+    return bad
+
+
 def landmark_geometry(lm):
     to = lambda pts: gpd.GeoSeries(gpd.points_from_xy(*zip(*pts)), crs=4326).to_crs(CRS)  # noqa: E731
     if lm["type"] == "point":
@@ -360,14 +381,15 @@ def main():
         k = WALK_K_DENSE if saturation >= 3 else WALK_K_NEAREST
         if cat in ("park", "beach"):
             k *= 4  # several edge points per area; deduped below
-        d, ids = nearest(net, node, f"walk_{cat}", pois, k, WALK_RMAX_M)
+        # One query to the farther of the two radii: category_score ignores what lies beyond WALK_RMAX_M.
+        d, ids = nearest(net, node, f"walk_{cat}", pois, k, max(WALK_RMAX_M, WALK_MIN_RMAX_M))
         if cat in ("park", "beach"):
             obj = np.where(np.isnan(ids), np.nan, pois["obj"].to_numpy(float)[np.nan_to_num(ids).astype(int)])
             d = dedupe_nearest(d, obj)
         subs[cat] = category_score(d, saturation) * 100
         out[f"walk_{cat}"] = np.round(subs[cat]).astype(int)
-        out[f"min_{cat}"] = to_minutes(np.nanmin(np.where(np.isnan(d), np.inf, d), axis=1), max_min=WALK_RMAX_M /
-                                       WALK_SPEED_M_MIN)
+        out[f"min_{cat}"] = to_minutes(np.nanmin(np.where(np.isnan(d), np.inf, d), axis=1),
+                                       max_min=WALK_MIN_RMAX_M / WALK_SPEED_M_MIN)
     out.insert(0, "walk", walk_score(subs, {c: w for c, (_p, _s, w) in CATEGORIES.items()}))
 
     print("City Core…")
@@ -387,6 +409,11 @@ def main():
         if lm["type"] == "polygon":
             minutes[inside(geom, origins)] = 0
         out[f"cc_{lm['id']}"] = minutes
+
+    if AREAS_GEOJSON.exists():
+        bad = inland_beach_violations(origins, out["walk_beach"].to_numpy(), gpd.read_file(AREAS_GEOJSON).to_crs(CRS))
+        if bad:
+            raise SystemExit(f"Inland barris score as near a beach (check natural=beach data): {bad}")
 
     OUT_GPKG.unlink(missing_ok=True)
     pyogrio.write_dataframe(out.reset_index(), OUT_GPKG, layer="access", driver="GPKG")

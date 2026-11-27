@@ -1,4 +1,5 @@
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
+import { dataUrl } from './dataUrl'
 
 export type AreaKind = 'district' | 'barri' | 'municipality'
 
@@ -20,7 +21,7 @@ export interface AreaOptionGroup {
 let cache: Promise<AreaFeature[]> | null = null
 
 /** Loads the areas dataset (cached). */
-export async function loadAreas(url = `${import.meta.env.BASE_URL}data/areas.geojson`): Promise<AreaFeature[]> {
+export async function loadAreas(url = dataUrl('areas.geojson')): Promise<AreaFeature[]> {
   if (!cache) {
     cache = fetch(url)
       .then((r) => r.json() as Promise<FeatureCollection<Polygon | MultiPolygon, AreaProps>>)

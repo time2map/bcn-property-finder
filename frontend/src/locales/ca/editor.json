@@ -1,0 +1,87 @@
+{
+  "onboarding": {
+    "ariaStart": "On t'agradaria viure?",
+    "title": "On t'agradaria viure a Barcelona?",
+    "sub": "Tria un perfil o crea el teu. Acolorirem cada habitatge del mapa segons com s'adapta.",
+    "or": "o",
+    "buildOwn": "Crea el meu",
+    "skip": "Només vull veure el mapa",
+    "ariaConditions": "Les teves condicions",
+    "back": "‹ Enrere",
+    "heading": "M'agradaria viure en un lloc…",
+    "tapHint": "Toca una paraula ressaltada per canviar-la.",
+    "show": "Veure el mapa"
+  },
+  "yourConditions": {
+    "label": "Les teves condicions",
+    "change": "Comença des d'un perfil"
+  },
+  "sheet": {
+    "pickedSub": "El {{share}}% dels habitatges hi encaixen bé",
+    "backToList": "Torna a la llista",
+    "areasTitle": "Les teves zones",
+    "swipeList": "Llisca cap amunt per veure la llista",
+    "rankedBy": "Ordenades pel percentatge d'habitatges que hi encaixen",
+    "none": "Encara no hi ha condicions",
+    "swipeChange": "Llisca cap amunt per canviar-les",
+    "swipeAdd": "Llisca cap amunt per afegir-ne una",
+    "conditionsTitle": "Les teves condicions"
+  },
+  "editor": {
+    "empty": "Encara no hi ha condicions. Afegeix-ne una a sota i el mapa s'acolorirà.",
+    "priority": "Prioritat {{n}}",
+    "remove": "Treu {{name}}",
+    "add": "Afegeix",
+    "chip": "+ {{label}}"
+  },
+  "matchBar": {
+    "caption": "Habitatges per encaix",
+    "aria": "Habitatges per encaix: {{text}}",
+    "great": "Excel·lent",
+    "good": "Bo",
+    "partial": "Parcial",
+    "poor": "Feble",
+    "value": "{{label}} {{pct}}%"
+  },
+  "picker": {
+    "custom": "Personalitzat…",
+    "customValue": "Valor personalitzat",
+    "tickOne": "Marca'n almenys un. El mapa conserva la teva última elecció fins aleshores."
+  },
+  "sentence": {
+    "noise": "Amb no més soroll que <limit/> a la façana exterior",
+    "poiAccess": "<services/> a menys de <limit/> a peu",
+    "cityCore": "<places/> a menys de <limit/> a peu",
+    "openPrice": "Un pis de <area/> costa fins a <budget/> de mitjana",
+    "localsOpinion": "Els veïns valoren la zona amb almenys <limit/> sobre 10",
+    "age": "Construït en <eras/>",
+    "risk": "<level/> el risc d'inundació i d'incendi",
+    "noiseTitle": "Quant soroll acceptes a la façana exterior?",
+    "walkTitle": "Quant caminaries per als teus encàrrecs diaris?",
+    "centreTitle": "A quina distància del centre?",
+    "localsTitle": "Com de contents han d'estar els veïns amb la zona?",
+    "areaTitle": "Quina mida té el pis?",
+    "budgetTitle": "Quant costa de mitjana un pis d'aquesta mida a la zona (preu de la zona per m² × mida)",
+    "budgetNote": "Els habitatges de zones més cares perden punts; un {{pct}}% per sobre puntua zero.",
+    "budgetHint": "≈ {{share}}% dels habitatges",
+    "servicesTitle": "Quins llocs han d'estar a prop?",
+    "servicesAll": "Serveis quotidians",
+    "servicesOne": "El meu lloc",
+    "servicesMany": "Els meus {{count}} llocs",
+    "servicesAllBox": "Tots els llocs",
+    "placesTitle": "A prop de quins llocs?",
+    "placesAll": "El centre",
+    "placesOne": "El meu lloc",
+    "placesMany": "Els meus {{count}} llocs",
+    "placesAllBox": "Tot el centre (els 13)",
+    "erasTitle": "Quins edificis t'agraden?",
+    "erasAll": "qualsevol època",
+    "erasOne": "una època",
+    "erasMany": "{{count}} èpoques",
+    "erasAllBox": "Qualsevol època",
+    "riskTitle": "Quant ha de pesar el risc d'inundació i d'incendi?",
+    "avoid": "Evitar",
+    "strong": "Evitar a tota costa",
+    "custom": "Personalitzat"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "tabs": {
+    "settings": "Ajustes",
+    "areas": "Tus zonas"
+  },
+  "matchSwitch": {
+    "label": "Mostrar colores de encaje",
+    "about": "Acerca de la puntuación de encaje",
+    "hatched": "Rayado = datos incompletos (la puntuación es un rango; el color muestra el mejor caso)"
+  },
+  "layers": {
+    "title": "Capas del mapa",
+    "none": "Ninguna",
+    "noise": "Ruido",
+    "river": "Inundaciones de río",
+    "street": "Inundación en la calle",
+    "wildfire": "Incendios",
+    "hint": "Una capa cada vez, con su propia leyenda."
+  },
+  "advanced": {
+    "head": "Avanzado",
+    "intro": "Los valores exactos están en cada frase, en «Personalizado…». Aquí: cuánto cuenta cada riesgo climático y la escala de color.",
+    "howMuch": "Cuánto cuenta cada riesgo",
+    "flood": "Riesgo de inundación de río",
+    "fire": "Riesgo de incendio",
+    "street": "Riesgo de inundación en la calle",
+    "boost": "Aumentar el contraste en esta vista"
+  },
+  "strength": {
+    "enable": "Activar {{label}}",
+    "strength": "Peso de {{label}}",
+    "s1": "Poco importante",
+    "s2": "Algo importante",
+    "s3": "Cuenta",
+    "s4": "Importante",
+    "s5": "Máxima prioridad"
+  },
+  "legend": {
+    "bands": "Niveles de encaje",
+    "caption": "Cuánto cumplen las viviendas tus condiciones",
+    "scale": "Escala de color de la puntuación compuesta",
+    "relative": "Cuánto cumplen las viviendas tus condiciones, respecto a la zona visible",
+    "great": "Excelente",
+    "good": "Bueno",
+    "partial": "Parcial",
+    "poor": "Débil"
+  },
+  "best": {
+    "title": "Mejores zonas",
+    "needColours": "Activa los colores de encaje para ver tus mejores zonas.",
+    "show": "Mostrar mis mejores zonas",
+    "filters": "Filtros de búsqueda",
+    "filtersHint": "Los enlaces de zona reutilizan los filtros de esta búsqueda de Idealista:",
+    "looking": "Buscando tus mejores zonas…",
+    "count_one": "{{count}} mejor zona a la vista",
+    "count_many": "{{count}} mejores zonas a la vista",
+    "count_other": "{{count}} mejores zonas a la vista",
+    "none": "Ninguna zona encaja en esta vista. Aleja el mapa o pide más zonas.",
+    "top": "El {{pct}}% mejor de las viviendas, numeradas en el mapa.",
+    "fewer": "Menos zonas",
+    "more": "Más zonas",
+    "hide": "Ocultar",
+    "restrict": "Dentro de la zona de desplazamiento, fuera de las zonas de exclusión",
+    "paste": "Pega la URL de Idealista con tus filtros…",
+    "clear": "Borrar los filtros guardados",
+    "saved": "Filtros guardados",
+    "invalid": "URL no válida"
+  },
+  "search": {
+    "pill": "Buscar en el mapa de habitabilidad de Barcelona",
+    "field": "Buscar zona o dirección",
+    "aria": "Buscar una zona o dirección",
+    "close": "Cerrar la búsqueda",
+    "areas": "Zonas",
+    "addresses": "Direcciones",
+    "empty": "No se ha encontrado nada"
+  },
+  "mobile": {
+    "aboutMap": "Acerca del mapa de habitabilidad de Barcelona",
+    "aboutThis": "Acerca de este mapa",
+    "locate": "Mostrar mi ubicación",
+    "outside": "Estás fuera del área del mapa.",
+    "denied": "La ubicación está bloqueada. Permítela para este sitio en los ajustes del navegador.",
+    "failed": "No se encontró tu posición. Inténtalo de nuevo al aire libre o cerca de una ventana.",
+    "unsupported": "Este navegador no puede saber dónde estás.",
+    "sheet": "Condiciones y detalles",
+    "open": "Abrir el panel",
+    "expand": "Ampliar el panel",
+    "collapse": "Contraer el panel"
+  },
+  "tip": {
+    "area_one": "{{name}}: {{pct}}% de buen encaje · {{n}} vivienda",
+    "area_many": "{{name}}: {{pct}}% de buen encaje · {{n}} viviendas",
+    "area_other": "{{name}}: {{pct}}% de buen encaje · {{n}} viviendas",
+    "google": "🛰 Abrir en Google Maps",
+    "zone": "Abrir la zona {{n}} en Idealista ↗"
+  }
+}

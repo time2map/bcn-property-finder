@@ -3,22 +3,15 @@
  * scores 100, any other 0, fading over AGE_ERA_BLUR_YEARS at the edges of a liked era. The era names and the line
  * on what an era means for living there are written for the default bounds.
  */
+import i18n from '../../i18n'
+
 const BOUNDS = String(import.meta.env.VITE_AGE_ERA_BOUNDS ?? '1900,1940,1980,2007').split(',').map(Number)
 export const AGE_ERA_BLUR_YEARS = Number(import.meta.env.VITE_AGE_ERA_BLUR_YEARS ?? 5)
 /** Catastro's date for many old buildings whose exact year is unknown (9,695 buildings say 1900). */
 export const UNCERTAIN_YEAR = Number(import.meta.env.VITE_AGE_UNCERTAIN_YEAR ?? 1900)
 
-const TEXTS = [
-  { name: 'Historic', about: 'Old town and village cores: thick masonry walls, often no lift, small windows.' },
-  { name: 'Modernista & early 20th c.', about: 'Eixample heyday: high ceilings, mosaic floors, big windows; often renovated.' },
-  {
-    name: 'Post-war boom',
-    about: 'Fast mass housing: thin walls, no insulation (no thermal standard until 1979); aluminous-cement '
-      + 'floors in some 1950s–70s buildings.',
-  },
-  { name: 'First building standards', about: 'First thermal (1979) and acoustic (1981–88) standards.' },
-  { name: 'Current building code', about: 'Código Técnico (2006): insulation, soundproofing, accessibility.' },
-]
+// The texts of the five default eras are in the language files (conditions: era.e0 … e4).
+const DEFAULT_ERA_COUNT = 5
 
 export interface AgeEra {
   id: string
@@ -33,10 +26,19 @@ export interface AgeEra {
 
 export const AGE_ERAS: AgeEra[] = [-Infinity, ...BOUNDS].map((start, i) => {
   const end = BOUNDS[i] ?? Infinity
-  const years = start === -Infinity ? `before ${end}` : end === Infinity ? `${start} on` : `${start}–${end - 1}`
   const id = start === -Infinity ? `before-${end}` : end === Infinity ? `${start}-on` : `${start}-${end - 1}`
-  const text = BOUNDS.length === TEXTS.length - 1 ? TEXTS[i] : { name: years, about: '' }
-  return { id, years, start, end, ...text }
+  const known = BOUNDS.length === DEFAULT_ERA_COUNT - 1
+  // Texts are read when asked for, so they follow the page language.
+  return {
+    id, start, end,
+    get years() {
+      if (start === -Infinity) return i18n.t('conditions:era.before', { year: end })
+      if (end === Infinity) return i18n.t('conditions:era.on', { year: start })
+      return i18n.t('conditions:era.range', { from: start, to: end - 1 })
+    },
+    get name() { return known ? i18n.t(`conditions:era.e${i}.name` as never) as string : this.years },
+    get about() { return known ? i18n.t(`conditions:era.e${i}.about` as never) as string : '' },
+  }
 })
 
 export const ALL_AGE_ERA_IDS = AGE_ERAS.map((e) => e.id)

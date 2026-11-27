@@ -1,0 +1,25 @@
+{
+  "brand": {
+    "title": "Barcelona livability map",
+    "visit": "Visit time2map.com",
+    "share": "Share this map",
+    "search": "Search an area or address",
+    "short": "Barcelona livability map",
+    "menu": "Menu"
+  },
+  "share": {
+    "copied": "Link copied. It opens your map with your conditions.",
+    "copyFailed": "Could not copy. Copy the link from the address bar."
+  },
+  "language": {
+    "label": "Language",
+    "switch": "Change language"
+  },
+  "about": {
+    "title": "About",
+    "what": "Every home in Barcelona and its metropolitan area, coloured by how well it fits your own conditions: noise, walking distance to everyday services, access to the centre, price and climate risks.",
+    "madeBy": "Made by <brand>time2map</brand>. No account needed; your settings stay in this browser.",
+    "cta": { "text": "time2map builds maps and geodata projects to order. Want a map like this for your city or your company?", "button": "Let's talk" },
+    "data": "Data: Dirección General del Catastro, Ajuntament de Barcelona (Open Data BCN), Generalitat de Catalunya, ICGC, © OpenStreetMap contributors."
+  }
+}

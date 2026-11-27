@@ -1,0 +1,52 @@
+{
+  "title": "Encuentra tu edificio",
+  "badge": "Prototipo",
+  "intro": "{{homes}} viviendas en Barcelona. Elige lo que más te importa y después lo siguiente, cinco veces. Cada elección deja solo las mejores de las viviendas que quedan.",
+  "loading": "Cargando los edificios…",
+  "error": "No se han podido cargar los datos de los edificios.",
+  "sea": "A distancia a pie del mar",
+  "promptFirst": "¿Qué te importa más?",
+  "promptNext": "¿Y después?",
+  "step": "Paso {{n}} de {{total}}",
+  "left_one": "Queda {{count}} vivienda",
+  "left_other": "Quedan {{count}} viviendas",
+  "cannotCut": "Todas las viviendas que quedan ya lo tienen",
+  "back": "Atrás",
+  "restart": "Empezar de nuevo",
+  "close": "Cerrar",
+  "wish": {
+    "quiet": "Calle más tranquila",
+    "cheap": "Barrio más barato",
+    "centre": "Más cerca del centro",
+    "metro": "Metro cerca",
+    "park": "Parque cerca",
+    "shops": "Tiendas cerca",
+    "schools": "Escuelas cerca",
+    "bars": "Bares y restaurantes cerca",
+    "health": "Centro de salud cerca",
+    "new": "Edificio más nuevo",
+    "locals": "Un barrio que gusta a sus vecinos"
+  },
+  "fact": {
+    "quiet": "hasta {{value}} dB en la fachada a la calle",
+    "cheap": "precio del barrio hasta {{value}} €/m²",
+    "centre": "a {{value}} min a pie del centro como máximo",
+    "metro": "metro a {{value}} min como máximo",
+    "park": "parque a {{value}} min como máximo",
+    "shops": "supermercado y farmacia a {{value}} min como máximo",
+    "schools": "escuela y guardería a {{value}} min como máximo",
+    "bars": "café y restaurante a {{value}} min como máximo",
+    "health": "centro de salud a {{value}} min como máximo",
+    "new": "construido en {{value}} o después",
+    "locals": "los vecinos puntúan el barrio con {{value}} o más"
+  },
+  "result": {
+    "title": "Tu edificio está en {{barri}}",
+    "winner": "Una de las viviendas que mejor encajan con tu orden",
+    "near_one": "{{count}} vivienda más encaja casi igual: el punto naranja del mapa",
+    "near_other": "{{count}} viviendas más encajan casi igual: los puntos naranjas del mapa",
+    "rank": "el {{n}}% mejor de la ciudad",
+    "open": "Abrir su ficha",
+    "note": "Con estos datos es difícil distinguir las viviendas que encajan casi igual: tómala como una de las mejores para tu orden, no como la única."
+  }
+}

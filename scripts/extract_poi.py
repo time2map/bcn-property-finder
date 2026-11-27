@@ -27,7 +27,7 @@ closed_ways_are_polygons=aeroway,amenity,boundary,building,craft,geological,hist
 
 [points]
 osm_id=yes
-attributes=name,amenity,shop,leisure,station,railway,highway,public_transport,natural
+attributes=name,amenity,shop,leisure,station,railway,highway,public_transport,natural,surface
 unsignificant=created_by,converted_by,source,time,ele,attribution
 ignore=created_by,converted_by,source,time,note,fixme,FIXME
 other_tags=no
@@ -41,7 +41,7 @@ other_tags=no
 [multipolygons]
 osm_id=yes
 osm_way_id=yes
-attributes=name,amenity,shop,leisure,landuse,natural,aeroway
+attributes=name,amenity,shop,leisure,landuse,natural,aeroway,surface
 ignore=created_by,converted_by,source,time,note,fixme,FIXME
 other_tags=no
 
@@ -55,14 +55,21 @@ osm_id=yes
 other_tags=no
 """
 
+# OSM also tags paved pool decks and lifeguard areas natural=beach (e.g. way 1202318704, an asphalt pool in
+# Nou Barris, 3 km from the sea). A real beach is sand, gravel or untagged; paved surfaces are not beaches.
+BEACH_ARTIFICIAL_SURFACES = ("asphalt", "concrete", "paved", "paving_stones", "tartan", "artificial_turf", "wood")
+BEACH_WHERE = (
+    "natural='beach' AND (surface IS NULL OR surface NOT IN ("
+    + ",".join(f"'{s}'" for s in BEACH_ARTIFICIAL_SURFACES) + "))"
+)
+
 # POI point nodes (subway_entrance excluded — station=subway gives one node per station)
 POI_WHERE = (
     "amenity IN ('pharmacy','doctors','clinic','cafe','restaurant','kindergarten','school') "
-    "OR shop='supermarket' OR station='subway' OR natural='beach'"
+    "OR shop='supermarket' OR station='subway' OR (" + BEACH_WHERE + ")"
 )
 
 PARK_WHERE = "leisure='park' OR landuse='recreation_ground'"
-BEACH_WHERE = "natural='beach'"
 SCHOOL_WHERE = "amenity IN ('school', 'kindergarten')"
 
 

@@ -6,6 +6,7 @@ import { PMTiles } from 'pmtiles'
 import { VectorTile } from '@mapbox/vector-tile'
 import Pbf from 'pbf'
 import { lngLatToTile } from '../noise/noiseData'
+import { dataUrl } from '../dataUrl'
 
 const DETAIL_ZOOM = 14
 const CACHE_SIZE = 50
@@ -101,7 +102,7 @@ const cache = new Map<number, Promise<BuildingDetailResult>>()
 export function loadBuildingDetail(i: number, lng: number, lat: number): Promise<BuildingDetailResult> {
   const hit = cache.get(i)
   if (hit) return hit
-  pmtiles ??= new PMTiles(`${import.meta.env.BASE_URL}data/buildings-detail.pmtiles`)
+  pmtiles ??= new PMTiles(dataUrl('buildings-detail.pmtiles'))
   const { x, y } = lngLatToTile(lng, lat, DETAIL_ZOOM)
   const p = pmtiles.getZxy(DETAIL_ZOOM, x, y)
     .then((tile) => (tile ? readDetail(new VectorTile(new Pbf(tile.data)).layers, x, y, i) : { detail: null, facades: [] }))
